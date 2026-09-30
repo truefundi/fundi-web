@@ -8,12 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Fundi orange, matching the mobile app (constants/colors.ts)
         brand: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0284c7',
-          600: '#0284c7',
-          700: '#0369a1',
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          500: '#f97316',
+          600: '#ea580c',
+          700: '#c2410c',
         },
       },
     },
