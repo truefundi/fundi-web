@@ -88,6 +88,23 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
   }
 }
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+/** Turns an ApiResponse into data-or-throw, for callers like React Query that expect rejections. */
+export async function unwrap<T>(response: Promise<ApiResponse<T>>): Promise<T> {
+  const res = await response;
+  if (res.error) throw new ApiError(res.error, res.statusCode);
+  return res.data as T;
+}
+
 export const api = {
   get: <T>(endpoint: string, options?: RequestOptions) => request<T>(endpoint, { ...options, method: 'GET' }),
   post: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
