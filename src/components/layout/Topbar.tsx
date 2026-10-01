@@ -1,4 +1,5 @@
 import { Bell, Menu } from 'lucide-react';
+import { UserMenu } from './UserMenu';
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   return (
@@ -15,13 +16,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         <button className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Notifications">
           <Bell className="h-5 w-5" />
         </button>
-        {/* Placeholder until authentication is wired up */}
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-600">
-            AD
-          </span>
-          <span className="hidden text-sm font-medium text-slate-700 sm:block">Admin</span>
-        </div>
+        <UserMenu />
       </div>
     </header>
   );
