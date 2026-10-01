@@ -1,21 +1,19 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { AppShell } from '@/components/layout/AppShell';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Fundi Admin',
-    template: '%s | Fundi Admin',
+    default: 'Fundi | Tell us what is wrong. Fundi finds who can fix it.',
+    template: '%s | Fundi',
   },
-  description: 'Fundi skilled-service marketplace administration and operations portal.',
+  description:
+    'Fundi connects customers who need repairs with qualified, available technicians: electrical, plumbing, HVAC, appliance, car and home repair.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
-        <AppShell>{children}</AppShell>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

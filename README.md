@@ -28,7 +28,8 @@ npm run dev -- -p 3001   # start on port 3001
 npm run dev:open         # same, and opens the browser automatically
 ```
 
-* **Web Portal URL:** `http://localhost:3001`
+* **Public landing page:** `http://localhost:3001`
+* **Admin portal:** `http://localhost:3001/admin`
 
 > Port 3001 is used because the backend API defaults to port 3000 (`NEXT_PUBLIC_API_URL`).
 
@@ -66,22 +67,26 @@ fundi-web/
 │   └── dev-open.mjs            # Dev server launcher that opens the browser
 ├── src/
 │   ├── app/                    # Next.js App Router pages
-│   │   ├── layout.tsx          # Root layout (wraps pages in AppShell)
-│   │   ├── page.tsx            # Dashboard
-│   │   ├── loading.tsx         # Route loading fallback
+│   │   ├── layout.tsx          # Root layout (html/body, site metadata)
+│   │   ├── page.tsx            # Public landing page (/)
 │   │   ├── error.tsx           # Route error boundary
 │   │   ├── global-error.tsx    # Root layout error boundary
 │   │   ├── not-found.tsx       # 404 page
-│   │   ├── jobs/               # Admin sections (placeholders awaiting backend):
-│   │   ├── matching/           #   Operations: jobs, matching, disputes
-│   │   ├── disputes/
-│   │   ├── technicians/        #   People: technicians, customers
-│   │   ├── customers/
-│   │   ├── categories/         #   Business: categories, payments, service records
-│   │   ├── payments/
-│   │   ├── records/
-│   │   └── settings/           #   System: fees, commission, admin team
+│   │   └── admin/              # Admin portal (/admin), wrapped in AppShell
+│   │       ├── layout.tsx      # Sidebar + top bar for every admin page
+│   │       ├── page.tsx        # Dashboard
+│   │       ├── loading.tsx     # Admin loading fallback
+│   │       ├── jobs/           # Admin sections (placeholders awaiting backend):
+│   │       ├── matching/       #   Operations: jobs, matching, disputes
+│   │       ├── disputes/
+│   │       ├── technicians/    #   People: technicians, customers
+│   │       ├── customers/
+│   │       ├── categories/     #   Business: categories, payments, service records
+│   │       ├── payments/
+│   │       ├── records/
+│   │       └── settings/       #   System: fees, commission, admin team
 │   ├── components/
+│   │   ├── landing/            # Landing page sections; all copy lives in content.ts
 │   │   ├── layout/             # AppShell, Sidebar, Topbar, PlaceholderPage
 │   │   ├── dashboard/          # Dashboard widgets (pipeline, attention queue)
 │   │   └── ui/                 # Reusable UI: Button, Card, Badge, Spinner, StatCard, …
@@ -107,9 +112,12 @@ fundi-web/
 
 ## 5. Development Guide
 
-### Adding a page
-1. Create `src/app/<section>/page.tsx`.
+### Adding an admin page
+1. Create `src/app/admin/<section>/page.tsx`.
 2. Add it to the sidebar in `src/config/navigation.ts`.
+
+### Editing the landing page
+All landing page text (steps, benefits, FAQ, service descriptions) is in `src/components/landing/content.ts`. Store badges, company and legal links are placeholders until final content is available.
 
 ### Calling the API
 Add an endpoint module in `src/lib/api/endpoints/` and export it from `src/lib/api/index.ts`:

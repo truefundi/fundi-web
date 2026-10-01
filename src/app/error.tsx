@@ -9,8 +9,10 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
   }, [error]);
 
   return (
-    <Card>
-      <ErrorState message={error.message || 'An unexpected error occurred.'} onRetry={reset} />
-    </Card>
+    <div className="mx-auto max-w-2xl px-4 py-16">
+      <Card>
+        <ErrorState message={error.message || 'An unexpected error occurred.'} onRetry={reset} />
+      </Card>
+    </div>
   );
 }

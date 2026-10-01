@@ -15,25 +15,25 @@ const items: AttentionItem[] = [
     icon: BadgeCheck,
     label: 'Technicians awaiting verification',
     detail: 'New sign-ups that cannot receive jobs until approved',
-    href: '/technicians',
+    href: '/admin/technicians',
   },
   {
     icon: Hourglass,
     label: 'Unmatched requests',
     detail: 'Customers still waiting for a technician',
-    href: '/matching',
+    href: '/admin/matching',
   },
   {
     icon: Scale,
     label: 'Open disputes',
     detail: 'Jobs where the customer or technician raised an issue',
-    href: '/disputes',
+    href: '/admin/disputes',
   },
   {
     icon: HandCoins,
     label: 'Unsettled repairs',
     detail: 'Completed jobs with no recorded settlement method',
-    href: '/payments',
+    href: '/admin/payments',
   },
 ];
 

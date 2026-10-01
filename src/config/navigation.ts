@@ -29,33 +29,33 @@ export interface NavSection {
  */
 export const navigation: NavSection[] = [
   {
-    items: [{ label: 'Dashboard', href: '/', icon: LayoutDashboard }],
+    items: [{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }],
   },
   {
     title: 'Operations',
     items: [
-      { label: 'Jobs', href: '/jobs', icon: Briefcase },
-      { label: 'Matching', href: '/matching', icon: Shuffle },
-      { label: 'Disputes', href: '/disputes', icon: Scale },
+      { label: 'Jobs', href: '/admin/jobs', icon: Briefcase },
+      { label: 'Matching', href: '/admin/matching', icon: Shuffle },
+      { label: 'Disputes', href: '/admin/disputes', icon: Scale },
     ],
   },
   {
     title: 'People',
     items: [
-      { label: 'Technicians', href: '/technicians', icon: HardHat },
-      { label: 'Customers', href: '/customers', icon: Users },
+      { label: 'Technicians', href: '/admin/technicians', icon: HardHat },
+      { label: 'Customers', href: '/admin/customers', icon: Users },
     ],
   },
   {
     title: 'Business',
     items: [
-      { label: 'Categories', href: '/categories', icon: Tags },
-      { label: 'Payments', href: '/payments', icon: CreditCard },
-      { label: 'Service Records', href: '/records', icon: FileText },
+      { label: 'Categories', href: '/admin/categories', icon: Tags },
+      { label: 'Payments', href: '/admin/payments', icon: CreditCard },
+      { label: 'Service Records', href: '/admin/records', icon: FileText },
     ],
   },
   {
     title: 'System',
-    items: [{ label: 'Settings', href: '/settings', icon: Settings }],
+    items: [{ label: 'Settings', href: '/admin/settings', icon: Settings }],
   },
 ];

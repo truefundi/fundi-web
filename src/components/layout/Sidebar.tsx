@@ -7,7 +7,7 @@ import { navigation } from '@/config/navigation';
 import { cn } from '@/lib/utils';
 
 function isActive(pathname: string, href: string): boolean {
-  return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+  return href === '/admin' ? pathname === '/admin' : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -29,7 +29,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
         )}
       >
         <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
-          <Link href="/" className="flex items-center gap-2.5" onClick={onClose}>
+          <Link href="/admin" className="flex items-center gap-2.5" onClick={onClose}>
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-lg font-bold text-white">
               F
             </span>
