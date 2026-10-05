@@ -14,15 +14,25 @@ const tones: Record<BadgeTone, string> = {
 
 export function Badge({
   tone = 'neutral',
+  icon,
   className,
   children,
 }: {
   tone?: BadgeTone;
+  /** Optional leading icon, so status is never conveyed by colour alone. */
+  icon?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', tones[tone], className)}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium',
+        tones[tone],
+        className,
+      )}
+    >
+      {icon}
       {children}
     </span>
   );

@@ -1,0 +1,693 @@
+[
+  {
+    "id": "tec_001",
+    "name": "Sandrine Twagirayezu",
+    "phone": "+250734805073",
+    "email": "sandrine.twagirayezu@example.com",
+    "status": "active",
+    "location": "Kimironko, Gasabo",
+    "createdAt": "2026-09-17T09:00:00.000Z",
+    "lastActiveAt": "2026-09-29T22:00:00.000Z",
+    "trades": [
+      "Truck & Mechanical"
+    ],
+    "yearsExperience": 10,
+    "rating": 4.3,
+    "jobsCompleted": 133,
+    "isAvailable": true,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Truck%20%26%20Mechanical%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Truck%20%26%20Mechanical%20Certificate%202"
+      ],
+      "submittedAt": "2026-09-17T22:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Sandrine%20Twagirayezu",
+      "reviewedAt": "2026-09-19T01:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 20,
+      "maxJobsPerDay": 6,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_002",
+    "name": "Aimable Mutesi",
+    "phone": "+250739907060",
+    "email": "aimable.mutesi@example.com",
+    "status": "active",
+    "location": "Niboye, Kicukiro",
+    "createdAt": "2025-10-15T09:00:00.000Z",
+    "lastActiveAt": "2026-09-27T08:00:00.000Z",
+    "trades": [
+      "Electrical"
+    ],
+    "yearsExperience": 17,
+    "rating": 4.6,
+    "jobsCompleted": 222,
+    "isAvailable": true,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Electrical%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Electrical%20Certificate%202",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Electrical%20Certificate%203"
+      ],
+      "submittedAt": "2026-09-15T21:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Aimable%20Mutesi",
+      "reviewedAt": "2026-09-17T06:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 40,
+      "maxJobsPerDay": 2,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_003",
+    "name": "Eric Ingabire",
+    "phone": "+250784933540",
+    "email": "eric.ingabire@example.com",
+    "status": "active",
+    "location": "Nyabugogo, Nyarugenge",
+    "createdAt": "2026-06-28T09:00:00.000Z",
+    "lastActiveAt": "2026-09-28T04:00:00.000Z",
+    "trades": [
+      "Truck & Mechanical"
+    ],
+    "yearsExperience": 12,
+    "rating": 4.1,
+    "jobsCompleted": 94,
+    "isAvailable": false,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Truck%20%26%20Mechanical%20Certificate%201"
+      ],
+      "submittedAt": "2026-09-08T04:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Eric%20Ingabire",
+      "reviewedAt": "2026-09-09T02:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 20,
+      "maxJobsPerDay": 2,
+      "hours": "evenings"
+    }
+  },
+  {
+    "id": "tec_004",
+    "name": "Theogene Mukamana",
+    "phone": "+250788459883",
+    "email": "theogene.mukamana@example.com",
+    "status": "suspended",
+    "location": "Kimironko, Gasabo",
+    "createdAt": "2026-03-19T09:00:00.000Z",
+    "lastActiveAt": "2026-09-22T00:00:00.000Z",
+    "trades": [
+      "Appliance Repair"
+    ],
+    "yearsExperience": 3,
+    "rating": 4,
+    "jobsCompleted": 95,
+    "isAvailable": false,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%201"
+      ],
+      "submittedAt": "2026-09-02T08:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Theogene%20Mukamana",
+      "reviewedAt": "2026-09-03T07:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 10,
+      "maxJobsPerDay": 6,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_005",
+    "name": "Eric Kayitare",
+    "phone": "+250737303080",
+    "status": "active",
+    "location": "Kanombe, Kicukiro",
+    "createdAt": "2025-12-29T09:00:00.000Z",
+    "lastActiveAt": "2026-09-23T04:00:00.000Z",
+    "trades": [
+      "Home Repair"
+    ],
+    "yearsExperience": 8,
+    "rating": 4.5,
+    "jobsCompleted": 146,
+    "isAvailable": false,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Home%20Repair%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Home%20Repair%20Certificate%202"
+      ],
+      "submittedAt": "2026-09-13T00:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Eric%20Kayitare",
+      "reviewedAt": "2026-09-14T01:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 20,
+      "maxJobsPerDay": 4,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_006",
+    "name": "Samuel Mugisha",
+    "phone": "+250799579239",
+    "email": "samuel.mugisha@example.com",
+    "status": "active",
+    "location": "Nyamirambo, Nyarugenge",
+    "createdAt": "2026-01-12T09:00:00.000Z",
+    "lastActiveAt": "2026-09-25T09:00:00.000Z",
+    "trades": [
+      "General Maintenance",
+      "Appliance Repair"
+    ],
+    "yearsExperience": 17,
+    "rating": 4.5,
+    "jobsCompleted": 50,
+    "isAvailable": true,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%201"
+      ],
+      "submittedAt": "2026-09-17T08:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Samuel%20Mugisha",
+      "reviewedAt": "2026-09-18T06:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 10,
+      "maxJobsPerDay": 4,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_007",
+    "name": "Emmanuel Ingabire",
+    "phone": "+250786622353",
+    "status": "active",
+    "location": "Kacyiru, Gasabo",
+    "createdAt": "2025-10-30T09:00:00.000Z",
+    "lastActiveAt": "2026-09-21T01:00:00.000Z",
+    "trades": [
+      "Truck & Mechanical",
+      "HVAC"
+    ],
+    "yearsExperience": 16,
+    "rating": 4.9,
+    "jobsCompleted": 213,
+    "isAvailable": true,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Truck%20%26%20Mechanical%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Truck%20%26%20Mechanical%20Certificate%202"
+      ],
+      "submittedAt": "2026-09-16T01:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Emmanuel%20Ingabire",
+      "reviewedAt": "2026-09-17T08:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 10,
+      "maxJobsPerDay": 4,
+      "hours": "evenings"
+    }
+  },
+  {
+    "id": "tec_008",
+    "name": "Christian Mugisha",
+    "phone": "+250736202068",
+    "email": "christian.mugisha@example.com",
+    "status": "active",
+    "location": "Kimironko, Gasabo",
+    "createdAt": "2026-09-02T09:00:00.000Z",
+    "lastActiveAt": "2026-09-26T01:00:00.000Z",
+    "trades": [
+      "HVAC"
+    ],
+    "yearsExperience": 16,
+    "rating": 4.5,
+    "jobsCompleted": 67,
+    "isAvailable": false,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=HVAC%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=HVAC%20Certificate%202",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=HVAC%20Certificate%203"
+      ],
+      "submittedAt": "2026-09-10T01:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Christian%20Mugisha",
+      "reviewedAt": "2026-09-11T03:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 40,
+      "maxJobsPerDay": 6,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_009",
+    "name": "Esperance Mukamana",
+    "phone": "+250722665918",
+    "email": "esperance.mukamana@example.com",
+    "status": "active",
+    "location": "Kibagabaga, Gasabo",
+    "createdAt": "2026-09-01T09:00:00.000Z",
+    "lastActiveAt": "2026-09-25T23:00:00.000Z",
+    "trades": [
+      "Home Repair"
+    ],
+    "yearsExperience": 15,
+    "rating": 3.9,
+    "jobsCompleted": 231,
+    "isAvailable": false,
+    "verification": {
+      "status": "verified",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Home%20Repair%20Certificate%201"
+      ],
+      "submittedAt": "2026-09-08T09:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Esperance%20Mukamana",
+      "reviewedAt": "2026-09-09T09:00:00.000Z",
+      "reviewedBy": "Fundi Admin"
+    },
+    "workSettings": {
+      "radiusKm": 40,
+      "maxJobsPerDay": 6,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_010",
+    "name": "Aline Ndayisaba",
+    "phone": "+250795196816",
+    "status": "active",
+    "location": "Gisozi, Gasabo",
+    "createdAt": "2026-03-23T09:00:00.000Z",
+    "lastActiveAt": "2026-09-29T10:00:00.000Z",
+    "trades": [
+      "Plumbing"
+    ],
+    "yearsExperience": 4,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "pending",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Plumbing%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Plumbing%20Certificate%202",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Plumbing%20Certificate%203"
+      ],
+      "submittedAt": "2026-09-03T00:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Aline%20Ndayisaba"
+    },
+    "workSettings": {
+      "radiusKm": 40,
+      "maxJobsPerDay": 8,
+      "hours": "evenings"
+    }
+  },
+  {
+    "id": "tec_011",
+    "name": "Thierry Mukamana",
+    "phone": "+250798959839",
+    "email": "thierry.mukamana@example.com",
+    "status": "active",
+    "location": "Muhima, Nyarugenge",
+    "createdAt": "2026-01-15T09:00:00.000Z",
+    "lastActiveAt": "2026-09-20T03:00:00.000Z",
+    "trades": [
+      "General Maintenance"
+    ],
+    "yearsExperience": 8,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "pending",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%202",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%203"
+      ],
+      "submittedAt": "2026-09-24T09:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Thierry%20Mukamana"
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 2,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_012",
+    "name": "Mireille Rukundo",
+    "phone": "+250732292798",
+    "email": "mireille.rukundo@example.com",
+    "status": "suspended",
+    "location": "Remera, Gasabo",
+    "createdAt": "2026-08-14T09:00:00.000Z",
+    "lastActiveAt": "2026-09-26T10:00:00.000Z",
+    "trades": [
+      "General Maintenance"
+    ],
+    "yearsExperience": 9,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "pending",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%202"
+      ],
+      "submittedAt": "2026-09-22T00:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Mireille%20Rukundo"
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 6,
+      "hours": "always"
+    }
+  },
+  {
+    "id": "tec_013",
+    "name": "Nadine Kayitare",
+    "phone": "+250794264871",
+    "email": "nadine.kayitare@example.com",
+    "status": "active",
+    "location": "Gisozi, Gasabo",
+    "createdAt": "2026-06-07T09:00:00.000Z",
+    "lastActiveAt": "2026-09-23T09:00:00.000Z",
+    "trades": [
+      "Appliance Repair"
+    ],
+    "yearsExperience": 15,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "pending",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%202"
+      ],
+      "submittedAt": "2026-09-03T04:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Nadine%20Kayitare"
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 8,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_014",
+    "name": "Diane Umutoni",
+    "phone": "+250737449632",
+    "email": "diane.umutoni@example.com",
+    "status": "active",
+    "location": "Kimironko, Gasabo",
+    "createdAt": "2025-12-31T09:00:00.000Z",
+    "lastActiveAt": "2026-09-22T14:00:00.000Z",
+    "trades": [
+      "HVAC",
+      "Home Repair"
+    ],
+    "yearsExperience": 14,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "pending",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=HVAC%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=HVAC%20Certificate%202"
+      ],
+      "submittedAt": "2026-09-21T23:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Diane%20Umutoni"
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 6,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_015",
+    "name": "Divine Iradukunda",
+    "phone": "+250733461938",
+    "email": "divine.iradukunda@example.com",
+    "status": "active",
+    "location": "Nyabugogo, Nyarugenge",
+    "createdAt": "2026-03-23T09:00:00.000Z",
+    "lastActiveAt": "2026-09-21T10:00:00.000Z",
+    "trades": [
+      "General Maintenance",
+      "Plumbing"
+    ],
+    "yearsExperience": 5,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "pending",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%202",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=General%20Maintenance%20Certificate%203"
+      ],
+      "submittedAt": "2026-09-26T00:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Divine%20Iradukunda"
+    },
+    "workSettings": {
+      "radiusKm": 20,
+      "maxJobsPerDay": 8,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_016",
+    "name": "Solange Mugisha",
+    "phone": "+250737063033",
+    "email": "solange.mugisha@example.com",
+    "status": "active",
+    "location": "Kacyiru, Gasabo",
+    "createdAt": "2026-06-18T09:00:00.000Z",
+    "lastActiveAt": "2026-09-26T07:00:00.000Z",
+    "trades": [
+      "Plumbing"
+    ],
+    "yearsExperience": 13,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "rejected",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Plumbing%20Certificate%201"
+      ],
+      "submittedAt": "2026-09-09T22:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Solange%20Mugisha",
+      "reviewedAt": "2026-09-11T09:00:00.000Z",
+      "reviewedBy": "Fundi Admin",
+      "rejectionReason": "National ID photo is blurry — please re-upload a clear photo of both sides."
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 2,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_017",
+    "name": "Innocent Uwamahoro",
+    "phone": "+250721770046",
+    "email": "innocent.uwamahoro@example.com",
+    "status": "active",
+    "location": "Kibagabaga, Gasabo",
+    "createdAt": "2026-08-30T09:00:00.000Z",
+    "lastActiveAt": "2026-09-20T22:00:00.000Z",
+    "trades": [
+      "Appliance Repair"
+    ],
+    "yearsExperience": 12,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "rejected",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%201",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%202",
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%203"
+      ],
+      "submittedAt": "2026-09-20T04:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Innocent%20Uwamahoro",
+      "reviewedAt": "2026-09-21T04:00:00.000Z",
+      "reviewedBy": "Fundi Admin",
+      "rejectionReason": "Certificate name does not match the account name."
+    },
+    "workSettings": {
+      "radiusKm": 10,
+      "maxJobsPerDay": 6,
+      "hours": "mornings"
+    }
+  },
+  {
+    "id": "tec_018",
+    "name": "Gilbert Kayitare",
+    "phone": "+250785340574",
+    "email": "gilbert.kayitare@example.com",
+    "status": "active",
+    "location": "Muhima, Nyarugenge",
+    "createdAt": "2026-02-26T09:00:00.000Z",
+    "lastActiveAt": "2026-09-26T04:00:00.000Z",
+    "trades": [
+      "Appliance Repair"
+    ],
+    "yearsExperience": 11,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "rejected",
+      "certificateUrls": [
+        "https://placehold.co/800x520/fff7ed/c2410c/png?text=Appliance%20Repair%20Certificate%201"
+      ],
+      "submittedAt": "2026-09-09T03:00:00.000Z",
+      "idDocumentUrl": "https://placehold.co/800x520/fff7ed/c2410c/png?text=National%20ID%20-%20Gilbert%20Kayitare",
+      "reviewedAt": "2026-09-10T02:00:00.000Z",
+      "reviewedBy": "Fundi Admin",
+      "rejectionReason": "Certificate appears expired. Upload a current certificate."
+    },
+    "workSettings": {
+      "radiusKm": 40,
+      "maxJobsPerDay": 2,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_019",
+    "name": "Pacifique Umuhoza",
+    "phone": "+250798913802",
+    "email": "pacifique.umuhoza@example.com",
+    "status": "active",
+    "location": "Muhima, Nyarugenge",
+    "createdAt": "2026-05-11T09:00:00.000Z",
+    "lastActiveAt": "2026-09-26T16:00:00.000Z",
+    "trades": [
+      "Home Repair"
+    ],
+    "yearsExperience": 4,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "not_submitted",
+      "certificateUrls": []
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 6,
+      "hours": "days"
+    }
+  },
+  {
+    "id": "tec_020",
+    "name": "Gad Ingabire",
+    "phone": "+250780859731",
+    "email": "gad.ingabire@example.com",
+    "status": "active",
+    "location": "Gikondo, Kicukiro",
+    "createdAt": "2026-02-12T09:00:00.000Z",
+    "lastActiveAt": "2026-09-23T16:00:00.000Z",
+    "trades": [
+      "Car & Garage",
+      "Home Repair"
+    ],
+    "yearsExperience": 8,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "not_submitted",
+      "certificateUrls": []
+    },
+    "workSettings": {
+      "radiusKm": 5,
+      "maxJobsPerDay": 2,
+      "hours": "always"
+    }
+  },
+  {
+    "id": "tec_021",
+    "name": "Christian Nyirahabimana",
+    "phone": "+250726870768",
+    "email": "christian.nyirahabimana@example.com",
+    "status": "inactive",
+    "location": "Gikondo, Kicukiro",
+    "createdAt": "2026-08-07T09:00:00.000Z",
+    "lastActiveAt": "2026-09-24T16:00:00.000Z",
+    "trades": [
+      "Plumbing"
+    ],
+    "yearsExperience": 8,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "not_submitted",
+      "certificateUrls": []
+    },
+    "workSettings": {
+      "radiusKm": 20,
+      "maxJobsPerDay": 2,
+      "hours": "always"
+    }
+  },
+  {
+    "id": "tec_022",
+    "name": "Emile Mukeshimana",
+    "phone": "+250790633177",
+    "status": "active",
+    "location": "Kanombe, Kicukiro",
+    "createdAt": "2025-10-08T09:00:00.000Z",
+    "lastActiveAt": "2026-09-21T12:00:00.000Z",
+    "trades": [
+      "HVAC",
+      "General Maintenance"
+    ],
+    "yearsExperience": 13,
+    "rating": 0,
+    "jobsCompleted": 0,
+    "isAvailable": false,
+    "verification": {
+      "status": "not_submitted",
+      "certificateUrls": []
+    },
+    "workSettings": {
+      "radiusKm": 10,
+      "maxJobsPerDay": 8,
+      "hours": "evenings"
+    }
+  }
+]

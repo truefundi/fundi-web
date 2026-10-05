@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: {
@@ -10,10 +11,14 @@ export const metadata: Metadata = {
     'Fundi connects customers who need repairs with qualified, available technicians: electrical, plumbing, HVAC, appliance, car and home repair.',
 };
 
+// The admin sidebar and top bar (AppShell) are added in src/app/admin/layout.tsx,
+// so the public landing page is not wrapped in them.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
