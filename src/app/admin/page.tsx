@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/ui';
-import { AccountsSummary } from '@/components/dashboard/AccountsSummary';
 import { AttentionQueue } from '@/components/dashboard/AttentionQueue';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { JobPipeline } from '@/components/dashboard/JobPipeline';
+import { JobsSummary } from '@/components/dashboard/JobsSummary';
 import { VerificationQueue } from '@/components/dashboard/VerificationQueue';
 
 // The root layout's title template only applies to child routes, so set the full title here.
@@ -20,7 +20,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <VerificationQueue />
         </div>
-        <AccountsSummary />
+        <JobsSummary />
       </div>
 
       <div className="mt-6">

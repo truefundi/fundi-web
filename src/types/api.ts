@@ -35,10 +35,22 @@ export interface TechnicianQuery extends ListQuery {
 }
 
 export interface AdminStats {
+  /** Customers and technicians together. */
+  totalUsers: number;
   totalCustomers: number;
   totalTechnicians: number;
   pendingVerifications: number;
   suspendedAccounts: number;
+}
+
+/**
+ * Job counts for the dashboard. `null` means the jobs API cannot provide that
+ * figure yet, so the dashboard shows a placeholder instead of a wrong number.
+ */
+export interface JobSummary {
+  active: number | null;
+  completed: number | null;
+  openDisputes: number | null;
 }
 
 export type ServiceState ='up' | 'down' | 'degraded';

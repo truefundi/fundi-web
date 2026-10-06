@@ -37,6 +37,7 @@ export const customersApi = {
     await delay();
     const accounts = [...mockDb.customers, ...mockDb.technicians];
     return {
+      totalUsers: accounts.length,
       totalCustomers: mockDb.customers.length,
       totalTechnicians: mockDb.technicians.length,
       pendingVerifications: mockDb.technicians.filter((t) => t.verification.status === 'pending').length,
