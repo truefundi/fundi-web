@@ -1,0 +1,3123 @@
+[
+  {
+    "id": "job_001",
+    "reference": "FD-1041",
+    "service": "Plumbing",
+    "problem": "Leaking pipe under the kitchen sink",
+    "urgency": "Today",
+    "location": "Kinyinya, Gasabo",
+    "customer": {
+      "id": "usr_001",
+      "name": "Jean Ndayisaba",
+      "phone": "+250733762239"
+    },
+    "status": "REQUESTED",
+    "createdAt": "2026-10-05T08:31:12.000Z",
+    "updatedAt": "2026-10-05T08:31:12.000Z",
+    "visitFee": 75,
+    "events": [
+      {
+        "id": "evt_001_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: leaking pipe under the kitchen sink.",
+        "at": "2026-10-05T08:31:12.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_002",
+    "reference": "FD-1042",
+    "service": "Plumbing",
+    "problem": "No hot water from the water heater",
+    "urgency": "Emergency",
+    "location": "Remera, Gasabo",
+    "customer": {
+      "id": "usr_008",
+      "name": "Solange Bizimana",
+      "phone": "+250728107815"
+    },
+    "status": "MATCHING",
+    "createdAt": "2026-10-05T07:04:48.000Z",
+    "updatedAt": "2026-10-05T07:06:48.000Z",
+    "visitFee": 110,
+    "events": [
+      {
+        "id": "evt_002_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: no hot water from the water heater.",
+        "at": "2026-10-05T07:04:48.000Z"
+      },
+      {
+        "id": "evt_002_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T07:06:48.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_003",
+    "reference": "FD-1043",
+    "service": "Car & Garage",
+    "problem": "Car will not start, only a clicking sound",
+    "urgency": "Today",
+    "location": "Kicukiro Centre, Kicukiro",
+    "customer": {
+      "id": "usr_015",
+      "name": "Solange Uwase",
+      "phone": "+250732536078"
+    },
+    "status": "MATCHING",
+    "createdAt": "2026-10-05T05:24:00.000Z",
+    "updatedAt": "2026-10-05T05:26:00.000Z",
+    "visitFee": 75,
+    "events": [
+      {
+        "id": "evt_003_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: car will not start, only a clicking sound.",
+        "at": "2026-10-05T05:24:00.000Z"
+      },
+      {
+        "id": "evt_003_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T05:26:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_004",
+    "reference": "FD-1044",
+    "service": "Electrical",
+    "problem": "Outside security light stopped working",
+    "urgency": "Schedule",
+    "location": "Niboye, Kicukiro",
+    "customer": {
+      "id": "usr_022",
+      "name": "Grace Mutesi",
+      "phone": "+250723375822"
+    },
+    "status": "REQUESTED",
+    "createdAt": "2026-10-05T08:45:36.000Z",
+    "updatedAt": "2026-10-05T08:45:36.000Z",
+    "visitFee": 75,
+    "events": [
+      {
+        "id": "evt_004_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: outside security light stopped working.",
+        "at": "2026-10-05T08:45:36.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_005",
+    "reference": "FD-1045",
+    "service": "HVAC",
+    "problem": "Air conditioner blowing warm air",
+    "urgency": "Today",
+    "location": "Kanombe, Kicukiro",
+    "customer": {
+      "id": "usr_003",
+      "name": "Patrick Mutesi",
+      "phone": "+250797370189"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "status": "OFFERED",
+    "createdAt": "2026-10-05T08:02:24.000Z",
+    "updatedAt": "2026-10-05T08:08:24.000Z",
+    "visitFee": 75,
+    "events": [
+      {
+        "id": "evt_005_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: air conditioner blowing warm air.",
+        "at": "2026-10-05T08:02:24.000Z"
+      },
+      {
+        "id": "evt_005_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T08:04:24.000Z"
+      },
+      {
+        "id": "evt_005_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Emmanuel Ingabire.",
+        "at": "2026-10-05T08:08:24.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_006",
+    "reference": "FD-1046",
+    "service": "Appliance Repair",
+    "problem": "Washing machine will not drain",
+    "urgency": "Schedule",
+    "location": "Gikondo, Kicukiro",
+    "customer": {
+      "id": "usr_010",
+      "name": "Sandrine Nyirahabimana",
+      "phone": "+250734408235"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "OFFERED",
+    "createdAt": "2026-10-05T01:48:00.000Z",
+    "updatedAt": "2026-10-05T01:54:00.000Z",
+    "visitFee": 75,
+    "events": [
+      {
+        "id": "evt_006_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: washing machine will not drain.",
+        "at": "2026-10-05T01:48:00.000Z"
+      },
+      {
+        "id": "evt_006_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T01:50:00.000Z"
+      },
+      {
+        "id": "evt_006_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-10-05T01:54:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_007",
+    "reference": "FD-1047",
+    "service": "Electrical",
+    "problem": "Kitchen sockets stopped working",
+    "urgency": "Today",
+    "location": "Gikondo, Kicukiro",
+    "customer": {
+      "id": "usr_017",
+      "name": "Chantal Nshimiyimana",
+      "phone": "+250785893090"
+    },
+    "technician": {
+      "id": "tec_002",
+      "name": "Aimable Mutesi",
+      "phone": "+250739907060"
+    },
+    "status": "ACCEPTED",
+    "createdAt": "2026-10-05T06:07:12.000Z",
+    "updatedAt": "2026-10-05T06:16:12.000Z",
+    "visitFee": 75,
+    "events": [
+      {
+        "id": "evt_007_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: kitchen sockets stopped working.",
+        "at": "2026-10-05T06:07:12.000Z"
+      },
+      {
+        "id": "evt_007_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T06:09:12.000Z"
+      },
+      {
+        "id": "evt_007_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Aimable Mutesi.",
+        "at": "2026-10-05T06:13:12.000Z"
+      },
+      {
+        "id": "evt_007_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Aimable Mutesi accepted the job.",
+        "at": "2026-10-05T06:16:12.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_008",
+    "reference": "FD-1048",
+    "service": "Home Repair",
+    "problem": "Front door lock is broken",
+    "urgency": "Schedule",
+    "location": "Kiyovu, Nyarugenge",
+    "customer": {
+      "id": "usr_024",
+      "name": "Clarisse Mugisha",
+      "phone": "+250728157601"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "status": "VISIT_PAID",
+    "createdAt": "2026-10-04T21:00:00.000Z",
+    "updatedAt": "2026-10-04T21:13:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Card",
+    "events": [
+      {
+        "id": "evt_008_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: front door lock is broken.",
+        "at": "2026-10-04T21:00:00.000Z"
+      },
+      {
+        "id": "evt_008_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-04T21:02:00.000Z"
+      },
+      {
+        "id": "evt_008_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Esperance Mukamana.",
+        "at": "2026-10-04T21:06:00.000Z"
+      },
+      {
+        "id": "evt_008_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Esperance Mukamana accepted the job.",
+        "at": "2026-10-04T21:09:00.000Z"
+      },
+      {
+        "id": "evt_008_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Card.",
+        "at": "2026-10-04T21:13:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_009",
+    "reference": "FD-1049",
+    "service": "Truck & Mechanical",
+    "problem": "Truck losing power on hills",
+    "urgency": "Emergency",
+    "location": "Kicukiro Centre, Kicukiro",
+    "customer": {
+      "id": "usr_005",
+      "name": "Ange Rukundo",
+      "phone": "+250733756331"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "status": "EN_ROUTE",
+    "createdAt": "2026-10-05T07:33:36.000Z",
+    "updatedAt": "2026-10-05T07:52:36.000Z",
+    "visitFee": 110,
+    "visitPaymentMethod": "Fundi Wallet",
+    "events": [
+      {
+        "id": "evt_009_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: truck losing power on hills.",
+        "at": "2026-10-05T07:33:36.000Z"
+      },
+      {
+        "id": "evt_009_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T07:35:36.000Z"
+      },
+      {
+        "id": "evt_009_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Emmanuel Ingabire.",
+        "at": "2026-10-05T07:39:36.000Z"
+      },
+      {
+        "id": "evt_009_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Emmanuel Ingabire accepted the job.",
+        "at": "2026-10-05T07:42:36.000Z"
+      },
+      {
+        "id": "evt_009_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $110 visit fee by Fundi Wallet.",
+        "at": "2026-10-05T07:46:36.000Z"
+      },
+      {
+        "id": "evt_009_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Emmanuel Ingabire is on the way.",
+        "at": "2026-10-05T07:52:36.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_010",
+    "reference": "FD-1050",
+    "service": "Appliance Repair",
+    "problem": "Fridge is not cooling",
+    "urgency": "Today",
+    "location": "Kimironko, Gasabo",
+    "customer": {
+      "id": "usr_012",
+      "name": "Gilbert Mukeshimana",
+      "phone": "+250724897635"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "ARRIVED",
+    "createdAt": "2026-10-05T06:50:24.000Z",
+    "updatedAt": "2026-10-05T07:37:24.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Mobile Money",
+    "events": [
+      {
+        "id": "evt_010_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: fridge is not cooling.",
+        "at": "2026-10-05T06:50:24.000Z"
+      },
+      {
+        "id": "evt_010_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T06:52:24.000Z"
+      },
+      {
+        "id": "evt_010_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-10-05T06:56:24.000Z"
+      },
+      {
+        "id": "evt_010_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Samuel Mugisha accepted the job.",
+        "at": "2026-10-05T06:59:24.000Z"
+      },
+      {
+        "id": "evt_010_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Mobile Money.",
+        "at": "2026-10-05T07:03:24.000Z"
+      },
+      {
+        "id": "evt_010_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Samuel Mugisha is on the way.",
+        "at": "2026-10-05T07:09:24.000Z"
+      },
+      {
+        "id": "evt_010_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Samuel Mugisha arrived at Kimironko, Gasabo.",
+        "at": "2026-10-05T07:37:24.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_011",
+    "reference": "FD-1051",
+    "service": "HVAC",
+    "problem": "AC unit leaking water indoors",
+    "urgency": "Today",
+    "location": "Nyabugogo, Nyarugenge",
+    "customer": {
+      "id": "usr_019",
+      "name": "Vestine Ndayisaba",
+      "phone": "+250799128913"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "status": "DIAGNOSING",
+    "createdAt": "2026-10-05T04:12:00.000Z",
+    "updatedAt": "2026-10-05T05:03:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Card",
+    "events": [
+      {
+        "id": "evt_011_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: ac unit leaking water indoors.",
+        "at": "2026-10-05T04:12:00.000Z"
+      },
+      {
+        "id": "evt_011_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T04:14:00.000Z"
+      },
+      {
+        "id": "evt_011_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Emmanuel Ingabire.",
+        "at": "2026-10-05T04:18:00.000Z"
+      },
+      {
+        "id": "evt_011_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Emmanuel Ingabire accepted the job.",
+        "at": "2026-10-05T04:21:00.000Z"
+      },
+      {
+        "id": "evt_011_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Card.",
+        "at": "2026-10-05T04:25:00.000Z"
+      },
+      {
+        "id": "evt_011_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Emmanuel Ingabire is on the way.",
+        "at": "2026-10-05T04:31:00.000Z"
+      },
+      {
+        "id": "evt_011_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Emmanuel Ingabire arrived at Nyabugogo, Nyarugenge.",
+        "at": "2026-10-05T04:59:00.000Z"
+      },
+      {
+        "id": "evt_011_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-05T05:03:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_012",
+    "reference": "FD-1052",
+    "service": "Home Repair",
+    "problem": "Bedroom door will not lock",
+    "urgency": "Today",
+    "location": "Niboye, Kicukiro",
+    "customer": {
+      "id": "usr_026",
+      "name": "Kevin Uwase",
+      "phone": "+250734986236"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "status": "QUOTE_PENDING",
+    "createdAt": "2026-10-04T23:24:00.000Z",
+    "updatedAt": "2026-10-05T00:46:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Fundi Wallet",
+    "quote": {
+      "diagnosis": "Damaged lock cylinder and misaligned strike plate.",
+      "parts": [
+        {
+          "label": "Lock cylinder",
+          "quantity": 1,
+          "unitPrice": 32
+        },
+        {
+          "label": "Strike plate",
+          "quantity": 1,
+          "unitPrice": 9
+        }
+      ],
+      "labour": 30
+    },
+    "events": [
+      {
+        "id": "evt_012_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: bedroom door will not lock.",
+        "at": "2026-10-04T23:24:00.000Z"
+      },
+      {
+        "id": "evt_012_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-04T23:26:00.000Z"
+      },
+      {
+        "id": "evt_012_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Esperance Mukamana.",
+        "at": "2026-10-04T23:30:00.000Z"
+      },
+      {
+        "id": "evt_012_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Esperance Mukamana accepted the job.",
+        "at": "2026-10-04T23:33:00.000Z"
+      },
+      {
+        "id": "evt_012_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Fundi Wallet.",
+        "at": "2026-10-04T23:37:00.000Z"
+      },
+      {
+        "id": "evt_012_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Esperance Mukamana is on the way.",
+        "at": "2026-10-04T23:43:00.000Z"
+      },
+      {
+        "id": "evt_012_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Esperance Mukamana arrived at Niboye, Kicukiro.",
+        "at": "2026-10-05T00:11:00.000Z"
+      },
+      {
+        "id": "evt_012_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-05T00:15:00.000Z"
+      },
+      {
+        "id": "evt_012_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Damaged lock cylinder and misaligned strike plate.",
+        "at": "2026-10-05T00:40:00.000Z"
+      },
+      {
+        "id": "evt_012_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $71 sent to the customer.",
+        "at": "2026-10-05T00:46:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_013",
+    "reference": "FD-1053",
+    "service": "Electrical",
+    "problem": "Circuit breaker keeps tripping",
+    "urgency": "Schedule",
+    "location": "Kinyinya, Gasabo",
+    "customer": {
+      "id": "usr_007",
+      "name": "Patrick Ishimwe",
+      "phone": "+250781867402"
+    },
+    "technician": {
+      "id": "tec_002",
+      "name": "Aimable Mutesi",
+      "phone": "+250739907060"
+    },
+    "status": "QUOTE_PENDING",
+    "createdAt": "2026-10-04T06:36:00.000Z",
+    "updatedAt": "2026-10-04T07:58:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Mobile Money",
+    "quote": {
+      "diagnosis": "Water-damaged outdoor socket shorting the circuit.",
+      "parts": [
+        {
+          "label": "Weatherproof socket",
+          "quantity": 1,
+          "unitPrice": 22
+        },
+        {
+          "label": "Circuit breaker",
+          "quantity": 1,
+          "unitPrice": 15
+        }
+      ],
+      "labour": 45
+    },
+    "events": [
+      {
+        "id": "evt_013_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: circuit breaker keeps tripping.",
+        "at": "2026-10-04T06:36:00.000Z"
+      },
+      {
+        "id": "evt_013_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-04T06:38:00.000Z"
+      },
+      {
+        "id": "evt_013_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Aimable Mutesi.",
+        "at": "2026-10-04T06:42:00.000Z"
+      },
+      {
+        "id": "evt_013_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Aimable Mutesi accepted the job.",
+        "at": "2026-10-04T06:45:00.000Z"
+      },
+      {
+        "id": "evt_013_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Mobile Money.",
+        "at": "2026-10-04T06:49:00.000Z"
+      },
+      {
+        "id": "evt_013_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Aimable Mutesi is on the way.",
+        "at": "2026-10-04T06:55:00.000Z"
+      },
+      {
+        "id": "evt_013_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Aimable Mutesi arrived at Kinyinya, Gasabo.",
+        "at": "2026-10-04T07:23:00.000Z"
+      },
+      {
+        "id": "evt_013_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-04T07:27:00.000Z"
+      },
+      {
+        "id": "evt_013_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Water-damaged outdoor socket shorting the circuit.",
+        "at": "2026-10-04T07:52:00.000Z"
+      },
+      {
+        "id": "evt_013_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $82 sent to the customer.",
+        "at": "2026-10-04T07:58:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_014",
+    "reference": "FD-1054",
+    "service": "Truck & Mechanical",
+    "problem": "Engine smoking on start-up",
+    "urgency": "Schedule",
+    "location": "Niboye, Kicukiro",
+    "customer": {
+      "id": "usr_014",
+      "name": "Emile Habimana",
+      "phone": "+250795327022"
+    },
+    "technician": {
+      "id": "tec_003",
+      "name": "Eric Ingabire",
+      "phone": "+250784933540"
+    },
+    "status": "QUOTE_APPROVED",
+    "createdAt": "2026-10-04T01:48:00.000Z",
+    "updatedAt": "2026-10-04T03:30:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Card",
+    "quote": {
+      "diagnosis": "Clogged fuel filter and worn injector seals.",
+      "parts": [
+        {
+          "label": "Fuel filter",
+          "quantity": 1,
+          "unitPrice": 35
+        },
+        {
+          "label": "Injector seal kit",
+          "quantity": 1,
+          "unitPrice": 48
+        }
+      ],
+      "labour": 90
+    },
+    "events": [
+      {
+        "id": "evt_014_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: engine smoking on start-up.",
+        "at": "2026-10-04T01:48:00.000Z"
+      },
+      {
+        "id": "evt_014_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-04T01:50:00.000Z"
+      },
+      {
+        "id": "evt_014_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Eric Ingabire.",
+        "at": "2026-10-04T01:54:00.000Z"
+      },
+      {
+        "id": "evt_014_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Eric Ingabire accepted the job.",
+        "at": "2026-10-04T01:57:00.000Z"
+      },
+      {
+        "id": "evt_014_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Card.",
+        "at": "2026-10-04T02:01:00.000Z"
+      },
+      {
+        "id": "evt_014_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Eric Ingabire is on the way.",
+        "at": "2026-10-04T02:07:00.000Z"
+      },
+      {
+        "id": "evt_014_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Eric Ingabire arrived at Niboye, Kicukiro.",
+        "at": "2026-10-04T02:35:00.000Z"
+      },
+      {
+        "id": "evt_014_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-04T02:39:00.000Z"
+      },
+      {
+        "id": "evt_014_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Clogged fuel filter and worn injector seals.",
+        "at": "2026-10-04T03:04:00.000Z"
+      },
+      {
+        "id": "evt_014_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $173 sent to the customer.",
+        "at": "2026-10-04T03:10:00.000Z"
+      },
+      {
+        "id": "evt_014_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-04T03:30:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_015",
+    "reference": "FD-1055",
+    "service": "General Maintenance",
+    "problem": "Gate hinge broken and gutter blocked",
+    "urgency": "Today",
+    "location": "Kanombe, Kicukiro",
+    "customer": {
+      "id": "usr_021",
+      "name": "Moses Ishimwe",
+      "phone": "+250723691343"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "REPAIR_IN_PROGRESS",
+    "createdAt": "2026-10-05T01:48:00.000Z",
+    "updatedAt": "2026-10-05T03:45:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Fundi Wallet",
+    "quote": {
+      "diagnosis": "Gate hinge pin sheared and gutter outlet blocked.",
+      "parts": [
+        {
+          "label": "Heavy-duty hinge",
+          "quantity": 2,
+          "unitPrice": 14
+        },
+        {
+          "label": "Gutter outlet",
+          "quantity": 1,
+          "unitPrice": 11
+        }
+      ],
+      "labour": 35
+    },
+    "events": [
+      {
+        "id": "evt_015_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: gate hinge broken and gutter blocked.",
+        "at": "2026-10-05T01:48:00.000Z"
+      },
+      {
+        "id": "evt_015_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-05T01:50:00.000Z"
+      },
+      {
+        "id": "evt_015_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-10-05T01:54:00.000Z"
+      },
+      {
+        "id": "evt_015_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Samuel Mugisha accepted the job.",
+        "at": "2026-10-05T01:57:00.000Z"
+      },
+      {
+        "id": "evt_015_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Fundi Wallet.",
+        "at": "2026-10-05T02:01:00.000Z"
+      },
+      {
+        "id": "evt_015_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Samuel Mugisha is on the way.",
+        "at": "2026-10-05T02:07:00.000Z"
+      },
+      {
+        "id": "evt_015_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Samuel Mugisha arrived at Kanombe, Kicukiro.",
+        "at": "2026-10-05T02:35:00.000Z"
+      },
+      {
+        "id": "evt_015_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-05T02:39:00.000Z"
+      },
+      {
+        "id": "evt_015_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Gate hinge pin sheared and gutter outlet blocked.",
+        "at": "2026-10-05T03:04:00.000Z"
+      },
+      {
+        "id": "evt_015_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $74 sent to the customer.",
+        "at": "2026-10-05T03:10:00.000Z"
+      },
+      {
+        "id": "evt_015_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-05T03:30:00.000Z"
+      },
+      {
+        "id": "evt_015_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-05T03:45:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_016",
+    "reference": "FD-1056",
+    "service": "Appliance Repair",
+    "problem": "Fridge freezer section warming up",
+    "urgency": "Today",
+    "location": "Gisozi, Gasabo",
+    "customer": {
+      "id": "usr_002",
+      "name": "Sandrine Niyonzima",
+      "phone": "+250794520286"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "ADDITIONAL_APPROVAL_REQUIRED",
+    "createdAt": "2026-10-04T18:36:00.000Z",
+    "updatedAt": "2026-10-04T21:13:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Mobile Money",
+    "quote": {
+      "diagnosis": "Faulty start relay on the compressor.",
+      "parts": [
+        {
+          "label": "Start relay",
+          "quantity": 1,
+          "unitPrice": 28
+        },
+        {
+          "label": "Thermostat sensor",
+          "quantity": 1,
+          "unitPrice": 22
+        }
+      ],
+      "labour": 40
+    },
+    "additionalWork": {
+      "reason": "Door gasket is torn and lets warm air in.",
+      "parts": [
+        {
+          "label": "Door gasket",
+          "quantity": 1,
+          "unitPrice": 34
+        }
+      ],
+      "labour": 20
+    },
+    "additionalWorkApproved": false,
+    "events": [
+      {
+        "id": "evt_016_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: fridge freezer section warming up.",
+        "at": "2026-10-04T18:36:00.000Z"
+      },
+      {
+        "id": "evt_016_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-04T18:38:00.000Z"
+      },
+      {
+        "id": "evt_016_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-10-04T18:42:00.000Z"
+      },
+      {
+        "id": "evt_016_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Samuel Mugisha accepted the job.",
+        "at": "2026-10-04T18:45:00.000Z"
+      },
+      {
+        "id": "evt_016_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Mobile Money.",
+        "at": "2026-10-04T18:49:00.000Z"
+      },
+      {
+        "id": "evt_016_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Samuel Mugisha is on the way.",
+        "at": "2026-10-04T18:55:00.000Z"
+      },
+      {
+        "id": "evt_016_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Samuel Mugisha arrived at Gisozi, Gasabo.",
+        "at": "2026-10-04T19:23:00.000Z"
+      },
+      {
+        "id": "evt_016_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-04T19:27:00.000Z"
+      },
+      {
+        "id": "evt_016_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Faulty start relay on the compressor.",
+        "at": "2026-10-04T19:52:00.000Z"
+      },
+      {
+        "id": "evt_016_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $90 sent to the customer.",
+        "at": "2026-10-04T19:58:00.000Z"
+      },
+      {
+        "id": "evt_016_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-04T20:18:00.000Z"
+      },
+      {
+        "id": "evt_016_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-04T20:33:00.000Z"
+      },
+      {
+        "id": "evt_016_13",
+        "status": "ADDITIONAL_APPROVAL_REQUIRED",
+        "title": "Extra work needs approval",
+        "text": "Extra work of $54 requested: Door gasket is torn and lets warm air in.",
+        "at": "2026-10-04T21:13:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_017",
+    "reference": "FD-1057",
+    "service": "HVAC",
+    "problem": "Office AC making loud rattling noise",
+    "urgency": "Schedule",
+    "location": "Kinyinya, Gasabo",
+    "customer": {
+      "id": "usr_009",
+      "name": "Janvier Umutoni",
+      "phone": "+250785211580"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "status": "REPAIR_COMPLETED",
+    "createdAt": "2026-10-03T21:00:00.000Z",
+    "updatedAt": "2026-10-04T00:27:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Card",
+    "quote": {
+      "diagnosis": "Loose fan blade and worn mounting brackets.",
+      "parts": [
+        {
+          "label": "Fan blade",
+          "quantity": 1,
+          "unitPrice": 40
+        },
+        {
+          "label": "Mounting bracket set",
+          "quantity": 1,
+          "unitPrice": 15
+        }
+      ],
+      "labour": 45
+    },
+    "events": [
+      {
+        "id": "evt_017_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: office ac making loud rattling noise.",
+        "at": "2026-10-03T21:00:00.000Z"
+      },
+      {
+        "id": "evt_017_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-03T21:02:00.000Z"
+      },
+      {
+        "id": "evt_017_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Emmanuel Ingabire.",
+        "at": "2026-10-03T21:06:00.000Z"
+      },
+      {
+        "id": "evt_017_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Emmanuel Ingabire accepted the job.",
+        "at": "2026-10-03T21:09:00.000Z"
+      },
+      {
+        "id": "evt_017_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Card.",
+        "at": "2026-10-03T21:13:00.000Z"
+      },
+      {
+        "id": "evt_017_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Emmanuel Ingabire is on the way.",
+        "at": "2026-10-03T21:19:00.000Z"
+      },
+      {
+        "id": "evt_017_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Emmanuel Ingabire arrived at Kinyinya, Gasabo.",
+        "at": "2026-10-03T21:47:00.000Z"
+      },
+      {
+        "id": "evt_017_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-03T21:51:00.000Z"
+      },
+      {
+        "id": "evt_017_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Loose fan blade and worn mounting brackets.",
+        "at": "2026-10-03T22:16:00.000Z"
+      },
+      {
+        "id": "evt_017_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $100 sent to the customer.",
+        "at": "2026-10-03T22:22:00.000Z"
+      },
+      {
+        "id": "evt_017_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-03T22:42:00.000Z"
+      },
+      {
+        "id": "evt_017_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-03T22:57:00.000Z"
+      },
+      {
+        "id": "evt_017_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-10-04T00:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_018",
+    "reference": "FD-1058",
+    "service": "Home Repair",
+    "problem": "Back door lock jammed",
+    "urgency": "Today",
+    "location": "Remera, Gasabo",
+    "customer": {
+      "id": "usr_016",
+      "name": "Fabrice Ishimwe",
+      "phone": "+250785141776"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "status": "PAYMENT_PENDING",
+    "createdAt": "2026-10-03T09:00:00.000Z",
+    "updatedAt": "2026-10-03T12:32:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Fundi Wallet",
+    "quote": {
+      "diagnosis": "Damaged lock cylinder and misaligned strike plate.",
+      "parts": [
+        {
+          "label": "Lock cylinder",
+          "quantity": 1,
+          "unitPrice": 32
+        },
+        {
+          "label": "Strike plate",
+          "quantity": 1,
+          "unitPrice": 9
+        }
+      ],
+      "labour": 30
+    },
+    "events": [
+      {
+        "id": "evt_018_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: back door lock jammed.",
+        "at": "2026-10-03T09:00:00.000Z"
+      },
+      {
+        "id": "evt_018_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-03T09:02:00.000Z"
+      },
+      {
+        "id": "evt_018_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Esperance Mukamana.",
+        "at": "2026-10-03T09:06:00.000Z"
+      },
+      {
+        "id": "evt_018_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Esperance Mukamana accepted the job.",
+        "at": "2026-10-03T09:09:00.000Z"
+      },
+      {
+        "id": "evt_018_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Fundi Wallet.",
+        "at": "2026-10-03T09:13:00.000Z"
+      },
+      {
+        "id": "evt_018_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Esperance Mukamana is on the way.",
+        "at": "2026-10-03T09:19:00.000Z"
+      },
+      {
+        "id": "evt_018_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Esperance Mukamana arrived at Remera, Gasabo.",
+        "at": "2026-10-03T09:47:00.000Z"
+      },
+      {
+        "id": "evt_018_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-03T09:51:00.000Z"
+      },
+      {
+        "id": "evt_018_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Damaged lock cylinder and misaligned strike plate.",
+        "at": "2026-10-03T10:16:00.000Z"
+      },
+      {
+        "id": "evt_018_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $71 sent to the customer.",
+        "at": "2026-10-03T10:22:00.000Z"
+      },
+      {
+        "id": "evt_018_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-03T10:42:00.000Z"
+      },
+      {
+        "id": "evt_018_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-03T10:57:00.000Z"
+      },
+      {
+        "id": "evt_018_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-10-03T12:27:00.000Z"
+      },
+      {
+        "id": "evt_018_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $71.",
+        "at": "2026-10-03T12:32:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_019",
+    "reference": "FD-1059",
+    "service": "Truck & Mechanical",
+    "problem": "Truck stalls when idling",
+    "urgency": "Schedule",
+    "location": "Muhima, Nyarugenge",
+    "customer": {
+      "id": "usr_023",
+      "name": "Gilbert Nyirahabimana",
+      "phone": "+250734601109"
+    },
+    "technician": {
+      "id": "tec_001",
+      "name": "Sandrine Twagirayezu",
+      "phone": "+250734805073"
+    },
+    "status": "PAYMENT_REPORTED",
+    "createdAt": "2026-10-02T09:00:00.000Z",
+    "updatedAt": "2026-10-02T13:17:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Mobile Money",
+    "quote": {
+      "diagnosis": "Clogged fuel filter and worn injector seals.",
+      "parts": [
+        {
+          "label": "Fuel filter",
+          "quantity": 1,
+          "unitPrice": 35
+        },
+        {
+          "label": "Injector seal kit",
+          "quantity": 1,
+          "unitPrice": 48
+        }
+      ],
+      "labour": 90
+    },
+    "settlementMethod": "Mobile Money",
+    "events": [
+      {
+        "id": "evt_019_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: truck stalls when idling.",
+        "at": "2026-10-02T09:00:00.000Z"
+      },
+      {
+        "id": "evt_019_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-02T09:02:00.000Z"
+      },
+      {
+        "id": "evt_019_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Sandrine Twagirayezu.",
+        "at": "2026-10-02T09:06:00.000Z"
+      },
+      {
+        "id": "evt_019_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Sandrine Twagirayezu accepted the job.",
+        "at": "2026-10-02T09:09:00.000Z"
+      },
+      {
+        "id": "evt_019_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Mobile Money.",
+        "at": "2026-10-02T09:13:00.000Z"
+      },
+      {
+        "id": "evt_019_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Sandrine Twagirayezu is on the way.",
+        "at": "2026-10-02T09:19:00.000Z"
+      },
+      {
+        "id": "evt_019_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Sandrine Twagirayezu arrived at Muhima, Nyarugenge.",
+        "at": "2026-10-02T09:47:00.000Z"
+      },
+      {
+        "id": "evt_019_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-02T09:51:00.000Z"
+      },
+      {
+        "id": "evt_019_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Clogged fuel filter and worn injector seals.",
+        "at": "2026-10-02T10:16:00.000Z"
+      },
+      {
+        "id": "evt_019_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $173 sent to the customer.",
+        "at": "2026-10-02T10:22:00.000Z"
+      },
+      {
+        "id": "evt_019_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-02T10:42:00.000Z"
+      },
+      {
+        "id": "evt_019_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-02T10:57:00.000Z"
+      },
+      {
+        "id": "evt_019_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-10-02T12:27:00.000Z"
+      },
+      {
+        "id": "evt_019_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $173.",
+        "at": "2026-10-02T12:32:00.000Z"
+      },
+      {
+        "id": "evt_019_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Mobile Money.",
+        "at": "2026-10-02T13:17:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_020",
+    "reference": "FD-1060",
+    "service": "Electrical",
+    "problem": "Lights flicker when the kettle is on",
+    "urgency": "Today",
+    "location": "Kinyinya, Gasabo",
+    "customer": {
+      "id": "usr_004",
+      "name": "Gilbert Iradukunda",
+      "phone": "+250720123176"
+    },
+    "technician": {
+      "id": "tec_002",
+      "name": "Aimable Mutesi",
+      "phone": "+250739907060"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-10-01T09:00:00.000Z",
+    "updatedAt": "2026-10-01T13:27:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Card",
+    "quote": {
+      "diagnosis": "Loose neutral connection at the distribution board.",
+      "parts": [
+        {
+          "label": "Terminal connectors",
+          "quantity": 4,
+          "unitPrice": 3
+        }
+      ],
+      "labour": 40
+    },
+    "settlementMethod": "Fundi",
+    "rating": {
+      "overall": 5,
+      "quality": 5,
+      "professionalism": 5,
+      "arrival": 4,
+      "communication": 5,
+      "value": 5,
+      "comment": "Quick, tidy and explained everything."
+    },
+    "completedAt": "2026-10-01T13:27:00.000Z",
+    "events": [
+      {
+        "id": "evt_020_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: lights flicker when the kettle is on.",
+        "at": "2026-10-01T09:00:00.000Z"
+      },
+      {
+        "id": "evt_020_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-01T09:02:00.000Z"
+      },
+      {
+        "id": "evt_020_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Aimable Mutesi.",
+        "at": "2026-10-01T09:06:00.000Z"
+      },
+      {
+        "id": "evt_020_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Aimable Mutesi accepted the job.",
+        "at": "2026-10-01T09:09:00.000Z"
+      },
+      {
+        "id": "evt_020_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Card.",
+        "at": "2026-10-01T09:13:00.000Z"
+      },
+      {
+        "id": "evt_020_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Aimable Mutesi is on the way.",
+        "at": "2026-10-01T09:19:00.000Z"
+      },
+      {
+        "id": "evt_020_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Aimable Mutesi arrived at Kinyinya, Gasabo.",
+        "at": "2026-10-01T09:47:00.000Z"
+      },
+      {
+        "id": "evt_020_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-01T09:51:00.000Z"
+      },
+      {
+        "id": "evt_020_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Loose neutral connection at the distribution board.",
+        "at": "2026-10-01T10:16:00.000Z"
+      },
+      {
+        "id": "evt_020_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $52 sent to the customer.",
+        "at": "2026-10-01T10:22:00.000Z"
+      },
+      {
+        "id": "evt_020_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-01T10:42:00.000Z"
+      },
+      {
+        "id": "evt_020_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-01T10:57:00.000Z"
+      },
+      {
+        "id": "evt_020_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-10-01T12:27:00.000Z"
+      },
+      {
+        "id": "evt_020_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $52.",
+        "at": "2026-10-01T12:32:00.000Z"
+      },
+      {
+        "id": "evt_020_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Fundi.",
+        "at": "2026-10-01T13:17:00.000Z"
+      },
+      {
+        "id": "evt_020_16",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 5/5.",
+        "at": "2026-10-01T13:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_021",
+    "reference": "FD-1061",
+    "service": "Appliance Repair",
+    "problem": "Cooker oven not heating",
+    "urgency": "Schedule",
+    "location": "Kicukiro Centre, Kicukiro",
+    "customer": {
+      "id": "usr_011",
+      "name": "Honorine Gasana",
+      "phone": "+250788267704"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-09-29T09:00:00.000Z",
+    "updatedAt": "2026-09-29T13:27:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Fundi Wallet",
+    "quote": {
+      "diagnosis": "Burnt-out oven heating element.",
+      "parts": [
+        {
+          "label": "Oven heating element",
+          "quantity": 1,
+          "unitPrice": 38
+        }
+      ],
+      "labour": 35
+    },
+    "settlementMethod": "Cash",
+    "rating": {
+      "overall": 4,
+      "quality": 4,
+      "professionalism": 4,
+      "arrival": 4,
+      "communication": 4,
+      "value": 4,
+      "comment": "Good repair, arrived a bit late."
+    },
+    "completedAt": "2026-09-29T13:27:00.000Z",
+    "events": [
+      {
+        "id": "evt_021_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: cooker oven not heating.",
+        "at": "2026-09-29T09:00:00.000Z"
+      },
+      {
+        "id": "evt_021_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-29T09:02:00.000Z"
+      },
+      {
+        "id": "evt_021_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-09-29T09:06:00.000Z"
+      },
+      {
+        "id": "evt_021_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Samuel Mugisha accepted the job.",
+        "at": "2026-09-29T09:09:00.000Z"
+      },
+      {
+        "id": "evt_021_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Fundi Wallet.",
+        "at": "2026-09-29T09:13:00.000Z"
+      },
+      {
+        "id": "evt_021_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Samuel Mugisha is on the way.",
+        "at": "2026-09-29T09:19:00.000Z"
+      },
+      {
+        "id": "evt_021_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Samuel Mugisha arrived at Kicukiro Centre, Kicukiro.",
+        "at": "2026-09-29T09:47:00.000Z"
+      },
+      {
+        "id": "evt_021_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-09-29T09:51:00.000Z"
+      },
+      {
+        "id": "evt_021_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Burnt-out oven heating element.",
+        "at": "2026-09-29T10:16:00.000Z"
+      },
+      {
+        "id": "evt_021_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $73 sent to the customer.",
+        "at": "2026-09-29T10:22:00.000Z"
+      },
+      {
+        "id": "evt_021_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-09-29T10:42:00.000Z"
+      },
+      {
+        "id": "evt_021_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-09-29T10:57:00.000Z"
+      },
+      {
+        "id": "evt_021_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-09-29T12:27:00.000Z"
+      },
+      {
+        "id": "evt_021_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $73.",
+        "at": "2026-09-29T12:32:00.000Z"
+      },
+      {
+        "id": "evt_021_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Cash.",
+        "at": "2026-09-29T13:17:00.000Z"
+      },
+      {
+        "id": "evt_021_16",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 4/5.",
+        "at": "2026-09-29T13:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_022",
+    "reference": "FD-1062",
+    "service": "HVAC",
+    "problem": "AC not turning on",
+    "urgency": "Today",
+    "location": "Muhima, Nyarugenge",
+    "customer": {
+      "id": "usr_018",
+      "name": "Solange Umutoni",
+      "phone": "+250733526571"
+    },
+    "technician": {
+      "id": "tec_008",
+      "name": "Christian Mugisha",
+      "phone": "+250736202068"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-09-27T09:00:00.000Z",
+    "updatedAt": "2026-09-27T13:27:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Mobile Money",
+    "quote": {
+      "diagnosis": "Blown run capacitor on the outdoor unit.",
+      "parts": [
+        {
+          "label": "Run capacitor",
+          "quantity": 1,
+          "unitPrice": 30
+        }
+      ],
+      "labour": 40
+    },
+    "settlementMethod": "Mobile Money",
+    "rating": {
+      "overall": 5,
+      "quality": 5,
+      "professionalism": 5,
+      "arrival": 4,
+      "communication": 5,
+      "value": 5,
+      "comment": "Excellent, cool again within the hour."
+    },
+    "completedAt": "2026-09-27T13:27:00.000Z",
+    "events": [
+      {
+        "id": "evt_022_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: ac not turning on.",
+        "at": "2026-09-27T09:00:00.000Z"
+      },
+      {
+        "id": "evt_022_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-27T09:02:00.000Z"
+      },
+      {
+        "id": "evt_022_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Christian Mugisha.",
+        "at": "2026-09-27T09:06:00.000Z"
+      },
+      {
+        "id": "evt_022_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Christian Mugisha accepted the job.",
+        "at": "2026-09-27T09:09:00.000Z"
+      },
+      {
+        "id": "evt_022_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Mobile Money.",
+        "at": "2026-09-27T09:13:00.000Z"
+      },
+      {
+        "id": "evt_022_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Christian Mugisha is on the way.",
+        "at": "2026-09-27T09:19:00.000Z"
+      },
+      {
+        "id": "evt_022_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Christian Mugisha arrived at Muhima, Nyarugenge.",
+        "at": "2026-09-27T09:47:00.000Z"
+      },
+      {
+        "id": "evt_022_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-09-27T09:51:00.000Z"
+      },
+      {
+        "id": "evt_022_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Blown run capacitor on the outdoor unit.",
+        "at": "2026-09-27T10:16:00.000Z"
+      },
+      {
+        "id": "evt_022_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $70 sent to the customer.",
+        "at": "2026-09-27T10:22:00.000Z"
+      },
+      {
+        "id": "evt_022_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-09-27T10:42:00.000Z"
+      },
+      {
+        "id": "evt_022_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-09-27T10:57:00.000Z"
+      },
+      {
+        "id": "evt_022_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-09-27T12:27:00.000Z"
+      },
+      {
+        "id": "evt_022_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $70.",
+        "at": "2026-09-27T12:32:00.000Z"
+      },
+      {
+        "id": "evt_022_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Mobile Money.",
+        "at": "2026-09-27T13:17:00.000Z"
+      },
+      {
+        "id": "evt_022_16",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 5/5.",
+        "at": "2026-09-27T13:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_023",
+    "reference": "FD-1063",
+    "service": "Home Repair",
+    "problem": "Main door lock broken after break-in attempt",
+    "urgency": "Emergency",
+    "location": "Gikondo, Kicukiro",
+    "customer": {
+      "id": "usr_025",
+      "name": "Janvier Kayitare",
+      "phone": "+250792133069"
+    },
+    "technician": {
+      "id": "tec_005",
+      "name": "Eric Kayitare",
+      "phone": "+250737303080"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-09-25T09:00:00.000Z",
+    "updatedAt": "2026-09-25T14:07:00.000Z",
+    "visitFee": 110,
+    "visitPaymentMethod": "Card",
+    "quote": {
+      "diagnosis": "Damaged lock cylinder and misaligned strike plate.",
+      "parts": [
+        {
+          "label": "Lock cylinder",
+          "quantity": 1,
+          "unitPrice": 32
+        },
+        {
+          "label": "Strike plate",
+          "quantity": 1,
+          "unitPrice": 9
+        }
+      ],
+      "labour": 30
+    },
+    "additionalWork": {
+      "reason": "Door frame is rotten around the lock and needs a new section.",
+      "parts": [
+        {
+          "label": "Timber frame section",
+          "quantity": 1,
+          "unitPrice": 40
+        }
+      ],
+      "labour": 35
+    },
+    "additionalWorkApproved": true,
+    "settlementMethod": "Fundi",
+    "rating": {
+      "overall": 4,
+      "quality": 4,
+      "professionalism": 4,
+      "arrival": 4,
+      "communication": 4,
+      "value": 4,
+      "comment": "Fixed the lock and the frame. Fair price."
+    },
+    "completedAt": "2026-09-25T14:07:00.000Z",
+    "events": [
+      {
+        "id": "evt_023_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: main door lock broken after break-in attempt.",
+        "at": "2026-09-25T09:00:00.000Z"
+      },
+      {
+        "id": "evt_023_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-25T09:02:00.000Z"
+      },
+      {
+        "id": "evt_023_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Eric Kayitare.",
+        "at": "2026-09-25T09:06:00.000Z"
+      },
+      {
+        "id": "evt_023_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Eric Kayitare accepted the job.",
+        "at": "2026-09-25T09:09:00.000Z"
+      },
+      {
+        "id": "evt_023_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $110 visit fee by Card.",
+        "at": "2026-09-25T09:13:00.000Z"
+      },
+      {
+        "id": "evt_023_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Eric Kayitare is on the way.",
+        "at": "2026-09-25T09:19:00.000Z"
+      },
+      {
+        "id": "evt_023_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Eric Kayitare arrived at Gikondo, Kicukiro.",
+        "at": "2026-09-25T09:47:00.000Z"
+      },
+      {
+        "id": "evt_023_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-09-25T09:51:00.000Z"
+      },
+      {
+        "id": "evt_023_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Damaged lock cylinder and misaligned strike plate.",
+        "at": "2026-09-25T10:16:00.000Z"
+      },
+      {
+        "id": "evt_023_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $71 sent to the customer.",
+        "at": "2026-09-25T10:22:00.000Z"
+      },
+      {
+        "id": "evt_023_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-09-25T10:42:00.000Z"
+      },
+      {
+        "id": "evt_023_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-09-25T10:57:00.000Z"
+      },
+      {
+        "id": "evt_023_13",
+        "status": "ADDITIONAL_APPROVAL_REQUIRED",
+        "title": "Extra work needs approval",
+        "text": "Extra work of $75 requested: Door frame is rotten around the lock and needs a new section.",
+        "at": "2026-09-25T11:37:00.000Z"
+      },
+      {
+        "id": "evt_023_14",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-09-25T13:07:00.000Z"
+      },
+      {
+        "id": "evt_023_15",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $146.",
+        "at": "2026-09-25T13:12:00.000Z"
+      },
+      {
+        "id": "evt_023_16",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Fundi.",
+        "at": "2026-09-25T13:57:00.000Z"
+      },
+      {
+        "id": "evt_023_17",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 4/5.",
+        "at": "2026-09-25T14:07:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_024",
+    "reference": "FD-1064",
+    "service": "Truck & Mechanical",
+    "problem": "Delivery truck brakes grinding",
+    "urgency": "Schedule",
+    "location": "Kimironko, Gasabo",
+    "customer": {
+      "id": "usr_006",
+      "name": "Eric Ndayisaba",
+      "phone": "+250733292790"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-09-23T09:00:00.000Z",
+    "updatedAt": "2026-09-23T13:27:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Fundi Wallet",
+    "quote": {
+      "diagnosis": "Worn brake pads and scored rear discs.",
+      "parts": [
+        {
+          "label": "Brake pad set",
+          "quantity": 2,
+          "unitPrice": 42
+        },
+        {
+          "label": "Brake disc",
+          "quantity": 2,
+          "unitPrice": 55
+        }
+      ],
+      "labour": 80
+    },
+    "settlementMethod": "Cash",
+    "rating": {
+      "overall": 5,
+      "quality": 5,
+      "professionalism": 5,
+      "arrival": 4,
+      "communication": 5,
+      "value": 5,
+      "comment": "Professional and fast."
+    },
+    "completedAt": "2026-09-23T13:27:00.000Z",
+    "events": [
+      {
+        "id": "evt_024_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: delivery truck brakes grinding.",
+        "at": "2026-09-23T09:00:00.000Z"
+      },
+      {
+        "id": "evt_024_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-23T09:02:00.000Z"
+      },
+      {
+        "id": "evt_024_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Emmanuel Ingabire.",
+        "at": "2026-09-23T09:06:00.000Z"
+      },
+      {
+        "id": "evt_024_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Emmanuel Ingabire accepted the job.",
+        "at": "2026-09-23T09:09:00.000Z"
+      },
+      {
+        "id": "evt_024_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Fundi Wallet.",
+        "at": "2026-09-23T09:13:00.000Z"
+      },
+      {
+        "id": "evt_024_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Emmanuel Ingabire is on the way.",
+        "at": "2026-09-23T09:19:00.000Z"
+      },
+      {
+        "id": "evt_024_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Emmanuel Ingabire arrived at Kimironko, Gasabo.",
+        "at": "2026-09-23T09:47:00.000Z"
+      },
+      {
+        "id": "evt_024_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-09-23T09:51:00.000Z"
+      },
+      {
+        "id": "evt_024_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Worn brake pads and scored rear discs.",
+        "at": "2026-09-23T10:16:00.000Z"
+      },
+      {
+        "id": "evt_024_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $274 sent to the customer.",
+        "at": "2026-09-23T10:22:00.000Z"
+      },
+      {
+        "id": "evt_024_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-09-23T10:42:00.000Z"
+      },
+      {
+        "id": "evt_024_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-09-23T10:57:00.000Z"
+      },
+      {
+        "id": "evt_024_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-09-23T12:27:00.000Z"
+      },
+      {
+        "id": "evt_024_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $274.",
+        "at": "2026-09-23T12:32:00.000Z"
+      },
+      {
+        "id": "evt_024_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Cash.",
+        "at": "2026-09-23T13:17:00.000Z"
+      },
+      {
+        "id": "evt_024_16",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 5/5.",
+        "at": "2026-09-23T13:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_025",
+    "reference": "FD-1065",
+    "service": "General Maintenance",
+    "problem": "Gutter overflowing in the rain",
+    "urgency": "Today",
+    "location": "Gisozi, Gasabo",
+    "customer": {
+      "id": "usr_013",
+      "name": "Gilbert Munyaneza",
+      "phone": "+250732925216"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-09-20T09:00:00.000Z",
+    "updatedAt": "2026-09-20T13:27:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Mobile Money",
+    "quote": {
+      "diagnosis": "Blocked gutter outlet and a sagging bracket.",
+      "parts": [
+        {
+          "label": "Gutter outlet",
+          "quantity": 1,
+          "unitPrice": 11
+        },
+        {
+          "label": "Gutter bracket",
+          "quantity": 3,
+          "unitPrice": 5
+        }
+      ],
+      "labour": 30
+    },
+    "settlementMethod": "Mobile Money",
+    "rating": {
+      "overall": 3,
+      "quality": 3,
+      "professionalism": 3,
+      "arrival": 3,
+      "communication": 3,
+      "value": 3,
+      "comment": "Job done but left some mess."
+    },
+    "completedAt": "2026-09-20T13:27:00.000Z",
+    "events": [
+      {
+        "id": "evt_025_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: gutter overflowing in the rain.",
+        "at": "2026-09-20T09:00:00.000Z"
+      },
+      {
+        "id": "evt_025_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-20T09:02:00.000Z"
+      },
+      {
+        "id": "evt_025_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-09-20T09:06:00.000Z"
+      },
+      {
+        "id": "evt_025_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Samuel Mugisha accepted the job.",
+        "at": "2026-09-20T09:09:00.000Z"
+      },
+      {
+        "id": "evt_025_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Mobile Money.",
+        "at": "2026-09-20T09:13:00.000Z"
+      },
+      {
+        "id": "evt_025_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Samuel Mugisha is on the way.",
+        "at": "2026-09-20T09:19:00.000Z"
+      },
+      {
+        "id": "evt_025_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Samuel Mugisha arrived at Gisozi, Gasabo.",
+        "at": "2026-09-20T09:47:00.000Z"
+      },
+      {
+        "id": "evt_025_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-09-20T09:51:00.000Z"
+      },
+      {
+        "id": "evt_025_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Blocked gutter outlet and a sagging bracket.",
+        "at": "2026-09-20T10:16:00.000Z"
+      },
+      {
+        "id": "evt_025_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $56 sent to the customer.",
+        "at": "2026-09-20T10:22:00.000Z"
+      },
+      {
+        "id": "evt_025_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-09-20T10:42:00.000Z"
+      },
+      {
+        "id": "evt_025_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-09-20T10:57:00.000Z"
+      },
+      {
+        "id": "evt_025_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-09-20T12:27:00.000Z"
+      },
+      {
+        "id": "evt_025_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $56.",
+        "at": "2026-09-20T12:32:00.000Z"
+      },
+      {
+        "id": "evt_025_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Mobile Money.",
+        "at": "2026-09-20T13:17:00.000Z"
+      },
+      {
+        "id": "evt_025_16",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 3/5.",
+        "at": "2026-09-20T13:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_026",
+    "reference": "FD-1066",
+    "service": "Truck & Mechanical",
+    "problem": "Truck will not start in the morning",
+    "urgency": "Emergency",
+    "location": "Kiyovu, Nyarugenge",
+    "customer": {
+      "id": "usr_020",
+      "name": "Olivier Gasana",
+      "phone": "+250793442392"
+    },
+    "technician": {
+      "id": "tec_003",
+      "name": "Eric Ingabire",
+      "phone": "+250784933540"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2026-09-15T09:00:00.000Z",
+    "updatedAt": "2026-09-15T13:27:00.000Z",
+    "visitFee": 110,
+    "visitPaymentMethod": "Card",
+    "quote": {
+      "diagnosis": "Failing starter motor solenoid.",
+      "parts": [
+        {
+          "label": "Starter solenoid",
+          "quantity": 1,
+          "unitPrice": 65
+        }
+      ],
+      "labour": 60
+    },
+    "settlementMethod": "Fundi",
+    "rating": {
+      "overall": 4,
+      "quality": 4,
+      "professionalism": 5,
+      "arrival": 3,
+      "communication": 4,
+      "value": 4,
+      "comment": "Came quickly in an emergency."
+    },
+    "completedAt": "2026-09-15T13:27:00.000Z",
+    "events": [
+      {
+        "id": "evt_026_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: truck will not start in the morning.",
+        "at": "2026-09-15T09:00:00.000Z"
+      },
+      {
+        "id": "evt_026_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-15T09:02:00.000Z"
+      },
+      {
+        "id": "evt_026_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Eric Ingabire.",
+        "at": "2026-09-15T09:06:00.000Z"
+      },
+      {
+        "id": "evt_026_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Eric Ingabire accepted the job.",
+        "at": "2026-09-15T09:09:00.000Z"
+      },
+      {
+        "id": "evt_026_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $110 visit fee by Card.",
+        "at": "2026-09-15T09:13:00.000Z"
+      },
+      {
+        "id": "evt_026_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Eric Ingabire is on the way.",
+        "at": "2026-09-15T09:19:00.000Z"
+      },
+      {
+        "id": "evt_026_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Eric Ingabire arrived at Kiyovu, Nyarugenge.",
+        "at": "2026-09-15T09:47:00.000Z"
+      },
+      {
+        "id": "evt_026_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-09-15T09:51:00.000Z"
+      },
+      {
+        "id": "evt_026_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Failing starter motor solenoid.",
+        "at": "2026-09-15T10:16:00.000Z"
+      },
+      {
+        "id": "evt_026_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $125 sent to the customer.",
+        "at": "2026-09-15T10:22:00.000Z"
+      },
+      {
+        "id": "evt_026_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-09-15T10:42:00.000Z"
+      },
+      {
+        "id": "evt_026_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-09-15T10:57:00.000Z"
+      },
+      {
+        "id": "evt_026_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-09-15T12:27:00.000Z"
+      },
+      {
+        "id": "evt_026_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $125.",
+        "at": "2026-09-15T12:32:00.000Z"
+      },
+      {
+        "id": "evt_026_15",
+        "status": "PAYMENT_REPORTED",
+        "title": "Payment recorded",
+        "text": "Payment recorded as Fundi.",
+        "at": "2026-09-15T13:17:00.000Z"
+      },
+      {
+        "id": "evt_026_16",
+        "status": "COMPLETED",
+        "title": "Completed",
+        "text": "Job completed and rated 4/5.",
+        "at": "2026-09-15T13:27:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_027",
+    "reference": "FD-1067",
+    "service": "Plumbing",
+    "problem": "Toilet keeps running",
+    "urgency": "Today",
+    "location": "Kinyinya, Gasabo",
+    "customer": {
+      "id": "usr_001",
+      "name": "Jean Ndayisaba",
+      "phone": "+250733762239"
+    },
+    "status": "CANCELLED",
+    "createdAt": "2026-10-02T09:00:00.000Z",
+    "updatedAt": "2026-10-02T09:17:00.000Z",
+    "visitFee": 75,
+    "cancellationReason": "No verified plumber was available nearby.",
+    "events": [
+      {
+        "id": "evt_027_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: toilet keeps running.",
+        "at": "2026-10-02T09:00:00.000Z"
+      },
+      {
+        "id": "evt_027_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-02T09:02:00.000Z"
+      },
+      {
+        "id": "evt_027_3",
+        "status": "CANCELLED",
+        "title": "Cancelled",
+        "text": "Job cancelled: No verified plumber was available nearby.",
+        "at": "2026-10-02T09:17:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_028",
+    "reference": "FD-1068",
+    "service": "Electrical",
+    "problem": "Install new ceiling light",
+    "urgency": "Schedule",
+    "location": "Remera, Gasabo",
+    "customer": {
+      "id": "usr_008",
+      "name": "Solange Bizimana",
+      "phone": "+250728107815"
+    },
+    "technician": {
+      "id": "tec_002",
+      "name": "Aimable Mutesi",
+      "phone": "+250739907060"
+    },
+    "status": "CANCELLED",
+    "createdAt": "2026-09-30T09:00:00.000Z",
+    "updatedAt": "2026-09-30T09:24:00.000Z",
+    "visitFee": 75,
+    "cancellationReason": "Customer changed their mind before paying the visit fee.",
+    "events": [
+      {
+        "id": "evt_028_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: install new ceiling light.",
+        "at": "2026-09-30T09:00:00.000Z"
+      },
+      {
+        "id": "evt_028_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-09-30T09:02:00.000Z"
+      },
+      {
+        "id": "evt_028_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Aimable Mutesi.",
+        "at": "2026-09-30T09:06:00.000Z"
+      },
+      {
+        "id": "evt_028_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Aimable Mutesi accepted the job.",
+        "at": "2026-09-30T09:09:00.000Z"
+      },
+      {
+        "id": "evt_028_5",
+        "status": "CANCELLED",
+        "title": "Cancelled",
+        "text": "Job cancelled: Customer changed their mind before paying the visit fee.",
+        "at": "2026-09-30T09:24:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_029",
+    "reference": "FD-1069",
+    "service": "Appliance Repair",
+    "problem": "Washing machine leaking from the door",
+    "urgency": "Today",
+    "location": "Kicukiro Centre, Kicukiro",
+    "customer": {
+      "id": "usr_015",
+      "name": "Solange Uwase",
+      "phone": "+250732536078"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "status": "DISPUTED",
+    "createdAt": "2026-10-03T09:00:00.000Z",
+    "updatedAt": "2026-10-03T14:07:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Card",
+    "quote": {
+      "diagnosis": "Loose drain hose clamp and a blocked pump filter.",
+      "parts": [
+        {
+          "label": "Hose clamp",
+          "quantity": 2,
+          "unitPrice": 4
+        },
+        {
+          "label": "Drain pump filter",
+          "quantity": 1,
+          "unitPrice": 18
+        }
+      ],
+      "labour": 35
+    },
+    "additionalWork": {
+      "reason": "Door gasket is torn and lets warm air in.",
+      "parts": [
+        {
+          "label": "Door gasket",
+          "quantity": 1,
+          "unitPrice": 34
+        }
+      ],
+      "labour": 20
+    },
+    "additionalWorkApproved": false,
+    "events": [
+      {
+        "id": "evt_029_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: washing machine leaking from the door.",
+        "at": "2026-10-03T09:00:00.000Z"
+      },
+      {
+        "id": "evt_029_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-03T09:02:00.000Z"
+      },
+      {
+        "id": "evt_029_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Samuel Mugisha.",
+        "at": "2026-10-03T09:06:00.000Z"
+      },
+      {
+        "id": "evt_029_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Samuel Mugisha accepted the job.",
+        "at": "2026-10-03T09:09:00.000Z"
+      },
+      {
+        "id": "evt_029_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Card.",
+        "at": "2026-10-03T09:13:00.000Z"
+      },
+      {
+        "id": "evt_029_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Samuel Mugisha is on the way.",
+        "at": "2026-10-03T09:19:00.000Z"
+      },
+      {
+        "id": "evt_029_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Samuel Mugisha arrived at Kicukiro Centre, Kicukiro.",
+        "at": "2026-10-03T09:47:00.000Z"
+      },
+      {
+        "id": "evt_029_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-03T09:51:00.000Z"
+      },
+      {
+        "id": "evt_029_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Loose drain hose clamp and a blocked pump filter.",
+        "at": "2026-10-03T10:16:00.000Z"
+      },
+      {
+        "id": "evt_029_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $61 sent to the customer.",
+        "at": "2026-10-03T10:22:00.000Z"
+      },
+      {
+        "id": "evt_029_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-03T10:42:00.000Z"
+      },
+      {
+        "id": "evt_029_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-03T10:57:00.000Z"
+      },
+      {
+        "id": "evt_029_13",
+        "status": "ADDITIONAL_APPROVAL_REQUIRED",
+        "title": "Extra work needs approval",
+        "text": "Extra work of $54 requested: Door gasket is torn and lets warm air in.",
+        "at": "2026-10-03T11:37:00.000Z"
+      },
+      {
+        "id": "evt_029_14",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-10-03T13:07:00.000Z"
+      },
+      {
+        "id": "evt_029_15",
+        "status": "DISPUTED",
+        "title": "Disputed",
+        "text": "Customer opened a dispute: Extra charge for a door gasket appeared on the bill without my approval.",
+        "at": "2026-10-03T14:07:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "job_030",
+    "reference": "FD-1070",
+    "service": "Home Repair",
+    "problem": "Ceiling leak after heavy rain",
+    "urgency": "Schedule",
+    "location": "Niboye, Kicukiro",
+    "customer": {
+      "id": "usr_022",
+      "name": "Grace Mutesi",
+      "phone": "+250723375822"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "status": "DISPUTED",
+    "createdAt": "2026-10-01T09:00:00.000Z",
+    "updatedAt": "2026-10-01T13:32:00.000Z",
+    "visitFee": 75,
+    "visitPaymentMethod": "Fundi Wallet",
+    "quote": {
+      "diagnosis": "Cracked roof sheet and failed sealant above the bedroom.",
+      "parts": [
+        {
+          "label": "Roof sheet",
+          "quantity": 1,
+          "unitPrice": 45
+        },
+        {
+          "label": "Roof sealant",
+          "quantity": 2,
+          "unitPrice": 12
+        }
+      ],
+      "labour": 50
+    },
+    "events": [
+      {
+        "id": "evt_030_1",
+        "status": "REQUESTED",
+        "title": "Request sent",
+        "text": "Customer requested help: ceiling leak after heavy rain.",
+        "at": "2026-10-01T09:00:00.000Z"
+      },
+      {
+        "id": "evt_030_2",
+        "status": "MATCHING",
+        "title": "Finding a technician",
+        "text": "Fundi is looking for a qualified technician nearby.",
+        "at": "2026-10-01T09:02:00.000Z"
+      },
+      {
+        "id": "evt_030_3",
+        "status": "OFFERED",
+        "title": "Technician found",
+        "text": "Job offered to Esperance Mukamana.",
+        "at": "2026-10-01T09:06:00.000Z"
+      },
+      {
+        "id": "evt_030_4",
+        "status": "ACCEPTED",
+        "title": "Visit fee due",
+        "text": "Esperance Mukamana accepted the job.",
+        "at": "2026-10-01T09:09:00.000Z"
+      },
+      {
+        "id": "evt_030_5",
+        "status": "VISIT_PAID",
+        "title": "Visit fee paid",
+        "text": "Customer paid the $75 visit fee by Fundi Wallet.",
+        "at": "2026-10-01T09:13:00.000Z"
+      },
+      {
+        "id": "evt_030_6",
+        "status": "EN_ROUTE",
+        "title": "On the way",
+        "text": "Esperance Mukamana is on the way.",
+        "at": "2026-10-01T09:19:00.000Z"
+      },
+      {
+        "id": "evt_030_7",
+        "status": "ARRIVED",
+        "title": "Technician arrived",
+        "text": "Esperance Mukamana arrived at Niboye, Kicukiro.",
+        "at": "2026-10-01T09:47:00.000Z"
+      },
+      {
+        "id": "evt_030_8",
+        "status": "DIAGNOSING",
+        "title": "Diagnosing",
+        "text": "Diagnosis started.",
+        "at": "2026-10-01T09:51:00.000Z"
+      },
+      {
+        "id": "evt_030_9",
+        "status": "DIAGNOSIS_COMPLETE",
+        "title": "Diagnosis complete",
+        "text": "Cracked roof sheet and failed sealant above the bedroom.",
+        "at": "2026-10-01T10:16:00.000Z"
+      },
+      {
+        "id": "evt_030_10",
+        "status": "QUOTE_PENDING",
+        "title": "Quote awaiting approval",
+        "text": "Quote of $119 sent to the customer.",
+        "at": "2026-10-01T10:22:00.000Z"
+      },
+      {
+        "id": "evt_030_11",
+        "status": "QUOTE_APPROVED",
+        "title": "Quote approved",
+        "text": "Customer approved the quote.",
+        "at": "2026-10-01T10:42:00.000Z"
+      },
+      {
+        "id": "evt_030_12",
+        "status": "REPAIR_IN_PROGRESS",
+        "title": "Repair in progress",
+        "text": "Repair started.",
+        "at": "2026-10-01T10:57:00.000Z"
+      },
+      {
+        "id": "evt_030_13",
+        "status": "REPAIR_COMPLETED",
+        "title": "Repair completed",
+        "text": "Technician marked the repair as completed.",
+        "at": "2026-10-01T12:27:00.000Z"
+      },
+      {
+        "id": "evt_030_14",
+        "status": "PAYMENT_PENDING",
+        "title": "Payment pending",
+        "text": "Waiting for the customer to settle $119.",
+        "at": "2026-10-01T12:32:00.000Z"
+      },
+      {
+        "id": "evt_030_15",
+        "status": "DISPUTED",
+        "title": "Disputed",
+        "text": "Customer opened a dispute: The ceiling is still leaking after the repair.",
+        "at": "2026-10-01T13:32:00.000Z"
+      }
+    ]
+  }
+]

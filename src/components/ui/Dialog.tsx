@@ -93,6 +93,7 @@ export function ConfirmDialog({
   destructive,
   loading,
   reasonLabel,
+  reasonHint = 'The technician will see this reason.',
 }: {
   open: boolean;
   onClose: () => void;
@@ -104,6 +105,8 @@ export function ConfirmDialog({
   loading?: boolean;
   /** Ask for a required reason (e.g. rejecting a verification). */
   reasonLabel?: string;
+  /** Shown under the reason box: who will see the reason. */
+  reasonHint?: string;
 }) {
   const [reason, setReason] = useState('');
   const [touched, setTouched] = useState(false);
@@ -145,7 +148,7 @@ export function ConfirmDialog({
             label={reasonLabel}
             htmlFor={reasonId}
             error={touched && reasonMissing ? 'Please give a reason (at least 5 characters).' : undefined}
-            hint="The technician will see this reason."
+            hint={reasonHint}
           >
             <Textarea
               id={reasonId}
