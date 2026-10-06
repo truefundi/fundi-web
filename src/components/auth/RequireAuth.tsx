@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+/** Sends visitors who are not signed in to /login; shows nothing sensitive while checking. */
+export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -12,11 +14,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!isLoading && !user) router.replace('/login');
   }, [isLoading, user, router]);
 
-  // While checking (or redirecting), show nothing sensitive
   if (isLoading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-slate-500">
-        Loading…
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner size="lg" />
       </div>
     );
   }

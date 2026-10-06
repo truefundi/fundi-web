@@ -1,29 +1,26 @@
 import type { Metadata } from 'next';
-import { Navbar } from '@/components/layout/Navbar';
 import './globals.css';
-
-import {AuthProvider} from "@/context/AuthContext";
+import { AuthProvider } from '@/context/AuthContext';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'Fundi Platform - Admin & Management Dashboard',
-  description: 'Fundi skilled-service marketplace administration and operation portal.',
+  title: {
+    default: 'Fundi | Tell us what is wrong. Fundi finds who can fix it.',
+    template: '%s | Fundi',
+  },
+  description:
+    'Fundi connects customers who need repairs with qualified, available technicians: electrical, plumbing, HVAC, appliance, car and home repair.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// The admin sidebar and top bar (AppShell) are added in src/app/admin/layout.tsx,
+// so the public landing page is not wrapped in them.
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-slate-50 min-h-screen flex flex-col">
-        <Navbar />
-        <AuthProvider>
-          <main className="flex-1">{children}</main>
-        </AuthProvider>
-        <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} Fundi Platform Inc. All rights reserved.
-        </footer>
+      <body>
+        <Providers>
+          <AuthProvider>{children}</AuthProvider>
+        </Providers>
       </body>
     </html>
   );

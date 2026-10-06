@@ -3,7 +3,7 @@ import { tokenStorage } from "./token-storage";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   statusCode?: number;
@@ -46,9 +46,9 @@ export async function fetchApi<T>(
     }
 
     return { data, statusCode: response.status };
-  } catch (err: any) {
+  } catch (err) {
     return {
-      error: err.message || "Network error, failed to reach Fundi API server",
+      error: (err instanceof Error && err.message) || "Network error, failed to reach Fundi API server",
       statusCode: 500,
     };
   }

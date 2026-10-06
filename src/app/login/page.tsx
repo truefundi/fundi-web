@@ -25,7 +25,7 @@ export default function LoginPage() {
 
  
   useEffect(() => {
-    if (!isLoading && user) router.replace("/dashboard");
+    if (!isLoading && user) router.replace("/admin");
   }, [isLoading, user, router]);
 
   async function handleSubmit(e: FormEvent) {

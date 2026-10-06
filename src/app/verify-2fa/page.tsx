@@ -21,7 +21,7 @@ export default function Verify2FAPage() {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    if (user) router.replace('/dashboard');
+    if (user) router.replace('/admin');
     else if (!challengeStorage.get()) router.replace('/login');
   }, [user, router]);
 
@@ -66,7 +66,7 @@ export default function Verify2FAPage() {
     const result = await verifyCode(code);
     setSubmitting(false);
 
-    if (result.ok) router.replace('/dashboard');
+    if (result.ok) router.replace('/admin');
     else {
       setError(result.error || 'Verification failed');
       setDigits(Array(CODE_LENGTH).fill(''));
