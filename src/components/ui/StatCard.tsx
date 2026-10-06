@@ -6,11 +6,14 @@ export function StatCard({
   value,
   hint,
   icon: Icon,
+  loading = false,
 }: {
   label: string;
   value: string | number;
   hint?: string;
   icon: LucideIcon;
+  /** Shows a placeholder bar instead of the value while data loads. */
+  loading?: boolean;
 }) {
   return (
     <Card className="p-5">
@@ -20,7 +23,11 @@ export function StatCard({
           <Icon className="h-5 w-5" aria-hidden />
         </span>
       </div>
-      <p className="mt-3 text-2xl font-bold text-slate-900">{value}</p>
+      {loading ? (
+        <span className="mt-3 block h-8 w-16 animate-pulse rounded bg-slate-200" aria-label="Loading" />
+      ) : (
+        <p className="mt-3 text-2xl font-bold text-slate-900">{value}</p>
+      )}
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </Card>
   );
