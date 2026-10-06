@@ -1,4 +1,5 @@
 import { env } from '@/config/env';
+import { tokenStorage } from '@/lib/token-storage';
 import type { ApiResponse } from '@/types/api';
 
 type QueryValue = string | number | boolean | undefined | null;
@@ -59,6 +60,8 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
       headers: {
         Accept: 'application/json',
         ...(body !== undefined && { 'Content-Type': 'application/json' }),
+        // The signed-in admin's token (set by the login flow in AuthContext).
+        ...(tokenStorage.get() && { Authorization: `Bearer ${tokenStorage.get()}` }),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,

@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, KeyRound, LogOut, UserRound } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-
-// Placeholder account until authentication is wired up.
-const currentUser = { name: 'Admin', email: 'admin@fundi.app', initials: 'AD' };
 
 const itemClass = 'flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50';
 
 export function UserMenu() {
+  const { user, logout } = useAuth();
+  // The auth API has no display name yet, so show "Admin" with the signed-in email.
+  const currentUser = { name: 'Admin', email: user?.email ?? '', initials: 'AD' };
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,10 +65,17 @@ export function UserMenu() {
             <KeyRound className="h-4 w-4 text-slate-400" aria-hidden /> Change password
           </Link>
           <div className="my-1 border-t border-slate-100" />
-          {/* UI only: returns to the login screen until real sign-out exists. */}
-          <Link href="/login" role="menuitem" onClick={close} className={cn(itemClass, 'text-red-600 hover:bg-red-50')}>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              close();
+              logout();
+            }}
+            className={cn(itemClass, 'text-red-600 hover:bg-red-50')}
+          >
             <LogOut className="h-4 w-4" aria-hidden /> Log out
-          </Link>
+          </button>
         </div>
       )}
     </div>
