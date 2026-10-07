@@ -4,6 +4,7 @@ import {
   FileText,
   HardHat,
   LayoutDashboard,
+  MessagesSquare,
   Scale,
   Settings,
   Shuffle,
@@ -35,6 +36,7 @@ export const navigation: NavSection[] = [
     title: 'Operations',
     items: [
       { label: 'Jobs', href: '/admin/jobs', icon: Briefcase },
+      { label: 'Chats', href: '/admin/chats', icon: MessagesSquare },
       { label: 'Matching', href: '/admin/matching', icon: Shuffle },
       { label: 'Disputes', href: '/admin/disputes', icon: Scale },
     ],
