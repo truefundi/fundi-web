@@ -3,7 +3,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { jobsApi } from '@/lib/api';
 import type { JobQuery } from '@/types/api';
-import type { Job, JobParty } from '@/types/job';
+import type { Job, JobEditInput, JobInput, JobParty } from '@/types/job';
 
 export const jobKeys = {
   all: ['jobs'] as const,
@@ -41,3 +41,19 @@ export const useCancelJob = () =>
 
 export const useReassignJob = () =>
   useJobMutation(({ id, technician }: { id: string; technician: JobParty }) => jobsApi.reassign(id, technician));
+
+export const useCreateJob = () => useJobMutation((input: JobInput) => jobsApi.create(input));
+
+export const useUpdateJob = () =>
+  useJobMutation(({ id, input }: { id: string; input: JobEditInput }) => jobsApi.update(id, input));
+
+export function useDeleteJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => jobsApi.remove(id),
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: jobKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: jobKeys.all });
+    },
+  });
+}

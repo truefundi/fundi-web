@@ -38,7 +38,7 @@ export interface TechnicianQuery extends ListQuery {
 export interface JobQuery {
   search?: string;
   group?: JobGroup;
-  service?: ServiceCategory;
+  service?: string;
   urgency?: Urgency;
   page?: number;
   pageSize?: number;

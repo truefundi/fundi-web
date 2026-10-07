@@ -1,4 +1,3 @@
-import type { ServiceCategory } from '@/config/services';
 
 /**
  * Job lifecycle, kept in sync with the mobile app
@@ -165,10 +164,23 @@ export interface JobParty {
   phone: string;
 }
 
+/** What the admin fills in to create a job for a customer. */
+export interface JobInput {
+  customerId: string;
+  service: string;
+  problem: string;
+  urgency: Urgency;
+  location: string;
+}
+
+/** Fields the admin may change on an existing job (the customer stays the same). */
+export type JobEditInput = Omit<JobInput, 'customerId'>;
+
 export interface Job {
   id: string;
   reference: string;
-  service: ServiceCategory;
+  /** Service name, as configured on the Categories page. */
+  service: string;
   problem: string;
   urgency: Urgency;
   location: string;

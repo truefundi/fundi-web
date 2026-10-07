@@ -1,8 +1,20 @@
 import { env } from '@/config/env';
 import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
 import type { JobQuery, JobStats, PaginatedResponse } from '@/types/api';
-import { JOB_GROUPS, JOB_STATUS_LABEL, jobGroup, type Job, type JobParty, type JobStatus } from '@/types/job';
-import { api, unwrap } from '../client';
+import { canDelete, canEdit } from '@/lib/jobs';
+import {
+  JOB_GROUPS,
+  JOB_STATUS_LABEL,
+  jobGroup,
+  type Job,
+  type JobEditInput,
+  type JobInput,
+  type JobParty,
+  type JobStatus,
+  type Urgency,
+} from '@/types/job';
+import type { Service } from '@/types/service';
+import { api, ApiError, unwrap } from '../client';
 import { DEFAULT_PAGE_SIZE } from '../mock-utils';
 
 function findMock(id: string): Job {
@@ -87,4 +99,87 @@ export const jobsApi = {
         : `Assigned by Fundi admin to ${technician.name}.`,
     );
   },
+
+  /** Creates a request on behalf of a customer; the visit fee comes from the service settings. */
+  async create(input: JobInput): Promise<Job> {
+    if (!env.useMocks) return unwrap(api.post('/admin/jobs', input));
+    await delay();
+    const customer = mockDb.customers.find((c) => c.id === input.customerId);
+    if (!customer) throw new MockNotFoundError('Customer', input.customerId);
+    const service = findService(input.service);
+    const now = new Date().toISOString();
+    const number = Math.max(1040, ...mockDb.jobs.map((j) => Number(j.reference.slice(3)) || 0)) + 1;
+    const job: Job = {
+      id: `job_${Date.now()}`,
+      reference: `FD-${number}`,
+      service: service.name,
+      problem: input.problem.trim(),
+      urgency: input.urgency,
+      location: input.location.trim(),
+      customer: { id: customer.id, name: customer.name, phone: customer.phone },
+      status: 'REQUESTED',
+      createdAt: now,
+      updatedAt: now,
+      visitFee: feeFor(service, input.urgency),
+      events: [
+        {
+          id: `evt_${Date.now()}_1`,
+          status: 'REQUESTED',
+          title: JOB_STATUS_LABEL.REQUESTED,
+          text: `Created by Fundi admin for ${customer.name}: ${input.problem.trim()}`,
+          at: now,
+        },
+      ],
+    };
+    mockDb.jobs.unshift(job);
+    return clone(job);
+  },
+
+  /** Edits the details of a job that has not been paid for yet, and logs the change. */
+  async update(id: string, input: JobEditInput): Promise<Job> {
+    if (!env.useMocks) return unwrap(api.patch(`/admin/jobs/${id}`, input));
+    await delay();
+    const job = findMock(id);
+    if (!canEdit(job)) throw new ApiError('This job can no longer be edited because the visit fee has been paid.', 409);
+    const service = findService(input.service);
+    Object.assign(job, {
+      service: service.name,
+      problem: input.problem.trim(),
+      urgency: input.urgency,
+      location: input.location.trim(),
+      visitFee: feeFor(service, input.urgency),
+      updatedAt: new Date().toISOString(),
+    });
+    job.events.push({
+      id: `evt_${job.id}_${job.events.length + 1}`,
+      status: job.status,
+      title: 'Details edited',
+      text: 'Fundi admin updated the service, problem, urgency or location.',
+      at: job.updatedAt,
+    });
+    return clone(job);
+  },
+
+  /** Removes a mistaken or duplicate job; jobs with payments must be cancelled instead. */
+  async remove(id: string): Promise<void> {
+    if (!env.useMocks) {
+      await unwrap(api.delete(`/admin/jobs/${id}`));
+      return;
+    }
+    await delay();
+    const job = findMock(id);
+    if (!canDelete(job)) {
+      throw new ApiError('Jobs with payments cannot be deleted. Cancel the job instead to keep its record.', 409);
+    }
+    mockDb.jobs = mockDb.jobs.filter((j) => j.id !== id);
+  },
 };
+
+function findService(name: string): Service {
+  const service = mockDb.services.find((s) => s.name === name);
+  if (!service) throw new ApiError(`The service "${name}" does not exist.`, 400);
+  return service;
+}
+
+const feeFor = (service: Service, urgency: Urgency) =>
+  urgency === 'Emergency' ? service.emergencyVisitFee : service.visitFee;

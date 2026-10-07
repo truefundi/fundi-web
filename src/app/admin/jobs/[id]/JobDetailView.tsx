@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, ArrowLeft, Ban, Briefcase, MapPin, Star, UserRoundCog } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, ArrowLeft, Ban, Briefcase, MapPin, Pencil, Star, Trash2, UserRoundCog } from 'lucide-react';
+import { JobFormDialog } from '@/components/jobs/JobFormDialog';
 import { JobStatusBadge, UrgencyBadge } from '@/components/jobs/JobStatusBadge';
 import { JobTimeline } from '@/components/jobs/JobTimeline';
 import { QuoteDetails } from '@/components/jobs/QuoteDetails';
@@ -18,8 +20,8 @@ import {
   Spinner,
   useToast,
 } from '@/components/ui';
-import { useCancelJob, useJob } from '@/hooks/useJobs';
-import { canCancel, canReassign, COMMISSION_RATE, formatMoney, repairTotal, visitFeeSplit } from '@/lib/jobs';
+import { useCancelJob, useDeleteJob, useJob } from '@/hooks/useJobs';
+import { canCancel, canDelete, canEdit, canReassign, COMMISSION_RATE, formatMoney, repairTotal, visitFeeSplit } from '@/lib/jobs';
 import { formatDate, formatPhone } from '@/lib/utils';
 import type { Job } from '@/types/job';
 
@@ -77,10 +79,14 @@ function ExceptionBanner({ job }: { job: Job }) {
 
 export function JobDetailView({ id }: { id: string }) {
   const { data: job, isLoading, isError, error, refetch } = useJob(id);
+  const router = useRouter();
   const cancelJob = useCancelJob();
+  const deleteJob = useDeleteJob();
   const toast = useToast();
   const [reassignOpen, setReassignOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -127,7 +133,13 @@ export function JobDetailView({ id }: { id: string }) {
             {job.service} · Requested {formatDate(job.createdAt)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {canEdit(job) && (
+            <Button variant="secondary" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4" aria-hidden />
+              Edit
+            </Button>
+          )}
           {canReassign(job) && (
             <Button variant="secondary" onClick={() => setReassignOpen(true)}>
               <UserRoundCog className="h-4 w-4" aria-hidden />
@@ -138,6 +150,12 @@ export function JobDetailView({ id }: { id: string }) {
             <Button variant="danger" onClick={() => setCancelOpen(true)}>
               <Ban className="h-4 w-4" aria-hidden />
               Cancel job
+            </Button>
+          )}
+          {canDelete(job) && (
+            <Button variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" aria-hidden />
+              Delete
             </Button>
           )}
         </div>
@@ -249,6 +267,28 @@ export function JobDetailView({ id }: { id: string }) {
       </div>
 
       <ReassignDialog job={job} open={reassignOpen} onClose={() => setReassignOpen(false)} />
+      <JobFormDialog job={job} open={editOpen} onClose={() => setEditOpen(false)} />
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title={`Delete job ${job.reference}?`}
+        description="Use this only for duplicates or mistakes. The job and its timeline are removed permanently."
+        confirmLabel="Delete job"
+        destructive
+        loading={deleteJob.isPending}
+        onConfirm={() =>
+          deleteJob.mutate(job.id, {
+            onSuccess: () => {
+              toast(`Job ${job.reference} deleted`);
+              router.push('/admin/jobs');
+            },
+            onError: (err) => {
+              toast(err.message || 'Could not delete the job', 'error');
+              setDeleteOpen(false);
+            },
+          })
+        }
+      />
       <ConfirmDialog
         open={cancelOpen}
         onClose={() => setCancelOpen(false)}

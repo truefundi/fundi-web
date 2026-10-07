@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, ChevronRight } from 'lucide-react';
+import { Briefcase, ChevronRight, Plus } from 'lucide-react';
+import { JobFormDialog } from '@/components/jobs/JobFormDialog';
 import { JobStatusBadge, UrgencyBadge } from '@/components/jobs/JobStatusBadge';
 import {
+  Button,
   Card,
   ChipGroup,
   EmptyState,
@@ -20,8 +22,8 @@ import {
   Th,
   Tr,
 } from '@/components/ui';
-import { SERVICE_CATEGORIES, type ServiceCategory } from '@/config/services';
 import { useJobs, useJobStats } from '@/hooks/useJobs';
+import { useServices } from '@/hooks/useServices';
 import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
 import { DEFAULT_PAGE_SIZE } from '@/lib/api/mock-utils';
 import { cn, formatRelative } from '@/lib/utils';
@@ -32,6 +34,8 @@ type Tab = 'all' | JobGroup;
 
 export function JobsView() {
   const router = useRouter();
+  const [formOpen, setFormOpen] = useState(false);
+  const { data: services } = useServices();
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
   const [search, setSearch] = useState(values.search ?? '');
   const debouncedSearch = useDebouncedValue(search);
@@ -41,7 +45,7 @@ export function JobsView() {
   }, [debouncedSearch, values.search, setParams]);
 
   const group = values.group as JobGroup | undefined;
-  const service = values.service as ServiceCategory | undefined;
+  const service = values.service;
   const urgency = values.urgency as Urgency | undefined;
 
   const { data, isLoading, isError, error, refetch, isFetching } = useJobs({
@@ -62,7 +66,15 @@ export function JobsView() {
 
   return (
     <>
-      <PageHeader title="Jobs" description="Oversee every job from request to rating." />
+      <PageHeader
+        title="Jobs"
+        description="Oversee every job from request to rating."
+        actions={
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4" aria-hidden /> New job
+          </Button>
+        }
+      />
 
       <div className="mb-4 space-y-3">
         <SegmentedTabs
@@ -85,7 +97,7 @@ export function JobsView() {
             className="md:w-56"
           >
             <option value="">All services</option>
-            {SERVICE_CATEGORIES.map((c) => (
+            {(services ?? []).map(({ name: c }) => (
               <option key={c} value={c}>
                 {c}
               </option>
@@ -165,6 +177,8 @@ export function JobsView() {
           </>
         )}
       </Card>
+
+      <JobFormDialog open={formOpen} onClose={() => setFormOpen(false)} />
     </>
   );
 }

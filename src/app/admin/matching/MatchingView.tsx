@@ -117,7 +117,8 @@ export function MatchingView() {
               ) : (
                 queue.map((job) => {
                   const late = isOverdue(job);
-                  const live = coverage[job.service].live;
+                  // A service added by the admin has no technicians until they add it as a trade.
+                  const live = coverage[job.service as ServiceCategory]?.live ?? 0;
                   return (
                     <Tr key={job.id} onClick={() => router.push(`/admin/jobs/${job.id}`)} label={`Open job ${job.reference}`}>
                       <Td>

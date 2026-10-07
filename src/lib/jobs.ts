@@ -47,4 +47,12 @@ export const isOverdue = (job: Job, now = Date.now()) =>
 const REASSIGNABLE: JobStatus[] = ['REQUESTED', 'MATCHING', 'OFFERED', 'ACCEPTED', 'VISIT_PAID', 'EN_ROUTE'];
 
 export const canReassign = (job: Job) => REASSIGNABLE.includes(job.status);
+
+/** Before the visit fee is paid, nothing has been charged, so the details can still change. */
+const UNPAID: JobStatus[] = ['REQUESTED', 'MATCHING', 'OFFERED', 'ACCEPTED'];
+
+export const canEdit = (job: Job) => UNPAID.includes(job.status);
+
+/** Jobs with money involved are never deleted, only cancelled, so the record stays traceable. */
+export const canDelete = (job: Job) => UNPAID.includes(job.status) || (job.status === 'CANCELLED' && !job.visitPaymentMethod);
 export const canCancel = (job: Job) => job.status !== 'COMPLETED' && job.status !== 'CANCELLED';

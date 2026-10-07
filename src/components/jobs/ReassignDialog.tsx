@@ -5,6 +5,7 @@ import { HardHat, Star } from 'lucide-react';
 import { Avatar, Button, EmptyState, Modal, Spinner, useToast } from '@/components/ui';
 import { useReassignJob } from '@/hooks/useJobs';
 import { useTechnicians } from '@/hooks/useTechnicians';
+import type { ServiceCategory } from '@/config/services';
 import { cn } from '@/lib/utils';
 import type { Job } from '@/types/job';
 
@@ -17,7 +18,8 @@ export function ReassignDialog({ job, open, onClose }: { job: Job; open: boolean
   const reassign = useReassignJob();
   const [selected, setSelected] = useState<string | null>(null);
   const { data, isLoading } = useTechnicians({
-    trade: job.service,
+    // Technician trades are the built-in services; a newly added service matches nobody yet.
+    trade: job.service as ServiceCategory,
     verification: 'verified',
     status: 'active',
     pageSize: 100,
