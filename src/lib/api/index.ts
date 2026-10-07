@@ -4,4 +4,5 @@ export { customersApi } from './endpoints/customers';
 export { dashboardApi } from './endpoints/dashboard';
 export { healthApi } from './endpoints/health';
 export { jobsApi } from './endpoints/jobs';
+export { servicesApi } from './endpoints/services';
 export { techniciansApi } from './endpoints/technicians';

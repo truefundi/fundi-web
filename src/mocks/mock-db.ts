@@ -5,9 +5,11 @@
  */
 import customersSeed from './customers.json';
 import jobsSeed from './jobs.json';
+import servicesSeed from './services.json';
 import techniciansSeed from './technicians.json';
 import type { Customer } from '@/types/customer';
 import type { Job } from '@/types/job';
+import type { Service } from '@/types/service';
 import type { Technician } from '@/types/technician';
 
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
@@ -35,6 +37,7 @@ export const mockDb = {
   customers: clone(customersSeed) as Customer[],
   technicians: clone(techniciansSeed) as Technician[],
   jobs: freshJobs(clone(jobsSeed) as Job[]),
+  services: clone(servicesSeed) as Service[],
 };
 
 /** Simulated network latency so loading states are visible. */
