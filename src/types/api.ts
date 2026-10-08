@@ -1,6 +1,7 @@
-import type { ServiceCategory } from '@/config/services';
-import type { AccountStatus } from './customer';
-import type { VerificationStatus } from './technician';
+import type { ServiceCategory } from "@/config/services";
+import type { AccountStatus } from "./customer";
+import type { VerificationStatus } from "./technician";
+import type { UserRole } from "./user";
 
 export interface ApiResponse<T = unknown> {
   data?: T;
@@ -16,7 +17,7 @@ export interface PaginatedResponse<T> {
   pageSize: number;
 }
 
-export type SortOrder = 'newest' | 'oldest' | 'name';
+export type SortOrder = "newest" | "oldest" | "name";
 
 export interface ListQuery {
   search?: string;
@@ -34,6 +35,10 @@ export interface TechnicianQuery extends ListQuery {
   available?: boolean;
 }
 
+export interface UserQuery extends ListQuery {
+  role?: UserRole;
+}
+
 export interface AdminStats {
   totalCustomers: number;
   totalTechnicians: number;
@@ -41,7 +46,7 @@ export interface AdminStats {
   suspendedAccounts: number;
 }
 
-export type ServiceState ='up' | 'down' | 'degraded';
+export type ServiceState = "up" | "down" | "degraded";
 
 export interface HealthStatus {
   status: string;

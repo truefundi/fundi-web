@@ -5,14 +5,18 @@
  */
 import customersSeed from './customers.json';
 import techniciansSeed from './technicians.json';
-import type { Customer } from '@/types/customer';
+import adminsSeed from './admins.json';
+import type { Account, Customer } from '@/types/customer';
 import type { Technician } from '@/types/technician';
+
+type MockAdmin = Account & { role: 'ADMIN' };
 
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 export const mockDb = {
   customers: clone(customersSeed) as Customer[],
   technicians: clone(techniciansSeed) as Technician[],
+  admins: clone(adminsSeed) as MockAdmin[],
 };
 
 /** Simulated network latency so loading states are visible. */
