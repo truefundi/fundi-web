@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, HardHat, Plus, Star } from 'lucide-react';
+import { Ban, CircleCheck, Eye, FileX, HardHat, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { AccountStatusBadge } from '@/components/accounts/AccountStatus';
 import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDrawer';
 import { VerificationBadge } from '@/components/technicians/VerificationBadge';
 import {
+  ActionMenu,
   Avatar,
   Button,
   Card,
   ChipGroup,
+  ConfirmDialog,
   EmptyState,
   ErrorState,
   PageHeader,
@@ -23,15 +25,21 @@ import {
   Td,
   Th,
   Tr,
+  useToast,
 } from '@/components/ui';
 import { SERVICE_CATEGORIES, type ServiceCategory } from '@/config/services';
 import { useAdminStats } from '@/hooks/useCustomers';
-import { useTechnicians } from '@/hooks/useTechnicians';
+import {
+  useDeleteTechnician,
+  useRejectVerification,
+  useTechnicians,
+  useUpdateTechnicianStatus,
+} from '@/hooks/useTechnicians';
 import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
 import { DEFAULT_PAGE_SIZE } from '@/lib/api/mock-utils';
 import { cn, formatDate } from '@/lib/utils';
 import { ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL, type AccountStatus } from '@/types/customer';
-import type { VerificationStatus } from '@/types/technician';
+import type { Technician, VerificationStatus } from '@/types/technician';
 
 const FILTER_KEYS = ['search', 'verification', 'status', 'trade', 'available'] as const;
 const AVAILABILITY = ['online', 'offline'] as const;
@@ -40,6 +48,24 @@ type Tab = 'all' | VerificationStatus;
 export function TechniciansView() {
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
+  // Row actions from the Manage menu: the technician being edited, or the confirmation that is open.
+  const [editing, setEditing] = useState<Technician | null>(null);
+  const [confirm, setConfirm] = useState<{ action: 'status' | 'reject' | 'delete'; technician: Technician } | null>(null);
+  const toast = useToast();
+  const updateStatus = useUpdateTechnicianStatus();
+  const reject = useRejectVerification();
+  const remove = useDeleteTechnician();
+
+  const run = async (action: () => Promise<unknown>, success: string) => {
+    try {
+      await action();
+      toast(success);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Something went wrong', 'error');
+    } finally {
+      setConfirm(null);
+    }
+  };
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
   const [search, setSearch] = useState(values.search ?? '');
   const debouncedSearch = useDebouncedValue(search);
@@ -152,11 +178,12 @@ export function TechniciansView() {
                   <Th>Jobs</Th>
                   <Th>Experience</Th>
                   <Th>Joined</Th>
+                  <Th>Actions</Th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading || !data ? (
-                  <TableSkeleton columns={7} />
+                  <TableSkeleton columns={8} />
                 ) : (
                   data.items.map((t) => (
                     <Tr key={t.id} onClick={() => router.push(`/admin/technicians/${t.id}`)} label={`Open ${t.name}`}>
@@ -195,11 +222,33 @@ export function TechniciansView() {
                       </Td>
                       <Td className="text-slate-600">{t.jobsCompleted}</Td>
                       <Td className="whitespace-nowrap text-slate-600">{t.yearsExperience} yrs</Td>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        <span className="inline-flex items-center gap-2">
-                          {formatDate(t.createdAt)}
-                          <ChevronRight className="h-4 w-4 text-slate-400" aria-hidden />
-                        </span>
+                      <Td className="whitespace-nowrap text-slate-600">{formatDate(t.createdAt)}</Td>
+                      <Td>
+                        <ActionMenu
+                          ariaLabel={`Manage ${t.name}`}
+                          items={[
+                            { label: 'View profile', icon: Eye, onSelect: () => router.push(`/admin/technicians/${t.id}`) },
+                            { label: 'Edit', icon: Pencil, onSelect: () => setEditing(t) },
+                            {
+                              label: t.status === 'suspended' ? 'Reactivate' : 'Suspend',
+                              icon: t.status === 'suspended' ? CircleCheck : Ban,
+                              onSelect: () => setConfirm({ action: 'status', technician: t }),
+                            },
+                            {
+                              label: 'Reject documents',
+                              icon: FileX,
+                              danger: true,
+                              hidden: t.verification.status !== 'pending',
+                              onSelect: () => setConfirm({ action: 'reject', technician: t }),
+                            },
+                            {
+                              label: 'Delete',
+                              icon: Trash2,
+                              danger: true,
+                              onSelect: () => setConfirm({ action: 'delete', technician: t }),
+                            },
+                          ]}
+                        />
                       </Td>
                     </Tr>
                   ))
@@ -219,6 +268,74 @@ export function TechniciansView() {
       </Card>
 
       <EditTechnicianDrawer open={addOpen} onClose={() => setAddOpen(false)} />
+      {editing && <EditTechnicianDrawer technician={editing} open onClose={() => setEditing(null)} />}
+
+      {/* Same wording as on the technician profile (AccountStatus, VerificationPanel). */}
+      {confirm?.action === 'status' &&
+        (confirm.technician.status === 'suspended' ? (
+          <ConfirmDialog
+            open
+            onClose={() => setConfirm(null)}
+            loading={updateStatus.isPending}
+            title={`Reactivate ${confirm.technician.name}?`}
+            description="They will regain access to Fundi immediately."
+            confirmLabel="Reactivate"
+            onConfirm={() =>
+              run(
+                () => updateStatus.mutateAsync({ id: confirm.technician.id, status: 'active' }),
+                `${confirm.technician.name} reactivated`,
+              )
+            }
+          />
+        ) : (
+          <ConfirmDialog
+            open
+            onClose={() => setConfirm(null)}
+            loading={updateStatus.isPending}
+            destructive
+            title={`Suspend ${confirm.technician.name}?`}
+            description="They will be signed out and cannot use Fundi until reactivated. You can undo this at any time."
+            confirmLabel="Suspend account"
+            onConfirm={() =>
+              run(
+                () => updateStatus.mutateAsync({ id: confirm.technician.id, status: 'suspended' }),
+                `${confirm.technician.name} suspended`,
+              )
+            }
+          />
+        ))}
+      {confirm?.action === 'reject' && (
+        <ConfirmDialog
+          open
+          onClose={() => setConfirm(null)}
+          loading={reject.isPending}
+          destructive
+          title={`Reject ${confirm.technician.name}?`}
+          description="Use this when the ID or certificates are not valid. The technician will not receive jobs until they resubmit and are approved."
+          confirmLabel="Reject"
+          reasonLabel="Why are the documents not valid?"
+          onConfirm={(reason) =>
+            run(
+              () => reject.mutateAsync({ id: confirm.technician.id, reason }),
+              `Verification rejected for ${confirm.technician.name}`,
+            )
+          }
+        />
+      )}
+      {confirm?.action === 'delete' && (
+        <ConfirmDialog
+          open
+          onClose={() => setConfirm(null)}
+          loading={remove.isPending}
+          destructive
+          title={`Delete ${confirm.technician.name}?`}
+          description="Their profile and account are removed permanently. To keep their history, suspend the account instead."
+          confirmLabel="Delete technician"
+          onConfirm={() =>
+            run(() => remove.mutateAsync(confirm.technician.id), `${confirm.technician.name} deleted`)
+          }
+        />
+      )}
     </>
   );
 }
