@@ -17,11 +17,15 @@ function assertUniqueName(name: string, exceptId?: string) {
   }
 }
 
+/** Alphabetical, with the catch-all "Other" always last. */
+const byName = (a: Service, b: Service) =>
+  Number(a.name === 'Other') - Number(b.name === 'Other') || a.name.localeCompare(b.name);
+
 export const servicesApi = {
   async list(): Promise<Service[]> {
     if (!env.useMocks) return unwrap(api.get('/admin/services'));
     await delay();
-    return clone([...mockDb.services].sort((a, b) => a.name.localeCompare(b.name)));
+    return clone([...mockDb.services].sort(byName));
   },
 
   async create(input: ServiceInput): Promise<Service> {

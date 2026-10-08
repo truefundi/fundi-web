@@ -2,12 +2,25 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Briefcase, Clock, MapPin, Pencil, Phone, Radar, ShieldCheck, Star, UserX } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Briefcase, Clock, MapPin, Pencil, Phone, Radar, ShieldCheck, Star, Trash2, UserX } from 'lucide-react';
 import { AccountStatusAction, AccountStatusBadge } from '@/components/accounts/AccountStatus';
 import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDrawer';
 import { VerificationPanel } from '@/components/technicians/VerificationPanel';
-import { Avatar, Button, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner, StatCard } from '@/components/ui';
-import { useTechnician, useUpdateTechnicianStatus } from '@/hooks/useTechnicians';
+import {
+  Avatar,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  ConfirmDialog,
+  EmptyState,
+  ErrorState,
+  Spinner,
+  StatCard,
+  useToast,
+} from '@/components/ui';
+import { useDeleteTechnician, useTechnician, useUpdateTechnicianStatus } from '@/hooks/useTechnicians';
 import { formatDate, formatPhone, formatRelative } from '@/lib/utils';
 import { WORK_HOURS_LABEL } from '@/types/technician';
 
@@ -40,6 +53,10 @@ export function TechnicianDetailView({ id }: { id: string }) {
   const { data: technician, isLoading, isError, error, refetch } = useTechnician(id);
   const updateStatus = useUpdateTechnicianStatus();
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const deleteTechnician = useDeleteTechnician();
+  const router = useRouter();
+  const toast = useToast();
 
   if (isLoading) {
     return (
@@ -181,12 +198,40 @@ export function TechnicianDetailView({ id }: { id: string }) {
                 loading={updateStatus.isPending}
                 onChange={(status) => updateStatus.mutateAsync({ id: technician.id, status })}
               />
+              <div className="border-t border-slate-100 pt-4">
+                <Button variant="ghost" className="text-red-600 hover:bg-red-50" onClick={() => setDeleteOpen(true)}>
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                  Delete technician
+                </Button>
+                <p className="mt-1 text-xs text-slate-500">Permanent. Only possible when they have no open jobs.</p>
+              </div>
             </CardBody>
           </Card>
         </div>
       </div>
 
       <EditTechnicianDrawer technician={technician} open={editOpen} onClose={() => setEditOpen(false)} />
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title={`Delete ${technician.name}?`}
+        description="Their profile and account are removed permanently. To keep their history, suspend the account instead."
+        confirmLabel="Delete technician"
+        destructive
+        loading={deleteTechnician.isPending}
+        onConfirm={() =>
+          deleteTechnician.mutate(technician.id, {
+            onSuccess: () => {
+              toast(`${technician.name} deleted`);
+              router.push('/admin/technicians');
+            },
+            onError: (err) => {
+              toast(err.message || 'Could not delete the technician', 'error');
+              setDeleteOpen(false);
+            },
+          })
+        }
+      />
     </>
   );
 }

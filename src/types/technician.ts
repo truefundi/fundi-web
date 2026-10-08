@@ -47,6 +47,12 @@ export interface Technician extends Account {
   workSettings: WorkSettings;
 }
 
+/** What the admin fills in to add a technician; verification starts as "not submitted". */
+export type TechnicianInput = Pick<Technician, 'name' | 'phone' | 'location' | 'trades' | 'yearsExperience'> & {
+  email?: string;
+  workSettings: WorkSettings;
+};
+
 /** Fields an admin may edit on a technician profile. */
 export type TechnicianProfilePatch = Partial<
   Pick<Technician, 'name' | 'phone' | 'email' | 'location' | 'trades' | 'yearsExperience'>

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, HardHat, Star } from 'lucide-react';
+import { ChevronRight, HardHat, Plus, Star } from 'lucide-react';
 import { AccountStatusBadge } from '@/components/accounts/AccountStatus';
+import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDrawer';
 import { VerificationBadge } from '@/components/technicians/VerificationBadge';
 import {
   Avatar,
+  Button,
   Card,
   ChipGroup,
   EmptyState,
@@ -37,6 +39,7 @@ type Tab = 'all' | VerificationStatus;
 
 export function TechniciansView() {
   const router = useRouter();
+  const [addOpen, setAddOpen] = useState(false);
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
   const [search, setSearch] = useState(values.search ?? '');
   const debouncedSearch = useDebouncedValue(search);
@@ -72,7 +75,15 @@ export function TechniciansView() {
 
   return (
     <>
-      <PageHeader title="Technicians" description="Verify and manage technicians." />
+      <PageHeader
+        title="Technicians"
+        description="Verify and manage technicians."
+        actions={
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" aria-hidden /> Add technician
+          </Button>
+        }
+      />
 
       <div className="mb-4 space-y-3">
         <SegmentedTabs
@@ -206,6 +217,8 @@ export function TechniciansView() {
           </>
         )}
       </Card>
+
+      <EditTechnicianDrawer open={addOpen} onClose={() => setAddOpen(false)} />
     </>
   );
 }
