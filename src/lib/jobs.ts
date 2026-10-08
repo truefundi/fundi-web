@@ -9,8 +9,12 @@ const linesTotal = (work: Quote | AdditionalWork) =>
 export const quoteTotal = (quote: Quote) => linesTotal(quote);
 export const additionalTotal = (work: AdditionalWork) => linesTotal(work);
 
-/** Repair total including approved extra work, before the visit fee credit. */
+/**
+ * Repair total including approved extra work, before the visit fee credit.
+ * Once a dispute is resolved, the amount the admin decided replaces it.
+ */
 export function repairTotal(job: Job): number {
+  if (job.dispute?.resolution) return job.dispute.resolution.amount;
   const base = job.quote ? quoteTotal(job.quote) : 0;
   const extra = job.additionalWork && job.additionalWorkApproved ? additionalTotal(job.additionalWork) : 0;
   return base + extra;
@@ -42,6 +46,18 @@ export const waitLimitMinutes = (job: Job) => (job.urgency === 'Emergency' ? 15 
 
 export const isOverdue = (job: Job, now = Date.now()) =>
   now - Date.parse(job.createdAt) > waitLimitMinutes(job) * 60_000;
+
+/** Repair total if every piece of extra work counted, approved or not: what the technician billed. */
+export function billedTotal(job: Job): number {
+  const base = job.quote ? quoteTotal(job.quote) : 0;
+  return base + (job.additionalWork ? additionalTotal(job.additionalWork) : 0);
+}
+
+/** Repair total counting only work the customer approved. */
+export function approvedTotal(job: Job): number {
+  const base = job.quote ? quoteTotal(job.quote) : 0;
+  return base + (job.additionalWork && job.additionalWorkApproved ? additionalTotal(job.additionalWork) : 0);
+}
 
 /** Admin actions are only offered where the backend would allow them. */
 const REASSIGNABLE: JobStatus[] = ['REQUESTED', 'MATCHING', 'OFFERED', 'ACCEPTED', 'VISIT_PAID', 'EN_ROUTE'];

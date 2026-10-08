@@ -32,6 +32,7 @@ function useJobMutation<TVars>(mutationFn: (vars: TVars) => Promise<Job>) {
     onSuccess: (job) => {
       queryClient.setQueryData(jobKeys.detail(job.id), job);
       queryClient.invalidateQueries({ queryKey: jobKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -54,6 +55,7 @@ export function useDeleteJob() {
     onSuccess: (_, id) => {
       queryClient.removeQueries({ queryKey: jobKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }

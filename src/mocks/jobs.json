@@ -2972,7 +2972,12 @@
         "text": "Customer opened a dispute: Extra charge for a door gasket appeared on the bill without my approval.",
         "at": "2026-10-03T14:07:00.000Z"
       }
-    ]
+    ],
+    "dispute": {
+      "reason": "Extra charge for a door gasket appeared on the bill without my approval.",
+      "openedBy": "customer",
+      "openedAt": "2026-10-03T14:07:00.000Z"
+    }
   },
   {
     "id": "job_030",
@@ -3118,6 +3123,11 @@
         "text": "Customer opened a dispute: The ceiling is still leaking after the repair.",
         "at": "2026-10-01T13:32:00.000Z"
       }
-    ]
+    ],
+    "dispute": {
+      "reason": "The ceiling is still leaking after the repair.",
+      "openedBy": "customer",
+      "openedAt": "2026-10-01T13:32:00.000Z"
+    }
   }
 ]

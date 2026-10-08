@@ -59,6 +59,9 @@ function ExceptionBanner({ job }: { job: Job }) {
         <div>
           <p className="text-sm font-semibold text-red-800">This job is disputed</p>
           {dispute && <p className="mt-0.5 text-sm text-red-700">{dispute.text}</p>}
+          <Link href={`/admin/disputes/${job.id}`} className="mt-1 inline-block text-sm font-semibold text-red-800 underline">
+            Review dispute
+          </Link>
         </div>
       </div>
     );

@@ -33,6 +33,7 @@ function freshJobs(jobs: Job[]): Job[] {
     updatedAt: shift(job.updatedAt),
     ...(job.completedAt && { completedAt: shift(job.completedAt) }),
     events: job.events.map((event) => ({ ...event, at: shift(event.at) })),
+    ...(job.dispute && { dispute: { ...job.dispute, openedAt: shift(job.dispute.openedAt) } }),
   }));
 }
 

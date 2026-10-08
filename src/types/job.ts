@@ -176,6 +176,31 @@ export interface JobInput {
 /** Fields the admin may change on an existing job (the customer stays the same). */
 export type JobEditInput = Omit<JobInput, 'customerId'>;
 
+/** Who the admin decided in favour of when resolving a dispute. */
+export type DisputeOutcome = 'customer' | 'technician' | 'partial';
+
+export const DISPUTE_OUTCOME_LABEL: Record<DisputeOutcome, string> = {
+  customer: 'In favour of the customer',
+  technician: 'In favour of the technician',
+  partial: 'Partly each',
+};
+
+export interface DisputeResolution {
+  outcome: DisputeOutcome;
+  /** Repair amount the customer must settle after the decision (visit fee excluded). */
+  amount: number;
+  note: string;
+  resolvedAt: string;
+  resolvedBy: string;
+}
+
+export interface Dispute {
+  reason: string;
+  openedBy: 'customer' | 'technician';
+  openedAt: string;
+  resolution?: DisputeResolution;
+}
+
 export interface Job {
   id: string;
   reference: string;
@@ -199,5 +224,7 @@ export interface Job {
   rating?: Rating;
   completedAt?: string;
   cancellationReason?: string;
+  /** Present once a customer or technician has opened a dispute; kept after it is resolved. */
+  dispute?: Dispute;
   events: JobEvent[];
 }

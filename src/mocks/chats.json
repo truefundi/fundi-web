@@ -1,6 +1,6 @@
 [
   {
-    "id": "chat_011",
+    "id": "chat_013",
     "status": "negotiating",
     "service": "HVAC",
     "problem": "Air conditioner makes a loud noise at night",
@@ -18,31 +18,31 @@
     "lastMessageAt": "2026-10-05T08:54:00.000Z",
     "messages": [
       {
-        "id": "chat_011_m1",
+        "id": "chat_013_m1",
         "sender": "customer",
         "text": "Hello, my air conditioner makes a loud noise at night. Can you check it this week?",
         "at": "2026-10-05T08:42:00.000Z"
       },
       {
-        "id": "chat_011_m2",
+        "id": "chat_013_m2",
         "sender": "technician",
         "text": "Hello Jean, yes. I am free on Thursday morning. The visit fee is $75.",
         "at": "2026-10-05T08:45:00.000Z"
       },
       {
-        "id": "chat_011_m3",
+        "id": "chat_013_m3",
         "sender": "customer",
         "text": "Thursday is good. How much might the repair be?",
         "at": "2026-10-05T08:48:00.000Z"
       },
       {
-        "id": "chat_011_m4",
+        "id": "chat_013_m4",
         "sender": "technician",
         "text": "Often a loose fan or bracket, about $50 to $90 with parts.",
         "at": "2026-10-05T08:51:00.000Z"
       },
       {
-        "id": "chat_011_m5",
+        "id": "chat_013_m5",
         "sender": "customer",
         "text": "Can you do it for less if I buy the parts myself?",
         "at": "2026-10-05T08:54:00.000Z"
@@ -50,7 +50,7 @@
     ]
   },
   {
-    "id": "chat_012",
+    "id": "chat_014",
     "status": "negotiating",
     "service": "Home Repair",
     "problem": "Window frame is rotten and lets rain in",
@@ -68,19 +68,19 @@
     "lastMessageAt": "2026-10-05T08:42:00.000Z",
     "messages": [
       {
-        "id": "chat_012_m1",
+        "id": "chat_014_m1",
         "sender": "customer",
         "text": "Hello, a window frame in my bedroom is rotten and rain comes in. Can you fix it?",
         "at": "2026-10-05T08:36:00.000Z"
       },
       {
-        "id": "chat_012_m2",
+        "id": "chat_014_m2",
         "sender": "technician",
         "text": "Hello Gilbert. I can come today after 3 pm. Can you send a photo of the frame?",
         "at": "2026-10-05T08:39:00.000Z"
       },
       {
-        "id": "chat_012_m3",
+        "id": "chat_014_m3",
         "sender": "customer",
         "text": "Yes, I will send it in a minute.",
         "at": "2026-10-05T08:42:00.000Z"
@@ -712,6 +712,146 @@
         "sender": "system",
         "text": "Emile Habimana declined and chose another technician.",
         "at": "2026-10-04T01:23:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_011",
+    "status": "agreed",
+    "service": "Appliance Repair",
+    "problem": "Washing machine leaking from the door",
+    "customer": {
+      "id": "usr_015",
+      "name": "Solange Uwase",
+      "phone": "+250732536078"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "jobId": "job_029",
+    "jobReference": "FD-1069",
+    "startedAt": "2026-10-03T08:39:00.000Z",
+    "lastMessageAt": "2026-10-03T09:00:00.000Z",
+    "messages": [
+      {
+        "id": "chat_011_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: washing machine leaking from the door. Are you available today?",
+        "at": "2026-10-03T08:39:00.000Z"
+      },
+      {
+        "id": "chat_011_m2",
+        "sender": "technician",
+        "text": "Hello Solange, yes I can come. Where are you located?",
+        "at": "2026-10-03T08:42:00.000Z"
+      },
+      {
+        "id": "chat_011_m3",
+        "sender": "customer",
+        "text": "Kicukiro Centre, Kicukiro.",
+        "at": "2026-10-03T08:45:00.000Z"
+      },
+      {
+        "id": "chat_011_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-03T08:48:00.000Z"
+      },
+      {
+        "id": "chat_011_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-03T08:51:00.000Z"
+      },
+      {
+        "id": "chat_011_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $45 and $120, but I will confirm after the diagnosis.",
+        "at": "2026-10-03T08:54:00.000Z"
+      },
+      {
+        "id": "chat_011_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-03T08:57:00.000Z"
+      },
+      {
+        "id": "chat_011_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1069 was created with Samuel Mugisha.",
+        "at": "2026-10-03T09:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_012",
+    "status": "agreed",
+    "service": "Home Repair",
+    "problem": "Ceiling leak after heavy rain",
+    "customer": {
+      "id": "usr_022",
+      "name": "Grace Mutesi",
+      "phone": "+250723375822"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "jobId": "job_030",
+    "jobReference": "FD-1070",
+    "startedAt": "2026-10-01T08:39:00.000Z",
+    "lastMessageAt": "2026-10-01T09:00:00.000Z",
+    "messages": [
+      {
+        "id": "chat_012_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: ceiling leak after heavy rain. Are you available this week?",
+        "at": "2026-10-01T08:39:00.000Z"
+      },
+      {
+        "id": "chat_012_m2",
+        "sender": "technician",
+        "text": "Hello Grace, yes I can come. Where are you located?",
+        "at": "2026-10-01T08:42:00.000Z"
+      },
+      {
+        "id": "chat_012_m3",
+        "sender": "customer",
+        "text": "Niboye, Kicukiro.",
+        "at": "2026-10-01T08:45:00.000Z"
+      },
+      {
+        "id": "chat_012_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-01T08:48:00.000Z"
+      },
+      {
+        "id": "chat_012_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-01T08:51:00.000Z"
+      },
+      {
+        "id": "chat_012_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $40 and $110, but I will confirm after the diagnosis.",
+        "at": "2026-10-01T08:54:00.000Z"
+      },
+      {
+        "id": "chat_012_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-01T08:57:00.000Z"
+      },
+      {
+        "id": "chat_012_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1070 was created with Esperance Mukamana.",
+        "at": "2026-10-01T09:00:00.000Z"
       }
     ]
   }
