@@ -1,5 +1,6 @@
 import { Logo } from './Logo';
 import { navLinks } from './content';
+import Link from 'next/link';
 
 // Company and legal pages do not exist yet: placeholders until they are written.
 const companyLinks = ['About us', 'Contact', 'Careers'];
@@ -20,9 +21,9 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-3 text-sm">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="hover:text-white">
+                  <Link href={link.href} className="hover:text-white">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

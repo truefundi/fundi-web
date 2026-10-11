@@ -4,10 +4,10 @@ import { faqs } from './content';
 
 export function Faq() {
   return (
-    <section id="faq" className="scroll-mt-16 bg-white py-20 sm:py-24">
+    <section id="faq" className="scroll-mt-16 bg-white py-12 sm:py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="FAQ" title="Questions, answered" />
-        <div className="mt-12 divide-y divide-slate-200 rounded-2xl border border-slate-200">
+        <SectionHeading title="Questions, answered" />
+        <div className="mt-8 divide-y divide-slate-200 rounded-2xl border border-slate-200">
           {faqs.map(({ question, answer }) => (
             <details key={question} className="group px-6 [&_summary::-webkit-details-marker]:hidden">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left text-base font-semibold text-slate-900">

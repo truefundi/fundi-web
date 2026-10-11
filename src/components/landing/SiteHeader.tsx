@@ -2,50 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
 import { navLinks } from './content';
 
-/** Tracks which landing section is in the middle of the screen, so its menu link can be highlighted. */
-function useActiveSection(): [string | null, (href: string) => void] {
-  const [active, setActive] = useState<string | null>(null);
-
-  useEffect(() => {
-    const sections = navLinks
-      .map((link) => document.querySelector<HTMLElement>(link.href))
-      .filter((el): el is HTMLElement => el !== null);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActive(`#${entry.target.id}`);
-        }
-      },
-      // A section counts as active while it crosses the middle of the viewport.
-      { rootMargin: '-50% 0px -50% 0px' },
-    );
-    sections.forEach((section) => observer.observe(section));
-
-    // Above the first section (the hero), no link is active.
-    const onScroll = () => {
-      if (sections[0] && window.scrollY + window.innerHeight / 2 < sections[0].offsetTop) setActive(null);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, []);
-
-  return [active, setActive];
-}
-
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [active, setActive] = useActiveSection();
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -67,20 +33,19 @@ export function SiteHeader() {
         <div className="hidden items-center gap-6 lg:flex">
           <nav className="flex items-center gap-1" aria-label="Main">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setActive(link.href)}
-                aria-current={active === link.href ? 'true' : undefined}
+                aria-current={pathname === link.href ? 'page' : undefined}
                 className={cn(
                   'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                  active === link.href
+                  pathname === link.href
                     ? 'bg-brand-50 text-brand-700'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                 )}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -113,20 +78,17 @@ export function SiteHeader() {
           <ul className="space-y-1">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <a
+                <Link
                   href={link.href}
-                  onClick={() => {
-                    setActive(link.href);
-                    setOpen(false);
-                  }}
-                  aria-current={active === link.href ? 'true' : undefined}
+                  onClick={() => setOpen(false)}
+                  aria-current={pathname === link.href ? 'page' : undefined}
                   className={cn(
                     'block rounded-lg px-3 py-3 text-base font-medium',
-                    active === link.href ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-50',
+                    pathname === link.href ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-50',
                   )}
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

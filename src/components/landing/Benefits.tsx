@@ -6,14 +6,13 @@ import { customerBenefits, technicianBenefits } from './content';
 
 export function CustomerBenefits() {
   return (
-    <section id="customers" className="scroll-mt-16 bg-white py-20 sm:py-24">
+    <section id="customers" className="scroll-mt-16 bg-white py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="For customers"
           title="Repairs without the guesswork"
           description="Fundi makes getting skilled help simple, transparent and on your terms."
         />
-        <div className="mt-14">
+        <div className="mt-8 sm:mt-10">
           <FeatureGrid features={customerBenefits} />
         </div>
       </div>
@@ -23,18 +22,16 @@ export function CustomerBenefits() {
 
 export function TechnicianBenefits() {
   return (
-    <section id="technicians" className="scroll-mt-16 bg-slate-900 py-20 sm:py-24">
+    <section id="technicians" className="scroll-mt-16 bg-white py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          dark
-          eyebrow="For technicians"
           title="More jobs. Your schedule."
           description="Electricians, plumbers, mechanics and other skilled workers: Fundi brings customers who need you right now."
         />
-        <div className="mt-14">
-          <FeatureGrid features={technicianBenefits} dark />
+        <div className="mt-8 sm:mt-10">
+          <FeatureGrid features={technicianBenefits} />
         </div>
-        <div className="mt-14 text-center">
+        <div className="mt-8 sm:mt-10 text-center">
           <Link
             href="/signup"
             className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3.5 text-base font-semibold text-white hover:bg-brand-600"

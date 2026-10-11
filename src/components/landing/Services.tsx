@@ -5,15 +5,14 @@ import { serviceDescriptions } from './content';
 
 export function Services() {
   return (
-    <section id="services" className="scroll-mt-16 bg-slate-50 py-20 sm:py-24">
+    <section id="services" className="scroll-mt-16 bg-slate-50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Services"
           title="One app for every repair"
           description="From a flickering light to a truck that will not start, Fundi covers the skilled trades you need most."
         />
 
-        <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
           {SERVICE_CATEGORIES.map((category) => {
             const { icon: Icon, className } = SERVICE_CATEGORY_STYLE[category];
             return (

@@ -7,7 +7,7 @@ export function SectionHeading({
   dark = false,
   className,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
   dark?: boolean;
@@ -15,10 +15,12 @@ export function SectionHeading({
 }) {
   return (
     <div className={cn('mx-auto max-w-2xl text-center', className)}>
-      <p className={cn('text-sm font-semibold uppercase tracking-wider', dark ? 'text-brand-400' : 'text-brand-600')}>
-        {eyebrow}
-      </p>
-      <h2 className={cn('mt-3 text-3xl font-bold tracking-tight sm:text-4xl', dark ? 'text-white' : 'text-slate-900')}>
+      {eyebrow && (
+        <p className={cn('text-sm font-semibold uppercase tracking-wider', dark ? 'text-brand-400' : 'text-brand-600')}>
+          {eyebrow}
+        </p>
+      )}
+      <h2 className={cn(eyebrow ? 'mt-3' : 'mt-0', 'text-3xl font-bold tracking-tight sm:text-4xl', dark ? 'text-white' : 'text-slate-900')}>
         {title}
       </h2>
       {description && (
