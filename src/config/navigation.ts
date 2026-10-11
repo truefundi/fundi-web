@@ -11,7 +11,7 @@ import {
   Tags,
   Users,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
 export interface NavItem {
   label: string;
@@ -30,10 +30,10 @@ export interface NavSection {
  */
 export const navigation: NavSection[] = [
   {
-    items: [{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }],
+    items: [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
   },
   {
-    title: 'Operations',
+    title: "Operations",
     items: [
       { label: 'Jobs', href: '/admin/jobs', icon: Briefcase },
       { label: 'Chats', href: '/admin/chats', icon: MessagesSquare },
@@ -42,22 +42,25 @@ export const navigation: NavSection[] = [
     ],
   },
   {
-    title: 'People',
+    title: "People",
     items: [
-      { label: 'Technicians', href: '/admin/technicians', icon: HardHat },
-      { label: 'Customers', href: '/admin/customers', icon: Users },
+      { label: "Technicians", href: "/admin/technicians", icon: HardHat },
+      { label: "Customers", href: "/admin/customers", icon: Users },
     ],
   },
   {
-    title: 'Business',
+    title: "Business",
     items: [
-      { label: 'Categories', href: '/admin/categories', icon: Tags },
-      { label: 'Payments', href: '/admin/payments', icon: CreditCard },
-      { label: 'Service Records', href: '/admin/records', icon: FileText },
+      { label: "Categories", href: "/admin/categories", icon: Tags },
+      { label: "Payments", href: "/admin/payments", icon: CreditCard },
+      { label: "Service Records", href: "/admin/records", icon: FileText },
     ],
   },
   {
-    title: 'System',
-    items: [{ label: 'Settings', href: '/admin/settings', icon: Settings }],
+    title: "System",
+    items: [
+      { label: "Users", href: "/admin/users", icon: Users },
+      { label: "Settings", href: "/admin/settings", icon: Settings },
+    ],
   },
 ];

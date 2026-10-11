@@ -2,6 +2,7 @@ import type { ServiceCategory } from '@/config/services';
 import type { AccountStatus } from './customer';
 import type { VerificationStatus } from './technician';
 import type { JobGroup, JobStatus, Urgency } from './job';
+import type { UserRole } from './user';
 
 export interface ApiResponse<T = unknown> {
   data?: T;
@@ -51,6 +52,10 @@ export interface JobStats {
   byGroup: Record<JobGroup, number>;
 }
 
+export interface UserQuery extends ListQuery {
+  role?: UserRole;
+}
+
 export interface AdminStats {
   /** Customers and technicians together. */
   totalUsers: number;
@@ -70,7 +75,7 @@ export interface JobSummary {
   openDisputes: number | null;
 }
 
-export type ServiceState ='up' | 'down' | 'degraded';
+export type ServiceState = 'up' | 'down' | 'degraded';
 
 export interface HealthStatus {
   status: string;

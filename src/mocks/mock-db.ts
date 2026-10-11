@@ -8,11 +8,14 @@ import customersSeed from './customers.json';
 import jobsSeed from './jobs.json';
 import servicesSeed from './services.json';
 import techniciansSeed from './technicians.json';
+import adminsSeed from './admins.json';
 import type { Conversation } from '@/types/chat';
-import type { Customer } from '@/types/customer';
+import type { Account, Customer } from '@/types/customer';
 import type { Job } from '@/types/job';
 import type { Service } from '@/types/service';
 import type { Technician } from '@/types/technician';
+
+type MockAdmin = Account & { role: 'ADMIN' };
 
 export const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
@@ -50,6 +53,7 @@ function freshChats(chats: Conversation[]): Conversation[] {
 export const mockDb = {
   customers: clone(customersSeed) as Customer[],
   technicians: clone(techniciansSeed) as Technician[],
+  admins: clone(adminsSeed) as MockAdmin[],
   jobs: freshJobs(clone(jobsSeed) as Job[]),
   chats: freshChats(clone(chatsSeed) as Conversation[]),
   services: clone(servicesSeed) as Service[],
