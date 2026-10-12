@@ -8,7 +8,8 @@ import {
 } from "@tanstack/react-query";
 import { customersApi, techniciansApi, usersApi } from "@/lib/api";
 import type { UserQuery } from "@/types/api";
-import type { AccountStatus } from "@/types/customer";
+import type { AccountStatus, Customer } from "@/types/customer";
+import type { Technician } from "@/types/technician";
 import type { UserRole } from "@/types/user";
 
 export const userKeys = {
@@ -35,7 +36,7 @@ export function useUpdateUserStatus() {
       id: string;
       role: UserRole;
       status: AccountStatus;
-    }) => {
+    }): Promise<Customer | Technician> => {
       if (role === "CUSTOMER") return customersApi.updateStatus(id, status);
       if (role === "TECHNICIAN") return techniciansApi.updateStatus(id, status);
       throw new Error(

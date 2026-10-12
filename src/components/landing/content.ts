@@ -24,11 +24,11 @@ import type { ServiceCategory } from '@/config/services';
  */
 
 export const navLinks = [
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'Services', href: '#services' },
-  { label: 'For customers', href: '#customers' },
-  { label: 'For technicians', href: '#technicians' },
-  { label: 'FAQ', href: '#faq' },
+  { label: 'Home', href: '/' },
+  { label: 'Services', href: '/services' },
+  { label: 'How it works', href: '/how-it-works' },
+  { label: 'For technicians', href: '/for-technicians' },
+  { label: 'FAQ', href: '/faq' },
 ];
 
 export interface Feature {

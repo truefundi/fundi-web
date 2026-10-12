@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Field, FilterChip, Input, Modal, Select, useToast } from '@/components/ui';
 import { SERVICE_CATEGORIES, type ServiceCategory } from '@/config/services';
-import { useUpdateTechnician } from '@/hooks/useTechnicians';
+import { useCreateTechnician, useUpdateTechnician } from '@/hooks/useTechnicians';
 import {
   WORK_HOURS_LABEL,
   type Technician,
@@ -31,7 +32,20 @@ interface FormState {
 
 type Errors = Partial<Record<keyof FormState, string>>;
 
-function toForm(t: Technician): FormState {
+const EMPTY_FORM: FormState = {
+  name: '',
+  phone: '',
+  email: '',
+  location: '',
+  trades: [],
+  yearsExperience: '0',
+  radiusKm: 10,
+  maxJobsPerDay: 4,
+  hours: 'days',
+};
+
+function toForm(t?: Technician): FormState {
+  if (!t) return EMPTY_FORM;
   return {
     name: t.name,
     phone: t.phone,
@@ -59,7 +73,8 @@ function validate(form: FormState): Errors {
 }
 
 interface EditTechnicianDrawerProps {
-  technician: Technician;
+  /** Leave out to add a new technician. */
+  technician?: Technician;
   open: boolean;
   onClose: () => void;
 }
@@ -68,6 +83,9 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
   const [form, setForm] = useState<FormState>(() => toForm(technician));
   const [errors, setErrors] = useState<Errors>({});
   const update = useUpdateTechnician();
+  const create = useCreateTechnician();
+  const router = useRouter();
+  const saving = update.isPending || create.isPending;
   const toast = useToast();
 
   useEffect(() => {
@@ -101,9 +119,24 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
       workSettings: { radiusKm: form.radiusKm, maxJobsPerDay: form.maxJobsPerDay, hours: form.hours },
     };
     try {
-      await update.mutateAsync({ id: technician.id, patch });
-      toast('Profile updated');
-      onClose();
+      if (technician) {
+        await update.mutateAsync({ id: technician.id, patch });
+        toast('Profile updated');
+        onClose();
+      } else {
+        const created = await create.mutateAsync({
+          name: form.name.trim(),
+          phone: form.phone.replace(/s/g, ''),
+          email: form.email.trim() || undefined,
+          location: form.location.trim(),
+          trades: form.trades,
+          yearsExperience: Number(form.yearsExperience),
+          workSettings: { radiusKm: form.radiusKm, maxJobsPerDay: form.maxJobsPerDay, hours: form.hours },
+        });
+        toast(`${created.name} added`);
+        onClose();
+        router.push(`/admin/technicians/${created.id}`);
+      }
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Could not save changes', 'error');
     }
@@ -114,15 +147,15 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
       open={open}
       onClose={onClose}
       variant="drawer"
-      title="Edit profile"
-      description={`Update ${technician.name}'s details.`}
+      title={technician ? 'Edit profile' : 'Add technician'}
+      description={technician ? `Update ${technician.name}'s details.` : 'They will need to submit documents and be verified before receiving jobs.'}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose} disabled={update.isPending}>
+          <Button variant="secondary" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={() => submit()} loading={update.isPending}>
-            Save changes
+          <Button onClick={() => submit()} loading={saving}>
+            {technician ? 'Save changes' : 'Add technician'}
           </Button>
         </>
       }

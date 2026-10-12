@@ -68,7 +68,12 @@ fundi-web/
 ├── src/
 │   ├── app/                    # Next.js App Router pages
 │   │   ├── layout.tsx          # Root layout (html/body, site metadata)
-│   │   ├── page.tsx            # Public landing page (/)
+│   │   ├── (landing)/           # Public marketing pages with shared header/footer
+│   │   │   ├── page.tsx         # Home (/)
+│   │   │   ├── services/        # Services (/services)
+│   │   │   ├── how-it-works/    # How Fundi works (/how-it-works)
+│   │   │   ├── for-technicians/ # Technician information (/for-technicians)
+│   │   │   └── faq/             # Frequently asked questions (/faq)
 │   │   ├── error.tsx           # Route error boundary
 │   │   ├── global-error.tsx    # Root layout error boundary
 │   │   ├── not-found.tsx       # 404 page

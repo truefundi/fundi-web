@@ -1,6 +1,11 @@
-export { api, ApiError, request, unwrap } from "./client";
-export type { RequestOptions } from "./client";
-export { customersApi } from "./endpoints/customers";
-export { healthApi } from "./endpoints/health";
-export { techniciansApi } from "./endpoints/technicians";
-export { usersApi } from "./endpoints/users";
+export { api, ApiError, request, unwrap } from './client';
+export type { RequestOptions } from './client';
+export { chatsApi } from './endpoints/chats';
+export { customersApi } from './endpoints/customers';
+export { dashboardApi } from './endpoints/dashboard';
+export { disputesApi } from './endpoints/disputes';
+export { healthApi } from './endpoints/health';
+export { jobsApi } from './endpoints/jobs';
+export { servicesApi } from './endpoints/services';
+export { techniciansApi } from './endpoints/technicians';
+export { usersApi } from './endpoints/users';

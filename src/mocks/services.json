@@ -1,0 +1,83 @@
+[
+  {
+    "id": "svc_electrical",
+    "name": "Electrical",
+    "description": "Wiring, sockets, lighting and power faults.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_plumbing",
+    "name": "Plumbing",
+    "description": "Leaks, blocked drains, taps and water heaters.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_hvac",
+    "name": "HVAC",
+    "description": "Air conditioning, heating and ventilation.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_appliance",
+    "name": "Appliance Repair",
+    "description": "Fridges, washing machines, cookers and more.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_car",
+    "name": "Car & Garage",
+    "description": "Engine, brakes, batteries and servicing.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_truck",
+    "name": "Truck & Mechanical",
+    "description": "Heavy vehicles and mechanical equipment.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_home",
+    "name": "Home Repair",
+    "description": "Doors, walls, roofing, painting and carpentry.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_maintenance",
+    "name": "General Maintenance",
+    "description": "Everyday fixes and upkeep around your property.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  },
+  {
+    "id": "svc_other",
+    "name": "Other",
+    "description": "Anything not listed above. The customer describes the problem and Fundi finds the right person.",
+    "visitFee": 75,
+    "emergencyVisitFee": 110,
+    "isActive": true,
+    "createdAt": "2026-09-01T08:00:00.000Z"
+  }
+]

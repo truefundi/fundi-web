@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { techniciansApi } from '@/lib/api';
 import type { TechnicianQuery } from '@/types/api';
 import type { AccountStatus } from '@/types/customer';
-import type { Technician, TechnicianProfilePatch } from '@/types/technician';
+import type { Technician, TechnicianInput, TechnicianProfilePatch } from '@/types/technician';
 import { statsKey } from './useCustomers';
 
 export const technicianKeys = {
@@ -52,3 +52,26 @@ export const useApproveVerification = () => useTechnicianMutation((id: string) =
 
 export const useRejectVerification = () =>
   useTechnicianMutation(({ id, reason }: { id: string; reason: string }) => techniciansApi.reject(id, reason));
+
+export function useCreateTechnician() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: TechnicianInput) => techniciansApi.create(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: technicianKeys.all });
+      queryClient.invalidateQueries({ queryKey: statsKey });
+    },
+  });
+}
+
+export function useDeleteTechnician() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => techniciansApi.remove(id),
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: technicianKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: technicianKeys.all });
+      queryClient.invalidateQueries({ queryKey: statsKey });
+    },
+  });
+}

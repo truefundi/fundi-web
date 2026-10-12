@@ -9,15 +9,14 @@ const stores = [
 
 export function Download() {
   return (
-    <section id="download" className="scroll-mt-16 bg-gradient-to-b from-white to-brand-50 py-20 sm:py-24">
+    <section id="download" className="scroll-mt-16 bg-gradient-to-b from-white to-brand-50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Download"
           title="Get the Fundi app"
           description="One app for customers and technicians. Request a repair in minutes, or sign up to receive jobs near you."
         />
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           {stores.map((store) => (
             <span
               key={store.name}
