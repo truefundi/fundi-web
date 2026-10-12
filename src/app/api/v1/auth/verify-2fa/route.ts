@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const { challengeToken, code } = await request.json();
+  const normalizedCode = String(code ?? '').trim();
 
   if (challengeToken !== "mock-challenge-token") {
     return NextResponse.json(
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (code !== "123456") {
+  if (!/^\d{6}$/.test(normalizedCode)) {
     return NextResponse.json(
       { message: "Invalid verification code" },
       { status: 400 },

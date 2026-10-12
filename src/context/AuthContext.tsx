@@ -70,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<ActionResult> => {
     const { data, error } = await authService.login(email, password);
     if (error || !data) return { ok: false, error };
+    if (!data.require2FA || !data.challengeToken) {
+      return { ok: false, error: 'Could not start two-factor verification. Please try again.' };
+    }
     challengeStorage.set(data.challengeToken);
     return { ok: true };
   };

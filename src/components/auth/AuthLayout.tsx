@@ -20,8 +20,10 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="flex flex-col px-6 py-8 sm:px-12">
-        <div className="flex items-center justify-between">
-          <Logo />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <Logo />
+          </div>
           <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand-600">
             <ArrowLeft className="h-4 w-4" aria-hidden /> Back to home
           </Link>

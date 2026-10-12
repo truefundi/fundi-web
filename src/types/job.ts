@@ -48,8 +48,8 @@ export const JOB_FLOW: JobStatus[] = [
 /** Same wording as the mobile app, so admins and customers describe a job the same way. */
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
   REQUESTED: 'Request sent',
-  MATCHING: 'Finding a technician',
-  OFFERED: 'Technician found',
+  MATCHING: 'Customer negotiating',
+  OFFERED: 'Offer sent',
   ACCEPTED: 'Visit fee due',
   VISIT_PAID: 'Visit fee paid',
   EN_ROUTE: 'On the way',
@@ -98,7 +98,7 @@ export type JobGroup = 'matching' | 'in_progress' | 'completed' | 'cancelled' | 
 export const JOB_GROUPS: JobGroup[] = ['matching', 'in_progress', 'completed', 'cancelled', 'disputed'];
 
 export const JOB_GROUP_LABEL: Record<JobGroup, string> = {
-  matching: 'Finding technician',
+  matching: 'Matching',
   in_progress: 'In progress',
   completed: 'Completed',
   cancelled: 'Cancelled',
@@ -164,9 +164,13 @@ export interface JobParty {
   phone: string;
 }
 
-/** What the admin fills in to create a job for a customer. */
+/** Which account type the admin is creating a job for. */
+export type JobRequestParty = 'customer' | 'technician';
+
+/** What the admin fills in to create a job. */
 export interface JobInput {
   customerId: string;
+  partyType?: JobRequestParty;
   service: string;
   problem: string;
   urgency: Urgency;

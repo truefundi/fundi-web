@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { PasswordInput } from './PasswordInput';
 import { authInputClass as inputClass } from './styles';
 
@@ -39,28 +38,28 @@ export function SignupForm() {
       }}
     >
       <div>
-        <label htmlFor="name" className="text-sm font-medium text-slate-700">
+        <label htmlFor="name" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-900">
           Full name
         </label>
         <input id="name" name="name" type="text" autoComplete="name" required placeholder="Your name" className={inputClass} />
       </div>
 
       <div>
-        <label htmlFor="phone" className="text-sm font-medium text-slate-700">
+        <label htmlFor="phone" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-900">
           Phone number
         </label>
         <input id="phone" name="phone" type="tel" autoComplete="tel" required placeholder="Your phone number" className={inputClass} />
       </div>
 
       <div>
-        <label htmlFor="email" className="text-sm font-medium text-slate-700">
+        <label htmlFor="email" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-900">
           Email <span className="font-normal text-slate-400">(optional)</span>
         </label>
         <input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" className={inputClass} />
       </div>
 
       <div>
-        <label htmlFor="password" className="text-sm font-medium text-slate-700">
+        <label htmlFor="password" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-900">
           Password
         </label>
         <PasswordInput
@@ -73,9 +72,12 @@ export function SignupForm() {
         />
       </div>
 
-      <Button type="submit" className="w-full">
-        Create account
-      </Button>
+      <button
+        type="submit"
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700"
+      >
+        Create account <ArrowRight size={16} aria-hidden />
+      </button>
 
       <p className="text-center text-xs text-slate-500">
         By creating an account you agree to Fundi&apos;s Terms of service and Privacy policy.

@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, CheckCircle2, MessagesSquare, Quote, Scale } from 'lucide-react';
-import { DisputeDecisionForm } from '@/components/disputes/DisputeDecisionForm';
+import { ArrowLeft, ArrowRight, CheckCircle2, MessagesSquare, Quote, Scale, Star } from 'lucide-react';
+import { CustomerRatingForm } from '@/components/disputes/CustomerRatingForm';
 import { JobTimeline } from '@/components/jobs/JobTimeline';
 import { QuoteDetails } from '@/components/jobs/QuoteDetails';
 import { Badge, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner } from '@/components/ui';
@@ -154,7 +154,7 @@ export function DisputeDetailView({ jobId }: { jobId: string }) {
           </Card>
 
           <Card>
-            <CardHeader title={resolution ? 'Decision' : 'Your decision'} />
+            <CardHeader title={resolution ? 'Decision' : job.rating ? 'Customer rating' : 'Customer rating'} />
             <CardBody>
               {resolution ? (
                 <div className="space-y-3">
@@ -169,8 +169,26 @@ export function DisputeDetailView({ jobId }: { jobId: string }) {
                   </dl>
                   <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{resolution.note}</p>
                 </div>
+              ) : job.rating ? (
+                <div className="space-y-4">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    <Star className="h-5 w-5 fill-amber-400 text-amber-400" aria-hidden />
+                    Rated by {job.customer.name}
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">{job.rating.overall}/5</p>
+                  <p className="mt-2 text-sm italic text-slate-600">&ldquo;{job.rating.comment}&rdquo;</p>
+                  <div className="mt-4">
+                    <dl className="divide-y divide-slate-100">
+                      <Row label="Quality" value={`${job.rating.quality}/5`} />
+                      <Row label="Professionalism" value={`${job.rating.professionalism}/5`} />
+                      <Row label="Arrival" value={`${job.rating.arrival}/5`} />
+                      <Row label="Communication" value={`${job.rating.communication}/5`} />
+                      <Row label="Value" value={`${job.rating.value}/5`} />
+                    </dl>
+                  </div>
+                </div>
               ) : (
-                <DisputeDecisionForm job={job} />
+                <CustomerRatingForm job={job} />
               )}
             </CardBody>
           </Card>

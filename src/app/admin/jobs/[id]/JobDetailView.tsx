@@ -146,7 +146,7 @@ export function JobDetailView({ id }: { id: string }) {
           {canReassign(job) && (
             <Button variant="secondary" onClick={() => setReassignOpen(true)}>
               <UserRoundCog className="h-4 w-4" aria-hidden />
-              {job.technician ? 'Reassign' : 'Assign'}
+              {job.technician ? 'Present another' : 'Present technician'}
             </Button>
           )}
           {canCancel(job) && (
@@ -245,7 +245,7 @@ export function JobDetailView({ id }: { id: string }) {
 
           {job.rating && (
             <Card>
-              <CardHeader title="Customer rating" />
+              <CardHeader title="Customer rating" description={`Submitted by ${job.customer.name}`} />
               <CardBody>
                 <p className="flex items-center gap-1.5 text-2xl font-bold text-slate-900">
                   <Star className="h-6 w-6 fill-amber-400 text-amber-400" aria-hidden />

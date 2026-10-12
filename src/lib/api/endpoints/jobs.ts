@@ -11,6 +11,7 @@ import {
   type JobInput,
   type JobParty,
   type JobStatus,
+  type Rating,
   type Urgency,
 } from '@/types/job';
 import type { Service } from '@/types/service';
@@ -90,13 +91,12 @@ export const jobsApi = {
     const job = findMock(id);
     const previous = job.technician?.name;
     job.technician = technician;
-    // A new technician has to accept the job again.
     return transition(
       job,
-      'OFFERED',
+      'MATCHING',
       previous
-        ? `Reassigned by Fundi admin from ${previous} to ${technician.name}.`
-        : `Assigned by Fundi admin to ${technician.name}.`,
+        ? `Customer is negotiating with ${technician.name} instead of ${previous}.`
+        : `Customer can now negotiate with ${technician.name}.`,
     );
   },
 
@@ -104,8 +104,12 @@ export const jobsApi = {
   async create(input: JobInput): Promise<Job> {
     if (!env.useMocks) return unwrap(api.post('/admin/jobs', input));
     await delay();
-    const customer = mockDb.customers.find((c) => c.id === input.customerId);
-    if (!customer) throw new MockNotFoundError('Customer', input.customerId);
+    const partyType = input.partyType ?? 'customer';
+    const account =
+      partyType === 'customer'
+        ? mockDb.customers.find((c) => c.id === input.customerId)
+        : mockDb.technicians.find((t) => t.id === input.customerId);
+    if (!account) throw new MockNotFoundError(partyType === 'customer' ? 'Customer' : 'Technician', input.customerId);
     const service = findService(input.service);
     const now = new Date().toISOString();
     const number = Math.max(1040, ...mockDb.jobs.map((j) => Number(j.reference.slice(3)) || 0)) + 1;
@@ -116,7 +120,7 @@ export const jobsApi = {
       problem: input.problem.trim(),
       urgency: input.urgency,
       location: input.location.trim(),
-      customer: { id: customer.id, name: customer.name, phone: customer.phone },
+      customer: { id: account.id, name: account.name, phone: account.phone },
       status: 'REQUESTED',
       createdAt: now,
       updatedAt: now,
@@ -126,7 +130,7 @@ export const jobsApi = {
           id: `evt_${Date.now()}_1`,
           status: 'REQUESTED',
           title: JOB_STATUS_LABEL.REQUESTED,
-          text: `Created by Fundi admin for ${customer.name}: ${input.problem.trim()}`,
+          text: `Created by Fundi admin for ${account.name}: ${input.problem.trim()}`,
           at: now,
         },
       ],
@@ -161,6 +165,30 @@ export const jobsApi = {
   },
 
   /** Removes a mistaken or duplicate job; jobs with payments must be cancelled instead. */
+  async rate(jobId: string, rating: Rating): Promise<Job> {
+    if (!env.useMocks) return unwrap(api.post(`/admin/jobs/${jobId}/rating`, rating));
+    await delay();
+    const job = findMock(jobId);
+    const overall = Number(
+      ((rating.quality + rating.professionalism + rating.arrival + rating.communication + rating.value) / 5).toFixed(1),
+    );
+    const nextRating = {
+      ...rating,
+      comment: rating.comment.trim(),
+      overall,
+    };
+    job.rating = nextRating;
+    job.updatedAt = new Date().toISOString();
+    job.events.push({
+      id: `evt_${job.id}_${job.events.length + 1}`,
+      status: job.status,
+      title: 'Customer rating',
+      text: `${job.customer.name} rated ${job.technician?.name ?? 'the technician'} ${overall}/5 and left a comment.`,
+      at: job.updatedAt,
+    });
+    return clone(job);
+  },
+
   async remove(id: string): Promise<void> {
     if (!env.useMocks) {
       await unwrap(api.delete(`/admin/jobs/${id}`));
