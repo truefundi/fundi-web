@@ -3,33 +3,35 @@
 import { useEffect, useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Field, Input, Modal, Select, Textarea, useToast } from '@/components/ui';
-import { useCustomers } from '@/hooks/useCustomers';
 import { useCreateJob, useUpdateJob } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
+import { useTechnicians } from '@/hooks/useTechnicians';
 import { formatMoney } from '@/lib/jobs';
 import { URGENCIES, type Job, type JobInput, type Urgency } from '@/types/job';
 
-const EMPTY: JobInput = { customerId: '', service: '', problem: '', urgency: 'Today', location: '' };
+const EMPTY: JobInput = { customerId: '', partyType: 'technician', service: '', problem: '', urgency: 'Today', location: '' };
 
 type Errors = Partial<Record<keyof JobInput, string>>;
 
 function validate(input: JobInput, isNew: boolean): Errors {
   const errors: Errors = {};
-  if (isNew && !input.customerId) errors.customerId = 'Choose the customer.';
+  if (isNew && !input.customerId) {
+    errors.customerId = 'Choose a technician.';
+  }
   if (!input.service) errors.service = 'Choose a service.';
   if (input.problem.trim().length < 5) errors.problem = 'Describe the problem in a few words.';
   if (input.location.trim().length < 3) errors.location = 'Enter where the technician should go.';
   return errors;
 }
 
-/** Create a job for a customer, or edit `job` before its visit fee is paid. */
+/** Create a job for a technician, or edit `job` before its visit fee is paid. */
 export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: () => void; job?: Job }) {
   const id = useId();
   const router = useRouter();
   const toast = useToast();
   const create = useCreateJob();
   const update = useUpdateJob();
-  const customers = useCustomers({ status: 'active', sort: 'name', pageSize: 100 });
+  const technicians = useTechnicians({ status: 'active', sort: 'name', pageSize: 100 });
   const services = useServices();
   const [input, setInput] = useState<JobInput>(EMPTY);
   const [touched, setTouched] = useState(false);
@@ -39,7 +41,14 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
     setTouched(false);
     setInput(
       job
-        ? { customerId: job.customer.id, service: job.service, problem: job.problem, urgency: job.urgency, location: job.location }
+        ? {
+            customerId: job.customer.id,
+            partyType: 'customer',
+            service: job.service,
+            problem: job.problem,
+            urgency: job.urgency,
+            location: job.location,
+          }
         : EMPTY,
     );
   }, [open, job]);
@@ -54,10 +63,11 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
   const selected = serviceOptions.find((s) => s.name === input.service);
   const fee = selected && (input.urgency === 'Emergency' ? selected.emergencyVisitFee : selected.visitFee);
 
-  const chooseCustomer = (customerId: string) => {
-    const customer = customers.data?.items.find((c) => c.id === customerId);
-    // Start from the customer's saved location; the admin can still change it.
-    setInput((v) => ({ ...v, customerId, location: v.location || customer?.location || '' }));
+  const accountOptions = technicians.data?.items;
+  const chooseAccount = (accountId: string) => {
+    const account = accountOptions?.find((item) => item.id === accountId);
+    // Start from the selected user's saved location; the admin can still change it.
+    setInput((v) => ({ ...v, customerId: accountId, location: v.location || account?.location || '' }));
   };
 
   const save = () => {
@@ -92,7 +102,7 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
       open={open}
       onClose={onClose}
       title={job ? `Edit job ${job.reference}` : 'New job'}
-      description={job ? 'Details can change until the visit fee is paid.' : 'Create a request on behalf of a customer.'}
+      description={job ? 'Details can change until the visit fee is paid.' : 'Create a request on behalf of a technician.'}
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={saving}>
@@ -111,33 +121,35 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
           save();
         }}
       >
-        <Field
-          label="Customer"
-          htmlFor={`${id}-customer`}
-          error={errors.customerId}
-          hint={job ? 'The customer cannot be changed.' : undefined}
-        >
-          <Select
-            id={`${id}-customer`}
-            value={input.customerId}
-            onChange={(e) => chooseCustomer(e.target.value)}
-            disabled={!isNew || customers.isLoading}
-            invalid={Boolean(errors.customerId)}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label={job ? 'Customer' : 'Technician'}
+            htmlFor={`${id}-customer`}
+            error={errors.customerId}
+            hint={job ? 'The customer cannot be changed.' : undefined}
           >
-            {job ? (
-              <option value={job.customer.id}>{job.customer.name}</option>
-            ) : (
-              <>
-                <option value="">{customers.isLoading ? 'Loading customers…' : 'Choose a customer'}</option>
-                {customers.data?.items.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} · {c.location}
-                  </option>
-                ))}
-              </>
-            )}
-          </Select>
-        </Field>
+            <Select
+              id={`${id}-customer`}
+              value={input.customerId}
+              onChange={(e) => chooseAccount(e.target.value)}
+              disabled={!isNew || technicians.isLoading}
+              invalid={Boolean(errors.customerId)}
+            >
+              {job ? (
+                <option value={job.customer.id}>{job.customer.name}</option>
+              ) : (
+                <>
+                  <option value="">{technicians.isLoading ? 'Loading technicians…' : 'Choose a technician'}</option>
+                  {accountOptions?.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} · {account.location}
+                    </option>
+                  ))}
+                </>
+              )}
+            </Select>
+          </Field>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Service" htmlFor={`${id}-service`} error={errors.service}>

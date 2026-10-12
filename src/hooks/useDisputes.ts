@@ -1,8 +1,9 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { disputesApi } from '@/lib/api';
+import { disputesApi, jobsApi } from '@/lib/api';
 import type { DisputeDecision, DisputeState } from '@/lib/api/endpoints/disputes';
+import type { Rating } from '@/types/job';
 import { jobKeys } from './useJobs';
 
 export const disputeKeys = {
@@ -24,6 +25,18 @@ export function useResolveDispute() {
   return useMutation({
     mutationFn: ({ jobId, decision }: { jobId: string; decision: DisputeDecision }) =>
       disputesApi.resolve(jobId, decision),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: disputeKeys.all });
+      queryClient.invalidateQueries({ queryKey: jobKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+export function useRateTechnician() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, rating }: { jobId: string; rating: Rating }) => jobsApi.rate(jobId, rating),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: disputeKeys.all });
       queryClient.invalidateQueries({ queryKey: jobKeys.all });

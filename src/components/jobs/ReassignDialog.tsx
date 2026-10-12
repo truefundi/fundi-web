@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils';
 import type { Job } from '@/types/job';
 
 /**
- * Lets the admin hand a job to another technician. Only verified, active technicians
- * with the job's trade are offered, LIVE ones first (Project Description §6).
+ * Lets the admin present a job to a technician for customer negotiation. The customer,
+ * not the system, decides whether to accept the terms and continue the job.
  */
 export function ReassignDialog({ job, open, onClose }: { job: Job; open: boolean; onClose: () => void }) {
   const toast = useToast();
@@ -40,7 +40,7 @@ export function ReassignDialog({ job, open, onClose }: { job: Job; open: boolean
       { id: job.id, technician: { id: chosen.id, name: chosen.name, phone: chosen.phone } },
       {
         onSuccess: () => {
-          toast(`Job ${job.reference} offered to ${chosen.name}`);
+          toast(`Customer negotiation for job ${job.reference} is now with ${chosen.name}`);
           onClose();
         },
         onError: (err) => toast(err.message || 'Could not reassign the job', 'error'),
@@ -52,15 +52,15 @@ export function ReassignDialog({ job, open, onClose }: { job: Job; open: boolean
     <Modal
       open={open}
       onClose={onClose}
-      title={job.technician ? 'Reassign technician' : 'Assign technician'}
-      description={`Verified ${job.service} technicians. The new technician must accept the job.`}
+      title={job.technician ? 'Present another technician' : 'Present technician to customer'}
+      description={`Verified ${job.service} technicians are shown to the customer for negotiation. The customer decides whether the match proceeds.`}
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={reassign.isPending}>
             Cancel
           </Button>
           <Button onClick={confirm} disabled={!chosen} loading={reassign.isPending}>
-            {job.technician ? 'Reassign' : 'Assign'}
+            {job.technician ? 'Present technician' : 'Send to customer'}
           </Button>
         </>
       }
