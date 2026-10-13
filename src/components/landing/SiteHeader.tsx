@@ -50,14 +50,14 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-1">
-            <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
-              Log in
+            <Link href="/about-us" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+              About us
             </Link>
             <Link
-              href="/signup"
+              href="/contact"
               className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600"
             >
-              Get started
+              Contact us
             </Link>
           </div>
         </div>
@@ -94,16 +94,16 @@ export function SiteHeader() {
           </ul>
           <div className="mt-4 grid grid-cols-2 gap-3">
             <Link
-              href="/login"
+              href="/about-us"
               className="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm font-medium text-slate-700"
             >
-              Log in
+              About us
             </Link>
             <Link
-              href="/signup"
+              href="/contact"
               className="rounded-lg bg-brand-500 px-4 py-3 text-center text-sm font-semibold text-white"
             >
-              Get started
+              Contact us
             </Link>
           </div>
         </nav>
