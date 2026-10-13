@@ -21,9 +21,10 @@ import {
   useToast,
 } from '@/components/ui';
 import { useCancelJob, useDeleteJob, useJob } from '@/hooks/useJobs';
-import { canCancel, canDelete, canEdit, canReassign, COMMISSION_RATE, formatMoney, repairTotal, visitFeeSplit } from '@/lib/jobs';
+import { canCancel, canDelete, canEdit, canReassign, formatMoney, repairTotal, visitFeeSplit } from '@/lib/jobs';
 import { formatDate, formatPhone } from '@/lib/utils';
 import type { Job } from '@/types/job';
+import { useCommissionSettings } from '@/context/CommissionSettingsContext';
 
 function BackLink() {
   return (
@@ -82,6 +83,7 @@ function ExceptionBanner({ job }: { job: Job }) {
 
 export function JobDetailView({ id }: { id: string }) {
   const { data: job, isLoading, isError, error, refetch } = useJob(id);
+  const { commissionRatePercent } = useCommissionSettings();
   const router = useRouter();
   const cancelJob = useCancelJob();
   const deleteJob = useDeleteJob();
@@ -118,7 +120,7 @@ export function JobDetailView({ id }: { id: string }) {
     );
   }
 
-  const split = visitFeeSplit(job);
+  const split = visitFeeSplit(job, commissionRatePercent / 100);
   const visitPaid = job.events.some((e) => e.status === 'VISIT_PAID');
 
   return (
@@ -227,7 +229,7 @@ export function JobDetailView({ id }: { id: string }) {
               <Details
                 rows={[
                   ['Visit fee', formatMoney(job.visitFee)],
-                  [`Fundi commission (${COMMISSION_RATE * 100}%)`, formatMoney(split.fundi)],
+                  [`Fundi commission (${commissionRatePercent}%)`, formatMoney(split.fundi)],
                   ['Technician share', formatMoney(split.technician)],
                   [
                     'Visit fee paid',
