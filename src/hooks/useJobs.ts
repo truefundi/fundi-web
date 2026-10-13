@@ -16,6 +16,25 @@ export function useJobs(query: JobQuery) {
   return useQuery({ queryKey: jobKeys.list(query), queryFn: () => jobsApi.list(query), placeholderData: keepPreviousData });
 }
 
+export function usePaymentJobs() {
+  return useQuery({
+    queryKey: [...jobKeys.all, 'payments'],
+    queryFn: async () => {
+      const pageSize = 100;
+      const firstPage = await jobsApi.list({ page: 1, pageSize });
+      const actualPageSize = firstPage.pageSize || pageSize;
+      const pageCount = Math.ceil(firstPage.total / actualPageSize);
+      const remainingPages = await Promise.all(
+        Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) =>
+          jobsApi.list({ page: index + 2, pageSize: actualPageSize }),
+        ),
+      );
+
+      return [firstPage, ...remainingPages].flatMap((result) => result.items).slice(0, firstPage.total);
+    },
+  });
+}
+
 export function useJob(id: string) {
   return useQuery({ queryKey: jobKeys.detail(id), queryFn: () => jobsApi.get(id) });
 }

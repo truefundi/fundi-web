@@ -20,8 +20,8 @@ export function repairTotal(job: Job): number {
   return base + extra;
 }
 
-export function visitFeeSplit(job: Job) {
-  const fundi = Math.round(job.visitFee * COMMISSION_RATE * 100) / 100;
+export function visitFeeSplit(job: Job, commissionRate = COMMISSION_RATE) {
+  const fundi = Math.round(job.visitFee * commissionRate * 100) / 100;
   return { fundi, technician: job.visitFee - fundi };
 }
 
