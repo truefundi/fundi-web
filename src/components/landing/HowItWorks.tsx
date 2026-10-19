@@ -30,7 +30,6 @@ export function HowItWorks() {
             </span>
           </div>
           <p className="mt-4 text-sm text-slate-300">
-            Coming soon to iOS and Android
           </p>
         </div>
       </section>

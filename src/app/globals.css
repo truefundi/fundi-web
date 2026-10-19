@@ -33,3 +33,28 @@ button,
 input {
   font: inherit;
 }
+
+@keyframes landing-draft-image-motion {
+  from {
+    transform: scale(1.08) translate3d(-2%, 0, 0);
+  }
+
+  to {
+    transform: scale(1.18) translate3d(2%, -1%, 0);
+  }
+}
+
+.landing-draft-background-image {
+  transform: scale(1.04);
+}
+
+.landing-draft-background.is-animating .landing-draft-background-image {
+  animation: landing-draft-image-motion 3s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-draft-background.is-animating .landing-draft-background-image {
+    animation: none;
+    transform: scale(1.04);
+  }
+}

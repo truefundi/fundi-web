@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, KeyRound, LogOut, UserRound } from 'lucide-react';
+import { ChevronDown, KeyRound, LogOut, Settings, UserRound } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -63,6 +63,9 @@ export function UserMenu() {
           </Link>
           <Link href="/admin/profile#change-password" role="menuitem" onClick={close} className={itemClass}>
             <KeyRound className="h-4 w-4 text-slate-400" aria-hidden /> Change password
+          </Link>
+          <Link href="/admin/settings" role="menuitem" onClick={close} className={itemClass}>
+            <Settings className="h-4 w-4 text-slate-400" aria-hidden /> Settings
           </Link>
           <div className="my-1 border-t border-slate-100" />
           <button

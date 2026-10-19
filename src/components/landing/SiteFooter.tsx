@@ -1,3 +1,6 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
 import { navLinks } from './content';
 import Link from 'next/link';
@@ -7,6 +10,10 @@ const companyLinks = ['About us', 'Contact', 'Careers'];
 const legalLinks = ['Terms of service', 'Privacy policy'];
 
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname === '/landing-draft') return null;
+
   return (
     <footer className="bg-slate-900 text-slate-300">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">

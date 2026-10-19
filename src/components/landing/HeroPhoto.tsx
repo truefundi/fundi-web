@@ -6,19 +6,19 @@ import Image from 'next/image';
  */
 export function HeroPhoto() {
   return (
-    <div className="relative mx-auto w-full max-w-xl">
-      <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-gradient-to-br from-brand-200 via-brand-100 to-transparent blur-2xl" />
-
-      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-2xl">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 lg:left-[34%]">
         <Image
           src="/images/technician.jpg"
-          alt="An electrician in a hard hat and work gloves repairing an electrical box"
+          alt=""
           fill
           priority
-          sizes="(min-width: 1024px) 576px, 100vw"
-          className="object-cover"
+          sizes="(min-width: 1024px) 66vw, 100vw"
+          className="object-cover object-[58%_center] opacity-35 lg:opacity-100"
         />
       </div>
+      <div className="absolute inset-0 bg-slate-950/45 lg:hidden" />
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/35 lg:inset-y-0 lg:left-[28%] lg:bg-gradient-to-r lg:from-slate-950 lg:via-slate-950/60 lg:to-transparent" />
     </div>
   );
 }
