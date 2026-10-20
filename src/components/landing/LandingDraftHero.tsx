@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BadgeCheck } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Wrench, Hammer, WrenchIcon, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 export function LandingDraftHero() {
@@ -18,19 +18,38 @@ export function LandingDraftHero() {
         aria-pressed={backgroundAnimated}
       >
         <Image
-          src="/images/technician.jpg"
+          src="/images/Image1.jpg"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="landing-draft-background-image object-cover object-[60%_center]"
+          className="landing-draft-background-image object-cover object-center blur-sm"
         />
       </button>
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#071426]/65 via-[#071426]/20 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-48 bg-gradient-to-t from-[#071426]/70 to-transparent" />
+
+      {/* Floating tools animation */}
+      {backgroundAnimated && (
+        <>
+          <div className="absolute left-[10%] top-[20%] z-[2] animate-tools-1 opacity-60">
+            <Wrench className="h-12 w-12 text-white/80" />
+          </div>
+          <div className="absolute left-[20%] top-[60%] z-[2] animate-tools-2 opacity-60">
+            <Hammer className="h-10 w-10 text-white/80" />
+          </div>
+          <div className="absolute left-[70%] top-[30%] z-[2] animate-tools-3 opacity-60">
+            <Settings className="h-11 w-11 text-white/80" />
+          </div>
+          <div className="absolute left-[80%] top-[70%] z-[2] animate-tools-4 opacity-60">
+            <WrenchIcon className="h-12 w-12 text-white/80" />
+          </div>
+        </>
+      )}
+
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-[#071426]/85 via-[#071426]/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-64 bg-gradient-to-t from-[#071426]/90 via-[#071426]/60 to-transparent" />
       <div className="pointer-events-none relative z-10 mx-auto flex min-h-[min(760px,100svh)] w-full max-w-7xl items-end justify-center px-5 pb-12 pt-28 text-center sm:px-8 sm:pb-16 lg:px-12">
         <div className="w-full max-w-4xl">
-          <h1 className="mx-auto mt-4 max-w-1xl text-[clamp(2rem,4.5vw,3.75rem)] font-extrabold leading-[1.04] tracking-tight">
+          <h1 className="mx-auto mt-4 max-w-1xl text-[clamp(2rem,4.5vw,3.75rem)] font-extrabold leading-[1.04] tracking-tight text-white/60">
             Tell us what is wrong, Fundi finds who can fix it.
             <br />
           </h1>

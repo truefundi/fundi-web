@@ -2,7 +2,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
-export function Logo({ dark = false, href = '/' }: { dark?: boolean; href?: string }) {
+export function Logo({ dark = false, href = '/', src }: { dark?: boolean; href?: string; src?: string }) {
+  const logoSrc = src || "/images/logo11.png";
   return (
     <Link
       href={href}
@@ -10,7 +11,7 @@ export function Logo({ dark = false, href = '/' }: { dark?: boolean; href?: stri
       aria-label="Fundi home"
     >
       <Image
-        src="/images/logo11.png"
+        src={logoSrc}
         alt="Fundi"
         width={120}
         height={40}

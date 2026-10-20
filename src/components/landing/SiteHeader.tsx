@@ -61,7 +61,8 @@ export function SiteHeader() {
     };
   }, [isDraft]);
 
-  const isHome = pathname === '/' || isDraft;
+  const isHome = true; // dark navbar style on every page
+  const overlapsHero = pathname === '/' || isDraft; // only the home pages sit under the hero
   const visibleNavLinks = isDraft ? draftNavLinks : navLinks;
   const getDraftSection = (href: string) => (href.includes('#') ? href.split('#')[1] : 'home');
 
@@ -69,11 +70,9 @@ export function SiteHeader() {
     <header
       className={cn(
         'sticky top-0 z-50 border-b transition-colors',
-        isHome && '-mb-16',
+        overlapsHero && '-mb-16',
         isHome
-          ? scrolled || open
-            ? 'border-white/10 bg-slate-950/95 backdrop-blur'
-            : 'border-transparent bg-transparent'
+          ? 'border-white/10 bg-[#071426]'
           : scrolled || open
             ? 'border-slate-200 bg-white/95 backdrop-blur'
             : 'border-transparent bg-transparent',
@@ -106,10 +105,10 @@ export function SiteHeader() {
                           : 'text-slate-200 hover:bg-white/10 hover:text-brand-300'
                         : isHome
                           ? isActive
-                            ? 'bg-white/15 text-white'
+                            ? 'bg-amber-500 text-white'
                             : 'text-slate-200 hover:bg-white/10 hover:text-white'
                           : isActive
-                            ? 'bg-brand-50 text-brand-700'
+                            ? 'bg-amber-500 text-white'
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                     )}
                   >
@@ -133,14 +132,25 @@ export function SiteHeader() {
                 href="/about-us"
                 className={cn(
                   'rounded-lg px-3 py-2 text-sm font-medium',
-                  isHome ? 'text-slate-200 hover:bg-white/10 hover:text-white' : 'text-slate-700 hover:bg-slate-100',
+                  pathname === '/about-us'
+                    ? 'bg-amber-500 text-white'
+                    : isHome
+                      ? 'text-slate-200 hover:bg-white/10 hover:text-white'
+                      : 'text-slate-700 hover:bg-slate-100',
                 )}
               >
                 About us
               </Link>
               <Link
                 href="/contact"
-                className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600"
+                className={cn(
+                  'rounded-lg px-4 py-2 text-sm font-semibold',
+                  pathname === '/contact'
+                    ? 'bg-amber-500 text-white'
+                    : isHome
+                      ? 'text-slate-200 hover:bg-white/10 hover:text-white'
+                      : 'text-slate-700 hover:bg-slate-100',
+                )}
               >
                 Contact us
               </Link>
@@ -195,10 +205,10 @@ export function SiteHeader() {
                             : 'text-slate-200 hover:bg-white/10 hover:text-brand-300'
                           : isHome
                             ? isActive
-                              ? 'bg-white/15 text-white'
+                              ? 'bg-amber-500 text-white'
                               : 'text-slate-200 hover:bg-white/10'
                             : isActive
-                              ? 'bg-brand-50 text-brand-700'
+                              ? 'bg-amber-500 text-white'
                               : 'text-slate-700 hover:bg-slate-50',
                       )}
                     >
@@ -223,14 +233,26 @@ export function SiteHeader() {
                 href="/about-us"
                 className={cn(
                   'rounded-lg border px-4 py-3 text-center text-sm font-medium',
-                  isHome ? 'border-white/25 text-white' : 'border-slate-300 text-slate-700',
+                  pathname === '/about-us'
+                    ? 'border-amber-500 bg-amber-500 text-white'
+                    : isHome
+                      ? 'border-white/25 text-white'
+                      : 'border-slate-300 text-slate-700',
                 )}
               >
                 About us
               </Link>
               <Link
                 href="/contact"
-                className="rounded-lg bg-brand-500 px-4 py-3 text-center text-sm font-semibold text-white"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  'rounded-lg border px-4 py-3 text-center text-sm font-medium',
+                  pathname === '/contact'
+                    ? 'border-amber-500 bg-amber-500 text-white'
+                    : isHome
+                      ? 'border-white/25 text-white'
+                      : 'border-slate-300 text-slate-700',
+                )}
               >
                 Contact us
               </Link>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { challengeStorage } from '@/lib/token-storage';
+import { AuthLayout } from '@/components/auth/AuthLayout';
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 45;
@@ -28,11 +29,11 @@ export default function Verify2FAPage() {
   useEffect(() => {
     if (secondsLeft <= 0) return;
     const id = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
-    return () => clearTimeout(id); 
+    return () => clearTimeout(id);
   }, [secondsLeft]);
 
   function handleChange(index: number, value: string) {
-    const digit = value.replace(/\D/g, '').slice(-1); 
+    const digit = value.replace(/\D/g, '').slice(-1);
     const next = [...digits];
     next[index] = digit;
     setDigits(next);
@@ -91,71 +92,71 @@ export default function Verify2FAPage() {
   const timerLabel = `0:${String(secondsLeft).padStart(2, '0')}`;
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-[480px] rounded-2xl bg-white p-8 shadow-xl shadow-slate-200/70">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-amber-600 shadow-sm">
-          <ShieldCheck size={22} />
-        </div>
-
-        <h1 className="mt-8 text-center text-sm font-bold">Two-Factor Authentication</h1>
-        <p className="mx-auto mt-2 max-w-xs text-center text-sm text-slate-700">
-          Enter the 6-digit verification code sent to your administrative email.
-        </p>
-
-        <div className="mt-6 flex justify-between gap-2">
-          {digits.map((digit, i) => (
-            <input
-              key={i}
-              ref={(el) => {
-                inputsRef.current[i] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={1}
-              value={digit}
-              autoFocus={i === 0}
-              onChange={(e) => handleChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              onPaste={handlePaste}
-              aria-label={`Digit ${i + 1}`}
-              className="h-14 w-12 rounded-lg border border-slate-400 text-center text-xl font-semibold outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-            />
-          ))}
-        </div>
-
-        {error && (
-          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-600">
-            {error}
-          </p>
-        )}
-
-        <button
-          onClick={handleVerify}
-          disabled={submitting}
-          className="mt-6 flex h-13 w-full items-center justify-center gap-2 rounded-lg bg-amber-600 py-3.5 text-sm font-medium text-white transition hover:bg-amber-700 disabled:opacity-60"
-        >
-          {submitting ? 'Verifying…' : (<>Verify <ArrowRight size={16} /></>)}
-        </button>
-
-        <p className="mt-6 text-center text-sm">
-          Didn&apos;t receive a code?{' '}
-          <button
-            onClick={handleResend}
-            disabled={secondsLeft > 0}
-            className="font-semibold text-amber-600 disabled:cursor-not-allowed"
-          >
-            Resend Code{secondsLeft > 0 && ` (${timerLabel})`}
-          </button>
-        </p>
-
-        <button
-          onClick={backToSignIn}
-          className="mx-auto mt-4 flex items-center gap-1.5 text-sm text-slate-800"
-        >
-          <ArrowLeft size={14} /> Back to password sign in
-        </button>
+    <AuthLayout logoSrc="/images/fundi.png">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+        <ShieldCheck size={22} />
       </div>
-    </main>
+
+      <h1 className="mt-6 text-center text-2xl font-bold tracking-tight text-slate-900">
+        Two-Factor Authentication
+      </h1>
+      <p className="mx-auto mt-2 max-w-xs text-center text-sm text-slate-600">
+        Enter the 6-digit verification code sent to your administrative email.
+      </p>
+
+      <div className="mt-6 flex justify-between gap-2">
+        {digits.map((digit, i) => (
+          <input
+            key={i}
+            ref={(el) => {
+              inputsRef.current[i] = el;
+            }}
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={1}
+            value={digit}
+            autoFocus={i === 0}
+            onChange={(e) => handleChange(i, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={handlePaste}
+            aria-label={`Digit ${i + 1}`}
+            className="h-14 w-12 rounded-lg border border-slate-300 text-center text-xl font-semibold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+          />
+        ))}
+      </div>
+
+      {error && (
+        <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-600">
+          {error}
+        </p>
+      )}
+
+      <button
+        onClick={handleVerify}
+        disabled={submitting}
+        className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:opacity-60"
+      >
+        {submitting ? 'Verifying…' : (<>Verify <ArrowRight size={16} /></>)}
+      </button>
+
+      <p className="mt-6 text-center text-sm text-slate-600">
+        Didn&apos;t receive a code?{' '}
+        <button
+          onClick={handleResend}
+          disabled={secondsLeft > 0}
+          className="font-semibold text-amber-600 disabled:cursor-not-allowed hover:text-amber-700"
+        >
+          Resend Code{secondsLeft > 0 && ` (${timerLabel})`}
+        </button>
+      </p>
+
+      <button
+        onClick={backToSignIn}
+        className="mx-auto mt-4 flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-800"
+      >
+        <ArrowLeft size={14} /> Back to sign in
+      </button>
+    </AuthLayout>
   );
 }

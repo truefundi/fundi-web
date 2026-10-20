@@ -31,7 +31,6 @@ export function Download() {
             </span>
           ))}
         </div>
-        <p className="mt-4 text-center text-sm font-medium text-slate-500">Coming soon to iOS and Android</p>
       </div>
     </section>
   );

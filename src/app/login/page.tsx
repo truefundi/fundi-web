@@ -41,16 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout>
-      <div className="mx-auto flex items-center justify-center">
-        <Image
-          src="/images/logo11.png"
-          alt="Fundi"
-          width={120}
-          height={40}
-          className="h-12 w-auto"
-        />
-      </div>
+    <AuthLayout logoSrc="/images/fundi.png">
       <h1 className="mt-4 text-center text-3xl font-bold tracking-tight text-slate-900">
         Fundi Admin Portal
       </h1>
