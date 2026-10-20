@@ -18,7 +18,7 @@ export function StatCard({
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="text-sm font-semibold text-slate-700">{label}</p>
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
           <Icon className="h-5 w-5" aria-hidden />
         </span>
@@ -28,7 +28,7 @@ export function StatCard({
       ) : (
         <p className="mt-3 text-2xl font-bold text-slate-900">{value}</p>
       )}
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      {hint && <p className="mt-2 text-sm text-slate-600 leading-relaxed">{hint}</p>}
     </Card>
   );
 }

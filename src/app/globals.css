@@ -33,3 +33,87 @@ button,
 input {
   font: inherit;
 }
+
+@keyframes landing-draft-image-motion {
+  from {
+    transform: scale(1.08) translate3d(-2%, 0, 0);
+  }
+
+  to {
+    transform: scale(1.18) translate3d(2%, -1%, 0);
+  }
+}
+
+@keyframes tools-1 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(30px, 20px) rotate(15deg);
+  }
+}
+
+@keyframes tools-2 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-20px, -30px) rotate(-10deg);
+  }
+}
+
+@keyframes tools-3 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(-25px, 15px) rotate(20deg);
+  }
+}
+
+@keyframes tools-4 {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(20px, -25px) rotate(-15deg);
+  }
+}
+
+.landing-draft-background-image {
+  transform: scale(1.04);
+}
+
+.landing-draft-background.is-animating .landing-draft-background-image {
+  animation: landing-draft-image-motion 3s ease-in-out infinite alternate;
+}
+
+.animate-tools-1 {
+  animation: tools-1 4s ease-in-out infinite;
+}
+
+.animate-tools-2 {
+  animation: tools-2 5s ease-in-out infinite;
+}
+
+.animate-tools-3 {
+  animation: tools-3 4.5s ease-in-out infinite;
+}
+
+.animate-tools-4 {
+  animation: tools-4 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-draft-background.is-animating .landing-draft-background-image {
+    animation: none;
+    transform: scale(1.04);
+  }
+
+  .animate-tools-1,
+  .animate-tools-2,
+  .animate-tools-3,
+  .animate-tools-4 {
+    animation: none;
+  }
+}

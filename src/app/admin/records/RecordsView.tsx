@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText } from 'lucide-react';
+import { FileText, Star } from 'lucide-react';
 import { JobStatusBadge } from '@/components/jobs/JobStatusBadge';
 import {
+  Badge,
   Card,
   EmptyState,
   ErrorState,
@@ -98,13 +99,14 @@ export function RecordsView() {
                   <Th>Service</Th>
                   <Th>Customer</Th>
                   <Th>Technician</Th>
+                  <Th>Rating</Th>
                   <Th>Completed</Th>
                   <Th>Status</Th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading || !data ? (
-                  <TableSkeleton columns={6} />
+                  <TableSkeleton columns={7} />
                 ) : (
                   data.items.map((job) => (
                     <Tr
@@ -120,6 +122,18 @@ export function RecordsView() {
                       <Td className="whitespace-nowrap text-slate-600">{job.customer.name}</Td>
                       <Td className="whitespace-nowrap text-slate-600">
                         {job.technician?.name ?? <span className="text-slate-400">Not assigned</span>}
+                      </Td>
+                      <Td className="whitespace-nowrap">
+                        {job.rating ? (
+                          <Badge tone="warning">
+                            <span className="inline-flex items-center gap-1">
+                              <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
+                              {job.rating.overall}/5
+                            </span>
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-400">Not rated</span>
+                        )}
                       </Td>
                       <Td className="whitespace-nowrap text-slate-600">
                         {formatDate(job.completedAt ?? job.updatedAt)}

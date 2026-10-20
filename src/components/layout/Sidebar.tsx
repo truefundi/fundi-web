@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
@@ -24,29 +25,34 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-800 bg-slate-950 text-white shadow-xl transition-transform lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
-          <Link href="/admin" className="flex items-center gap-2.5" onClick={onClose}>
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-lg font-bold text-white">
-              F
-            </span>
-            <span className="text-lg font-bold tracking-tight text-slate-900">Fundi</span>
+        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
+          <Link href="/admin" className="flex items-center" onClick={onClose}>
+            <Image
+              src="/images/logo11.png"
+              alt="Fundi logo"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
           </Link>
-          <button className="rounded-md p-1 text-slate-500 hover:bg-slate-100 lg:hidden" onClick={onClose} aria-label="Close menu">
+          <button className="rounded-md p-1 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden" onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        <nav className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 py-4 lg:overflow-y-hidden">
           {navigation.map((section, i) => (
-            <div key={section.title ?? i}>
+            <div key={section.title ?? i} className="space-y-1">
               {section.title && (
-                <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">{section.title}</p>
+                <p className="px-3 py-0.5 text-[11px] font-semibold tracking-wide text-slate-400">
+                  {section.title}
+                </p>
               )}
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {section.items.map(({ label, href, icon: Icon }) => {
                   const active = isActive(pathname, href);
                   return (
@@ -56,11 +62,16 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                         onClick={onClose}
                         aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                          active ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                          'flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                          active
+                            ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-950/20'
+                            : 'text-slate-300 hover:bg-white/10 hover:text-white',
                         )}
                       >
-                        <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                        <Icon
+                          className={cn('h-4 w-4 shrink-0', active ? 'text-slate-950' : 'text-slate-400')}
+                          aria-hidden
+                        />
                         {label}
                       </Link>
                     </li>

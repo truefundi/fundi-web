@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,7 +9,6 @@ import {
   Eye,
   EyeOff,
   Mail,
-  ShieldCheck,
 } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
@@ -41,15 +41,12 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout>
-      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600">
-        <ShieldCheck size={22} aria-hidden />
-      </div>
+    <AuthLayout logoSrc="/images/fundi.png">
       <h1 className="mt-4 text-center text-3xl font-bold tracking-tight text-slate-900">
         Fundi Admin Portal
       </h1>
       <p className="mt-2 text-center text-sm text-slate-600">
-        Enter your credentials to access the management console and backend dashboard.
+        Enter your credentials to access the management console.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">

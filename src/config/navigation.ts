@@ -5,7 +5,6 @@ import {
   HardHat,
   LayoutDashboard,
   MessagesSquare,
-  Settings,
   Shuffle,
   Star,
   Tags,
@@ -60,7 +59,6 @@ export const navigation: NavSection[] = [
     title: "System",
     items: [
       { label: "Users", href: "/admin/users", icon: Users },
-      { label: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
 ];

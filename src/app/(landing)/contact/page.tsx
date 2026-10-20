@@ -1,139 +1,230 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Mail, MapPin, Phone, Send, Sparkles, UserCheck, MessageSquare, Briefcase } from "lucide-react";
+
+type InquiryType = "general" | "support" | "business";
 
 export default function ContactPage() {
+  const [inquiryType, setInquiryType] = useState<InquiryType>("general");
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const subject = String(formData.get("subject") ?? "");
+    
+    const categoryLabel = 
+      inquiryType === "support" ? "[Technical Support]" : 
+      inquiryType === "business" ? "[Business & Partnerships]" : 
+      "[General Customer Inquiry]";
+
+    const rawSubject = String(formData.get("subject") ?? "");
+    const subject = `${categoryLabel} ${rawSubject}`.trim();
+
     const body = [
-      `Name: ${formData.get("name") ?? ""}`,
-      `Number: ${formData.get("number") ?? ""}`,
+      `Inquiry Category: ${inquiryType.toUpperCase()}`,
+      `Client Name: ${formData.get("name") ?? ""}`,
+      `Phone/Contact: ${formData.get("number") ?? ""}`,
+      `Email Address: ${formData.get("email") ?? ""}`,
       "",
+      "--- Message Details ---",
       String(formData.get("message") ?? ""),
     ].join("\n");
 
-    window.location.href = `mailto:support@fundi.rw?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:support@fundi.rw?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
   }
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-14 sm:px-6 sm:py-16">
-      <div className="mx-auto max-w-[408px]">
+    <section className="bg-slate-100/70 px-4 pt-6 pb-16 sm:px-6 sm:pt-8 sm:pb-20">
+      <div className="mx-auto w-full max-w-4xl">
+        {/* Header Section */}
         <div className="mb-8 text-center">
-          <p className="inline-flex items-center gap-2 text-xs font-medium text-slate-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            Support &amp; Inquiries
-          </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-            Get in touch
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            How can we help you today?
           </h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">
-            Have questions or need support with Fundi? Fill out the form below
-            and our team will get back to you promptly.
+          <p className="mt-2 text-sm sm:text-base leading-relaxed text-slate-600 max-w-xl mx-auto">
+            Whether you're an existing client needing assistance or a new customer exploring Fundi, our team is ready to support you.
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-800">
-              Full name <span className="text-brand-600">*</span>
+        {/* Main Card Container */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xl ring-1 ring-slate-900/5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Inquiry Category Selector */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-3">
+                Select topic <span className="text-amber-600">*</span>
+              </label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("general")}
+                  className={`flex items-center justify-center gap-2 rounded-xl border p-3.5 text-xs font-semibold transition-all ${
+                    inquiryType === "general"
+                      ? "border-amber-500 bg-amber-500 text-white shadow-md"
+                      : "border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-400 hover:bg-slate-100"
+                  }`}
+                >
+                  <MessageSquare className={`h-4 w-4 ${inquiryType === "general" ? "text-white" : "text-amber-600"}`} />
+                  General Inquiry
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("support")}
+                  className={`flex items-center justify-center gap-2 rounded-xl border p-3.5 text-xs font-semibold transition-all ${
+                    inquiryType === "support"
+                      ? "border-amber-500 bg-amber-500 text-white shadow-md"
+                      : "border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-400 hover:bg-slate-100"
+                  }`}
+                >
+                  <UserCheck className={`h-4 w-4 ${inquiryType === "support" ? "text-white" : "text-amber-600"}`} />
+                  Client Support
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("business")}
+                  className={`flex items-center justify-center gap-2 rounded-xl border p-3.5 text-xs font-semibold transition-all ${
+                    inquiryType === "business"
+                      ? "border-amber-500 bg-amber-500 text-white shadow-md"
+                      : "border-slate-300 bg-slate-50 text-slate-700 hover:border-slate-400 hover:bg-slate-100"
+                  }`}
+                >
+                  <Briefcase className={`h-4 w-4 ${inquiryType === "business" ? "text-white" : "text-amber-600"}`} />
+                  Technician
+                </button>
+              </div>
+            </div>
+
+            {/* Client Info Grid */}
+            <div className="grid gap-6 sm:grid-cols-3">
+              <div>
+                <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">
+                  Full Name <span className="text-amber-600">*</span>
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  placeholder="Your Name"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/15"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="number" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">
+                  Phone Number <span className="text-amber-600">*</span>
+                </label>
+                <input
+                  id="number"
+                  name="number"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  placeholder="078 000 0000"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/15"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="client@domain.com"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/15"
+                />
+              </div>
+            </div>
+
+            {/* Subject */}
+            <div>
+              <label htmlFor="subject" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">
+                Subject <span className="text-amber-600">*</span>
+              </label>
               <input
-                name="name"
+                id="subject"
+                name="subject"
                 type="text"
-                autoComplete="name"
                 required
-                placeholder="Your full name"
-                className="mt-1 block h-10 w-full rounded-md border border-slate-200 px-3 text-xs font-normal normal-case tracking-normal text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                placeholder="Brief summary of your request"
+                className="w-full rounded-xl border-2 border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/15"
               />
-            </label>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-slate-800">
-              Phone number <span className="text-brand-600">*</span>
-              <input
-                name="number"
-                type="text"
-                autoComplete="number"
+            </div>
+
+            {/* Message */}
+            <div>
+              <label htmlFor="message" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">
+                Message <span className="text-amber-600">*</span>
+              </label>
+              <textarea
+                id="message"
+                name="message"
                 required
-                placeholder="07**********"
-                className="mt-1 block h-10 w-full rounded-md border border-slate-200 px-3 text-xs font-normal normal-case tracking-normal text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                rows={4}
+                placeholder="Tell us more about how we can help..."
+                className="w-full rounded-xl border-2 border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/15 resize-y"
               />
-            </label>
-          </div>
+            </div>
 
-          <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wide text-slate-800">
-            Subject <span className="text-brand-600">*</span>
-            <input
-              name="subject"
-              type="text"
-              required
-              placeholder="How can we help you?"
-              className="mt-1 block h-10 w-full rounded-md border border-slate-200 px-3 text-xs font-normal normal-case tracking-normal text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
-            />
-          </label>
+            {/* Submit Button */}
+            <div className="pt-2 flex justify-end">
+              <button
+                type="submit"
+                className="group relative flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 py-3.5 px-8 text-sm font-bold text-white shadow-lg shadow-amber-500/25 transition-all duration-200 hover:from-amber-600 hover:to-orange-700 hover:shadow-amber-500/35 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+              >
+                Send Request
+                <Send className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </button>
+            </div>
+          </form>
 
-          <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wide text-slate-800">
-            Message <span className="text-brand-600">*</span>
-            <textarea
-              name="message"
-              required
-              rows={5}
-              placeholder="Provide details about your question, project, or service inquiry..."
-              className="mt-1 block w-full resize-y rounded-md border border-slate-200 px-3 py-3 text-xs font-normal normal-case tracking-normal text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
-            />
-          </label>
+          {/* Quick Contact Cards */}
+          <div className="mt-10 border-t border-slate-200 pt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <a
+              href="mailto:support@fundi.rw"
+              className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 transition-all duration-200 hover:border-amber-400 hover:bg-amber-50/50 hover:shadow-md"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                <Mail className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Email Us</span>
+                <span className="text-xs font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">support@fundi.rw</span>
+              </div>
+            </a>
 
-          <button
-            type="submit"
-            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-brand-600 px-4 text-xs font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-          >
-            Send message <Send aria-hidden="true" className="h-3.5 w-3.5" />
-          </button>
-        </form>
+            <a
+              href="tel:+250788123456"
+              className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 transition-all duration-200 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                <Phone className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Call Us</span>
+                <span className="text-xs font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors">+250 788 123 456</span>
+              </div>
+            </a>
 
-        <div className="mt-5 grid gap-6 border-t border-slate-200 pt-6 text-xs sm:grid-cols-3">
-          <a
-            href="mailto:support@fundi.rw"
-            className="flex items-center gap-3 text-slate-500 hover:text-brand-700"
-          >
-            <Mail
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-brand-600"
-            />
-            <span>
-              <span className="block">Email us</span>
-              <span className="font-medium text-slate-900">
-                support@fundi.rw
-              </span>
-            </span>
-          </a>
-          <a
-            href="tel:+250788123456"
-            className="flex items-center gap-3 text-slate-500 hover:text-brand-700"
-          >
-            <Phone
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-brand-600"
-            />
-            <span>
-              <span className="block">Call direct</span>
-              <span className="whitespace-nowrap font-medium text-slate-900">
-                +250 788 123 456
-              </span>
-            </span>
-          </a>
-          <div className="flex items-center gap-3 text-slate-500">
-            <MapPin
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0 text-brand-600"
-            />
-            <span>
-              <span className="block">HQ location</span>
-              <span className="font-medium text-slate-900">Kigali, Rwanda</span>
-            </span>
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Office</span>
+                <span className="text-xs font-semibold text-slate-800">Kigali, Rwanda</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
