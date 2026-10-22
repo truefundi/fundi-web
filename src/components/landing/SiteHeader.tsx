@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
 import { navLinks } from './content';
@@ -16,6 +16,7 @@ const draftNavLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDraftSection, setActiveDraftSection] = useState('home');
   const pathname = usePathname();
@@ -63,7 +64,13 @@ export function SiteHeader() {
 
   const isHome = true; // dark navbar style on every page
   const overlapsHero = pathname === '/' || isDraft; // only the home pages sit under the hero
-  const visibleNavLinks = isDraft ? draftNavLinks : navLinks;
+  const visibleNavLinks = isDraft
+    ? draftNavLinks
+    : [
+        ...navLinks.filter((link) => ['/', '/services', '/how-it-works'].includes(link.href)),
+        { label: 'About', href: '/about-us' },
+      ];
+  const supportIsActive = pathname === '/faq' || pathname === '/contact';
   const getDraftSection = (href: string) => (href.includes('#') ? href.split('#')[1] : 'home');
 
   return (
@@ -98,18 +105,18 @@ export function SiteHeader() {
                     }}
                     aria-current={isActive ? (isDraft && link.href.includes('#') ? 'location' : 'page') : undefined}
                     className={cn(
-                      'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                      'rounded-none border-b-2 border-transparent px-3 py-1.5 text-sm font-medium transition-colors',
                       isDraft
                         ? isActive
-                          ? 'bg-brand-500 text-white shadow-sm'
-                          : 'text-slate-200 hover:bg-white/10 hover:text-brand-300'
+                          ? 'border-brand-400 text-brand-400 underline decoration-brand-400 decoration-2 underline-offset-8'
+                          : 'text-slate-200 hover:text-brand-300'
                         : isHome
                           ? isActive
-                            ? 'bg-amber-500 text-white'
-                            : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                            ? 'border-brand-400 text-brand-400 underline decoration-brand-400 decoration-2 underline-offset-8'
+                            : 'text-slate-200 hover:text-brand-300'
                           : isActive
-                            ? 'bg-amber-500 text-white'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                            ? 'border-brand-500 text-brand-600 underline decoration-brand-500 decoration-2 underline-offset-8'
+                            : 'text-slate-600 hover:text-brand-600',
                     )}
                   >
                     {link.label}
@@ -119,43 +126,68 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          {isDraft ? (
-            <Link
-              href="#get-app"
-              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600"
-            >
-              Get app
-            </Link>
-          ) : (
-            <div className="flex items-center gap-1">
+          {!isDraft && (
+            <>
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-expanded={supportOpen}
+                  aria-haspopup="true"
+                  onClick={() => setSupportOpen((isOpen) => !isOpen)}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-none border-b-2 border-transparent px-3 py-1.5 text-sm font-medium transition-colors',
+                    supportIsActive
+                      ? 'border-brand-400 text-brand-400 underline decoration-brand-400 decoration-2 underline-offset-8'
+                      : 'text-slate-200 hover:text-brand-300',
+                  )}
+                >
+                  Support
+                  <ChevronDown className={cn('h-4 w-4 transition-transform', supportOpen && 'rotate-180')} aria-hidden />
+                </button>
+                {supportOpen && (
+                  <div className="absolute left-0 top-full z-20 mt-2 min-w-40 rounded-xl border border-white/10 bg-[#071426] p-2 shadow-xl">
+                    {[
+                      { label: 'FAQ', href: '/faq' },
+                      { label: 'Contact us', href: '/contact' },
+                    ].map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setSupportOpen(false)}
+                        aria-current={pathname === link.href ? 'page' : undefined}
+                        className={cn(
+                          'block rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                          pathname === link.href
+                            ? 'text-brand-400 underline decoration-brand-400 decoration-2 underline-offset-4'
+                            : 'text-slate-200 hover:bg-white/10 hover:text-brand-300',
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
               <Link
-                href="/about-us"
+                href="/for-technicians"
+                aria-current={pathname === '/for-technicians' ? 'page' : undefined}
                 className={cn(
-                  'rounded-lg px-3 py-2 text-sm font-medium',
-                  pathname === '/about-us'
-                    ? 'bg-amber-500 text-white'
-                    : isHome
-                      ? 'text-slate-200 hover:bg-white/10 hover:text-white'
-                      : 'text-slate-700 hover:bg-slate-100',
+                  'rounded-lg border px-3 py-2 text-sm font-semibold transition-colors',
+                  pathname === '/for-technicians'
+                    ? 'border-brand-400 bg-brand-500/10 text-brand-300'
+                    : 'border-white/30 text-white hover:border-brand-400 hover:text-brand-300',
                 )}
               >
-                About us
+                For technicians
               </Link>
-              <Link
-                href="/contact"
-                className={cn(
-                  'rounded-lg px-4 py-2 text-sm font-semibold',
-                  pathname === '/contact'
-                    ? 'bg-amber-500 text-white'
-                    : isHome
-                      ? 'text-slate-200 hover:bg-white/10 hover:text-white'
-                      : 'text-slate-700 hover:bg-slate-100',
-                )}
-              >
-                Contact us
-              </Link>
-            </div>
+            </>
           )}
+          <Link
+            href={isDraft ? '#get-app' : '/#download'}
+            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
+          >
+            Get App
+          </Link>
         </div>
 
         <button
@@ -201,15 +233,15 @@ export function SiteHeader() {
                         'block rounded-lg px-3 py-3 text-base font-medium',
                         isDraft
                           ? isActive
-                            ? 'bg-brand-500/20 text-brand-300'
-                            : 'text-slate-200 hover:bg-white/10 hover:text-brand-300'
+                            ? 'border-b-2 border-transparent text-brand-400'
+                            : 'border-b-2 border-transparent text-slate-200 hover:text-brand-300'
                           : isHome
                             ? isActive
-                              ? 'bg-amber-500 text-white'
-                              : 'text-slate-200 hover:bg-white/10'
+                              ? 'border-b-2 border-transparent text-brand-400'
+                              : 'border-b-2 border-transparent text-slate-200 hover:text-brand-300'
                             : isActive
-                              ? 'bg-amber-500 text-white'
-                              : 'text-slate-700 hover:bg-slate-50',
+                              ? 'border-b-2 border-transparent text-brand-600'
+                              : 'border-b-2 border-transparent text-slate-700 hover:text-brand-600',
                       )}
                     >
                       {link.label}
@@ -219,45 +251,70 @@ export function SiteHeader() {
               })()
             ))}
           </ul>
-          {isDraft ? (
-            <Link
-              href="#get-app"
-              onClick={() => setOpen(false)}
-              className="mt-4 block rounded-lg bg-brand-500 px-4 py-3 text-center text-sm font-semibold text-white"
-            >
-              Get app
-            </Link>
-          ) : (
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Link
-                href="/about-us"
+          {!isDraft && (
+            <div className="mt-2 space-y-1">
+              <button
+                type="button"
+                aria-expanded={supportOpen}
+                onClick={() => setSupportOpen((isOpen) => !isOpen)}
                 className={cn(
-                  'rounded-lg border px-4 py-3 text-center text-sm font-medium',
-                  pathname === '/about-us'
-                    ? 'border-amber-500 bg-amber-500 text-white'
-                    : isHome
-                      ? 'border-white/25 text-white'
-                      : 'border-slate-300 text-slate-700',
+                  'flex w-full items-center justify-between border-b-2 px-3 py-3 text-base font-medium',
+                  supportIsActive
+                    ? 'border-transparent text-brand-400'
+                    : 'border-transparent text-slate-200',
                 )}
               >
-                About us
-              </Link>
+                Support
+                <ChevronDown className={cn('h-4 w-4 transition-transform', supportOpen && 'rotate-180')} aria-hidden />
+              </button>
+              {supportOpen && (
+                <div className="space-y-1 pl-4">
+                  {[
+                    { label: 'FAQ', href: '/faq' },
+                    { label: 'Contact us', href: '/contact' },
+                  ].map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => {
+                        setOpen(false);
+                        setSupportOpen(false);
+                      }}
+                      aria-current={pathname === link.href ? 'page' : undefined}
+                      className={cn(
+                        'block border-b-2 px-3 py-3 text-base font-medium',
+                        pathname === link.href
+                          ? 'border-transparent text-brand-400'
+                          : 'border-transparent text-slate-200',
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
               <Link
-                href="/contact"
+                href="/for-technicians"
                 onClick={() => setOpen(false)}
+                aria-current={pathname === '/for-technicians' ? 'page' : undefined}
                 className={cn(
-                  'rounded-lg border px-4 py-3 text-center text-sm font-medium',
-                  pathname === '/contact'
-                    ? 'border-amber-500 bg-amber-500 text-white'
-                    : isHome
-                      ? 'border-white/25 text-white'
-                      : 'border-slate-300 text-slate-700',
+                  'mt-2 block rounded-lg border px-3 py-3 text-center text-base font-semibold transition-colors',
+                  pathname === '/for-technicians'
+                    ? 'border-brand-400 bg-brand-500/10 text-brand-300'
+                    : 'border-white/30 text-white hover:border-brand-400 hover:text-brand-300',
                 )}
               >
-                Contact us
+                For technicians
               </Link>
             </div>
           )}
+          <Link
+            href={isDraft ? '#get-app' : '/#download'}
+            onClick={() => setOpen(false)}
+            className="mt-4 block rounded-lg bg-brand-500 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            Get App
+          </Link>
         </nav>
       )}
     </header>
