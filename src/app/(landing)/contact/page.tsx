@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Mail, MapPin, Phone, Send, Sparkles, UserCheck, MessageSquare, Briefcase } from "lucide-react";
+import { Mail, MapPin, Phone, Send, UserCheck, MessageSquare, Briefcase } from "lucide-react";
 
 type InquiryType = "general" | "support" | "business";
 
@@ -44,7 +44,7 @@ export default function ContactPage() {
             How can we help you today?
           </h1>
           <p className="mt-2 text-sm sm:text-base leading-relaxed text-slate-600 max-w-xl mx-auto">
-            Whether you're an existing client needing assistance or a new customer exploring Fundi, our team is ready to support you.
+            Whether you&apos;re an existing client needing assistance or a new customer exploring Fundi, our team is ready to support you.
           </p>
         </div>
 

@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { ServiceCategory } from '@/config/services';
+import type { Product } from '@/types/product';
 
 /**
  * Landing page copy. Based on the Fundi Overall Project Description; items marked
@@ -29,6 +30,42 @@ export const navLinks = [
   { label: 'How it works', href: '/how-it-works' },
   { label: 'For technicians', href: '/for-technicians' },
   { label: 'FAQ', href: '/faq' },
+];
+
+export const products: Product[] = [
+  {
+    id: 1,
+    name: 'Rides',
+    description: 'A rideshare service that connects passengers with verified drivers for safe and reliable transportation.',
+    image: '/images/drivers-fleet-africa.png',
+    imageAlt: 'Rideshare driver and passenger in a car',
+    status: 'Live',
+    overview:
+      'Rides makes it easier to get where you need to go by connecting passengers with verified drivers. The service is designed around safe, reliable transportation.',
+    highlights: ['Connect with verified drivers', 'Get safe, reliable transportation', 'A convenient way to get around'],
+  },
+  {
+    id: 2,
+    name: 'HomesHub',
+    description: 'A platform for connecting homeowners with verified professionals for home improvement and maintenance services.',
+    image: '/images/real-estate-market.png',
+    imageAlt: 'A real estate agent showing a home to a potential buyer',
+    status: 'coming-soon',
+    overview:
+      'HomesHub helps homeowners find verified professionals for home improvement and maintenance. It brings service discovery and professional connections together in one place.',
+    highlights: ['Find verified home professionals', 'Discover home improvement services', 'Get help with home maintenance'],
+  },
+  {
+    id: 3,
+    name: 'Fundi',
+    description: 'A service that connects customers with verified technicians for home repairs and maintenance, ensuring quality and reliability.',
+    image: '/images/technician.jpg',
+    imageAlt: 'Product team member',
+    status: 'coming-soon',
+    overview:
+      'Fundi connects customers with skilled, verified technicians for repairs and maintenance. Customers can describe what needs fixing and find qualified help nearby.',
+    highlights: ['Connect with verified technicians', 'Find help for repairs and maintenance', 'Get reliable service from local professionals'],
+  },
 ];
 
 export interface Feature {

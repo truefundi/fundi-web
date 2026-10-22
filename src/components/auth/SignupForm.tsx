@@ -10,7 +10,7 @@ import { authInputClass as inputClass } from './styles';
  * Sign up UI only. Account creation is out of scope for now, so submitting shows a
  * confirmation; replace with the real registration call when the API exists.
  */
-export function SignupForm() {
+export function SignupForm({ request }: { request?: string }) {
   const [submitted, setSubmitted] = useState(false);
 
   if (submitted) {
@@ -19,6 +19,11 @@ export function SignupForm() {
         <CheckCircle2 className="mx-auto h-10 w-10 text-green-600" aria-hidden />
         <h2 className="mt-3 text-lg font-semibold text-slate-900">You&apos;re all set!</h2>
         <p className="mt-1 text-sm text-slate-600">Download the Fundi app to request a repair or apply to work as a Fundi.</p>
+        {request && (
+          <p className="mt-3 rounded-lg bg-white p-3 text-left text-sm text-slate-700">
+            Your request: <span className="font-medium">{request}</span>
+          </p>
+        )}
         <Link
           href="/#download"
           className="mt-5 inline-block rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
@@ -43,6 +48,12 @@ export function SignupForm() {
         </label>
         <input id="name" name="name" type="text" autoComplete="name" required placeholder="Your name" className={inputClass} />
       </div>
+
+      {request && (
+        <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+          <span className="font-semibold text-slate-900">Your Fundi AI request:</span> {request}
+        </p>
+      )}
 
       <div>
         <label htmlFor="phone" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-900">

@@ -97,7 +97,7 @@ export default function AboutUsPage() {
             Founded with a simple mission: to make finding reliable home services in Rwanda as easy as ordering food online. We noticed that too many people struggled to find trustworthy technicians, while skilled workers struggled to find customers. Fundi bridges that gap.
           </p>
           <p className="mt-4 text-base sm:text-lg leading-relaxed text-slate-600">
-            Today, we're proud to serve thousands of customers across Rwanda, connecting them with verified professionals who take pride in their work. Every technician on our platform is vetted, reviewed, and committed to excellence.
+            Today, we&apos;re proud to serve thousands of customers across Rwanda, connecting them with verified professionals who take pride in their work. Every technician on our platform is vetted, reviewed, and committed to excellence.
           </p>
         </div>
       </section>
@@ -114,7 +114,7 @@ export default function AboutUsPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900">Our Vision</h3>
                 <p className="mt-3 text-base sm:text-lg leading-relaxed text-slate-600">
-                  To become Rwanda's most trusted platform for home services, where every community has access to quality, reliable help from skilled local professionals.
+                  To become Rwanda&apos;s most trusted platform for home services, where every community has access to quality, reliable help from skilled local professionals.
                 </p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export default function AboutUsPage() {
               Why Choose Fundi?
             </h2>
             <p className="mt-3 text-base sm:text-lg text-slate-300">
-              We're committed to providing the best experience for both customers and technicians.
+              We are committed to providing the best experience for both customers and technicians.
             </p>
           </div>
 
@@ -189,7 +189,7 @@ export default function AboutUsPage() {
               How We Help
             </h2>
             <p className="mt-3 text-base sm:text-lg text-slate-600">
-              Whether you're a technician looking for work or a customer needing help, Fundi makes it simple.
+              Whether you&apos;re a technician looking for work or a customer needing help, Fundi makes it simple.
             </p>
           </div>
 
@@ -278,34 +278,6 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* Download App Section */}
-      <Download />
-
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-12 sm:px-6 sm:py-16 lg:px-8 text-center text-white">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Ready to Experience Fundi?
-          </h2>
-          <p className="mt-3 text-base sm:text-lg text-amber-100 max-w-xl mx-auto">
-            Join thousands of satisfied customers and skilled technicians who trust Fundi for their home service needs.
-          </p>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-sm font-bold text-amber-600 shadow-xl transition-all hover:bg-slate-100"
-            >
-              Sign Up Free <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white px-8 py-4 text-sm font-bold text-white transition-all hover:bg-white/10"
-            >
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
