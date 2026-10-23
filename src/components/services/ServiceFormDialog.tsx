@@ -1,17 +1,21 @@
 'use client';
 
 import { useEffect, useId, useState } from 'react';
-import { Button, Field, Input, Modal, Textarea, useToast } from '@/components/ui';
+import { Button, Field, Input, Modal, Select, Textarea, useToast } from '@/components/ui';
+import { getServiceGroup, SERVICE_GROUPS, type ServiceGroup } from '@/config/services';
 import { useCreateService, useUpdateService } from '@/hooks/useServices';
 import type { Service, ServiceInput } from '@/types/service';
 
-const EMPTY: ServiceInput = { name: '', description: '', visitFee: 75, emergencyVisitFee: 110, isActive: true };
+type ServiceFormValues = Omit<ServiceInput, 'category'> & { category: ServiceGroup | '' };
 
-type Errors = Partial<Record<keyof ServiceInput, string>>;
+const EMPTY: ServiceFormValues = { name: '', category: '', description: '', visitFee: 75, emergencyVisitFee: 110, isActive: true };
 
-function validate(input: ServiceInput): Errors {
+type Errors = Partial<Record<keyof ServiceFormValues, string>>;
+
+function validate(input: ServiceFormValues): Errors {
   const errors: Errors = {};
   if (input.name.trim().length < 2) errors.name = 'Enter a name of at least 2 characters.';
+  if (!input.category) errors.category = 'Choose a category.';
   if (input.description.trim().length < 5) errors.description = 'Describe the service in a few words.';
   if (!(input.visitFee > 0)) errors.visitFee = 'Enter a fee above 0.';
   if (!(input.emergencyVisitFee > 0)) errors.emergencyVisitFee = 'Enter a fee above 0.';
@@ -34,7 +38,7 @@ export function ServiceFormDialog({
   const toast = useToast();
   const create = useCreateService();
   const update = useUpdateService();
-  const [input, setInput] = useState<ServiceInput>(EMPTY);
+  const [input, setInput] = useState<ServiceFormValues>(EMPTY);
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
@@ -44,6 +48,7 @@ export function ServiceFormDialog({
       service
         ? {
             name: service.name,
+            category: service.category ?? getServiceGroup(service.name),
             description: service.description,
             visitFee: service.visitFee,
             emergencyVisitFee: service.emergencyVisitFee,
@@ -55,11 +60,12 @@ export function ServiceFormDialog({
 
   const errors = touched ? validate(input) : {};
   const saving = create.isPending || update.isPending;
-  const set = <K extends keyof ServiceInput>(key: K, value: ServiceInput[K]) => setInput((v) => ({ ...v, [key]: value }));
+  const set = <K extends keyof ServiceFormValues>(key: K, value: ServiceFormValues[K]) => setInput((v) => ({ ...v, [key]: value }));
 
   const save = () => {
     setTouched(true);
-    if (Object.keys(validate(input)).length > 0) return;
+    if (Object.keys(validate(input)).length > 0 || !input.category) return;
+    const serviceInput: ServiceInput = { ...input, category: input.category };
     const done = {
       onSuccess: () => {
         toast(service ? `${input.name.trim()} updated` : `${input.name.trim()} added`);
@@ -67,8 +73,8 @@ export function ServiceFormDialog({
       },
       onError: (err: Error) => toast(err.message || 'Could not save the service', 'error'),
     };
-    if (service) update.mutate({ id: service.id, input }, done);
-    else create.mutate(input, done);
+    if (service) update.mutate({ id: service.id, input: serviceInput }, done);
+    else create.mutate(serviceInput, done);
   };
 
   return (
@@ -103,6 +109,21 @@ export function ServiceFormDialog({
             placeholder="e.g. Solar & Inverters"
             invalid={Boolean(errors.name)}
           />
+        </Field>
+        <Field label="Category" htmlFor={`${id}-category`} error={errors.category}>
+          <Select
+            id={`${id}-category`}
+            value={input.category}
+            onChange={(e) => set('category', e.target.value as ServiceGroup | '')}
+            invalid={Boolean(errors.category)}
+          >
+            <option value="">Choose a category</option>
+            {SERVICE_GROUPS.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </Select>
         </Field>
         <Field label="Description" htmlFor={`${id}-description`} error={errors.description}>
           <Textarea

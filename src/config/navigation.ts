@@ -4,7 +4,9 @@ import {
   FileText,
   HardHat,
   LayoutDashboard,
+  Megaphone,
   MessagesSquare,
+  Send,
   Shuffle,
   Star,
   Tags,
@@ -36,6 +38,7 @@ export const navigation: NavSection[] = [
     items: [
       { label: 'Jobs', href: '/admin/jobs', icon: Briefcase },
       { label: 'Chats', href: '/admin/chats', icon: MessagesSquare },
+      { label: 'Broadcasts', href: '/admin/broadcasts', icon: Send },
       { label: 'Matching', href: '/admin/matching', icon: Shuffle },
       { label: 'Ratings', href: '/admin/ratings', icon: Star },
     ],
@@ -51,6 +54,7 @@ export const navigation: NavSection[] = [
     title: "Business",
     items: [
       { label: "Categories", href: "/admin/categories", icon: Tags },
+      { label: "Landing Ads", href: "/admin/ads", icon: Megaphone },
       { label: "Payments", href: "/admin/payments", icon: CreditCard },
       { label: "Service Records", href: "/admin/records", icon: FileText },
     ],

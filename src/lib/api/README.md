@@ -37,3 +37,9 @@ All routes are relative to `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:3000/ap
 - **`page`** starts at 1. `pageSize` defaults to 10.
 - **Errors:** return a non-2xx status with `{ "message": "..." }`. The UI shows `message`, and a 404 on a detail route shows "not found".
 - **Reviewer identity:** approving or rejecting should set `verification.reviewedAt` and `reviewedBy` from the authenticated admin.
+
+## Broadcasts
+
+The admin Broadcasts screen is currently mock-only. It estimates active customer/technician recipients and records a simulated broadcast in memory; it does **not** send SMS or create notifications in users' inboxes.
+
+Before enabling real delivery, implement authenticated `GET /admin/broadcasts/recipients`, `GET /admin/broadcasts`, and `POST /admin/broadcasts` endpoints with server-side recipient filtering, delivery status tracking, provider integration, idempotency, and failure reporting. Add explicit SMS consent and opt-out handling before sending to real phone numbers, and comply with applicable messaging rules. The current UI requires an admin confirmation but the existing account model does not track consent.

@@ -1,5 +1,6 @@
 export { api, ApiError, request, unwrap } from './client';
 export type { RequestOptions } from './client';
+export { broadcastsApi } from './endpoints/broadcasts';
 export { chatsApi } from './endpoints/chats';
 export { customersApi } from './endpoints/customers';
 export { dashboardApi } from './endpoints/dashboard';

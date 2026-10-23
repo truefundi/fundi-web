@@ -10,6 +10,7 @@ import servicesSeed from './services.json';
 import techniciansSeed from './technicians.json';
 import adminsSeed from './admins.json';
 import type { Conversation } from '@/types/chat';
+import type { BroadcastRecord } from '@/types/broadcast';
 import type { Account, Customer } from '@/types/customer';
 import type { Job } from '@/types/job';
 import type { Service } from '@/types/service';
@@ -57,6 +58,7 @@ export const mockDb = {
   jobs: freshJobs(clone(jobsSeed) as Job[]),
   chats: freshChats(clone(chatsSeed) as Conversation[]),
   services: clone(servicesSeed) as Service[],
+  broadcasts: [] as BroadcastRecord[],
 };
 
 /** Simulated network latency so loading states are visible. */
