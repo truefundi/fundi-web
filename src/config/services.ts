@@ -18,6 +18,14 @@ export const SERVICE_CATEGORIES = [
 
 export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
 
+export const SERVICE_GROUPS = ['Home Services', 'Car Services'] as const;
+
+export type ServiceGroup = (typeof SERVICE_GROUPS)[number];
+
+export function getServiceGroup(category: ServiceCategory | string): ServiceGroup {
+  return category === 'Car & Garage' || category === 'Truck & Mechanical' ? 'Car Services' : 'Home Services';
+}
+
 export const SERVICE_CATEGORY_STYLE: Record<ServiceCategory, { icon: LucideIcon; className: string }> = {
   Electrical: { icon: Zap, className: 'bg-yellow-100 text-yellow-700' },
   Plumbing: { icon: Wrench, className: 'bg-teal-100 text-teal-700' },

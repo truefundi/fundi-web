@@ -6,6 +6,7 @@ import { Button, Field, Input, Modal, Select, Textarea, useToast } from '@/compo
 import { useCreateJob, useUpdateJob } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
 import { useTechnicians } from '@/hooks/useTechnicians';
+import { getServiceGroup, SERVICE_GROUPS, type ServiceGroup } from '@/config/services';
 import { formatMoney } from '@/lib/jobs';
 import { URGENCIES, type Job, type JobInput, type Urgency } from '@/types/job';
 
@@ -34,6 +35,7 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
   const technicians = useTechnicians({ status: 'active', sort: 'name', pageSize: 100 });
   const services = useServices();
   const [input, setInput] = useState<JobInput>(EMPTY);
+  const [serviceCategory, setServiceCategory] = useState<ServiceGroup | ''>('');
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
@@ -51,7 +53,14 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
           }
         : EMPTY,
     );
+    setServiceCategory('');
   }, [open, job]);
+
+  useEffect(() => {
+    if (!open || !job || !services.data) return;
+    const jobService = services.data.find((service) => service.name === job.service);
+    if (jobService) setServiceCategory(jobService.category ?? getServiceGroup(jobService.name));
+  }, [open, job, services.data]);
 
   const isNew = !job;
   const errors = touched ? validate(input, isNew) : {};
@@ -60,6 +69,9 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
 
   // Hidden services cannot get new jobs, but an existing job keeps its own service in the list.
   const serviceOptions = (services.data ?? []).filter((s) => s.isActive || s.name === job?.service);
+  const categoryServiceOptions = serviceOptions.filter(
+    (service) => (service.category ?? getServiceGroup(service.name)) === serviceCategory,
+  );
   const selected = serviceOptions.find((s) => s.name === input.service);
   const fee = selected && (input.urgency === 'Emergency' ? selected.emergencyVisitFee : selected.visitFee);
 
@@ -152,16 +164,40 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Category" htmlFor={`${id}-service-category`}>
+            <Select
+              id={`${id}-service-category`}
+              value={serviceCategory}
+              onChange={(e) => {
+                setServiceCategory(e.target.value as ServiceGroup | '');
+                set('service', '');
+              }}
+              disabled={services.isLoading}
+            >
+              <option value="">{services.isLoading ? 'Loading categories…' : 'Choose a category'}</option>
+              {SERVICE_GROUPS.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label="Service" htmlFor={`${id}-service`} error={errors.service}>
             <Select
               id={`${id}-service`}
               value={input.service}
               onChange={(e) => set('service', e.target.value)}
-              disabled={services.isLoading}
+              disabled={services.isLoading || !serviceCategory}
               invalid={Boolean(errors.service)}
             >
-              <option value="">{services.isLoading ? 'Loading services…' : 'Choose a service'}</option>
-              {serviceOptions.map((s) => (
+              <option value="">
+                {services.isLoading
+                  ? 'Loading services…'
+                  : !serviceCategory
+                    ? 'Choose a category first'
+                    : 'Choose a service'}
+              </option>
+              {categoryServiceOptions.map((s) => (
                 <option key={s.id} value={s.name}>
                   {s.name}
                 </option>
