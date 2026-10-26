@@ -10,12 +10,6 @@ export function CtaBanner() {
             <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Something broken? Get it fixed today.</h2>
             <p className="mt-2 text-base text-brand-50">Tell us what is wrong and we will find someone who can fix it.</p>
           </div>
-          <Link
-            href="/signup"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-white px-6 py-3.5 text-base font-semibold text-brand-700 shadow-sm hover:bg-brand-50"
-          >
-            Get started <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
         </div>
       </div>
     </section>
