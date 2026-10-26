@@ -1,3 +1,6 @@
+'use client';
+
+import type { FormEvent } from 'react';
 import {
   BadgeCheck,
   Receipt,
@@ -14,6 +17,18 @@ const highlights = [
 ];
 
 export function Hero() {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const request = new FormData(form).get('request');
+    if (typeof request !== 'string' || !request.trim()) return;
+
+    window.dispatchEvent(
+      new CustomEvent('fundi-ai-request', { detail: request.trim() }),
+    );
+    form.reset();
+  }
+
   return (
     <section className="relative flex min-h-[720px] items-center overflow-hidden bg-slate-950 text-white lg:min-h-[min(820px,100svh)]">
       <HeroPhoto />
@@ -29,8 +44,7 @@ export function Hero() {
           </p>
 
           <form
-            action="/signup"
-            method="get"
+            onSubmit={handleSubmit}
             className="mx-auto mt-8 max-w-xl lg:mx-0"
           >
             <label htmlFor="fundi-ai-request" className="sr-only">

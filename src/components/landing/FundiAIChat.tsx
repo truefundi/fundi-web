@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Bot, MessageCircle, Send, Sparkles, X } from 'lucide-react';
 import { SERVICE_CATEGORIES } from '@/config/services';
 import { faqs, serviceDescriptions } from './content';
@@ -86,6 +86,35 @@ export function FundiAIChat() {
       text: 'Hi! Ask me about Fundi services, visit fees, payments or how repairs work. You can chat here without creating an account.',
     },
   ]);
+
+  useEffect(() => {
+    function handleHeroRequest(event: Event) {
+      if (!(event instanceof CustomEvent) || typeof event.detail !== 'string') {
+        return;
+      }
+
+      const submittedRequest = event.detail.trim();
+      if (!submittedRequest) return;
+
+      setIsOpen(true);
+      setRequest('');
+      setMessages((currentMessages) => {
+        const nextId = currentMessages.length;
+        return [
+          ...currentMessages,
+          { id: nextId, role: 'user', text: submittedRequest },
+          {
+            id: nextId + 1,
+            role: 'assistant',
+            text: getChatAnswer(submittedRequest),
+          },
+        ];
+      });
+    }
+
+    window.addEventListener('fundi-ai-request', handleHeroRequest);
+    return () => window.removeEventListener('fundi-ai-request', handleHeroRequest);
+  }, []);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
