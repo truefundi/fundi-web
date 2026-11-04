@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/ui';
 import { AttentionQueue } from '@/components/dashboard/AttentionQueue';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { JobPipeline } from '@/components/dashboard/JobPipeline';
+import { PeopleGrowthChart } from '@/components/dashboard/PeopleGrowthChart';
 import { JobsSummary } from '@/components/dashboard/JobsSummary';
 import { VerificationQueue } from '@/components/dashboard/VerificationQueue';
 
@@ -15,6 +16,8 @@ export default function DashboardPage() {
       <PageHeader title="Dashboard" description="Everything happening on Fundi at a glance." />
 
       <DashboardStats />
+
+      <PeopleGrowthChart />
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

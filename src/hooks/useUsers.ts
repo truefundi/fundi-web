@@ -7,6 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { customersApi, techniciansApi, usersApi } from "@/lib/api";
+import { dashboardKeys } from "@/hooks/useDashboard";
 import type { UserQuery } from "@/types/api";
 import type { AccountStatus, Customer } from "@/types/customer";
 import type { Technician } from "@/types/technician";
@@ -47,6 +48,7 @@ export function useUpdateUserStatus() {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["technicians"] });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.peopleGrowth });
     },
   });
 }

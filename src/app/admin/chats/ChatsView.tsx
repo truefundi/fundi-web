@@ -93,7 +93,9 @@ export function ChatsView() {
                         <p className="text-sm font-medium text-slate-700">{chat.technician.name}</p>
                         <span className="text-xs text-slate-400">· {chat.service}</span>
                       </div>
-                      <p className="mt-0.5 truncate text-sm text-slate-500">{last?.text}</p>
+                      <p className="mt-0.5 truncate text-sm text-slate-500">
+                        {chat.adminHasJoined ? last?.text : 'Join to view conversation'}
+                      </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <ConversationStatusBadge status={chat.status} />
