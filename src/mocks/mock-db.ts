@@ -75,6 +75,7 @@ export const mockDb = {
   admins: clone(adminsSeed) as MockAdmin[],
   jobs: freshJobs(clone(jobsSeed) as Job[]),
   chats: freshChats(clone(chatsSeed) as Conversation[]),
+  joinedChatsByAdmin: {} as Record<string, string[]>,
   services: clone(servicesSeed) as Service[],
   broadcasts: [] as BroadcastRecord[],
   approvalRequests: [] as ApprovalRequest[],

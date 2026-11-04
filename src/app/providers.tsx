@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '@/components/ui/Toast';
 import { CommissionSettingsProvider } from '@/context/CommissionSettingsContext';
 import { LandingAdsProvider } from '@/context/LandingAdsContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -18,7 +19,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <CommissionSettingsProvider>
         <LandingAdsProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </ThemeProvider>
         </LandingAdsProvider>
       </CommissionSettingsProvider>
     </QueryClientProvider>

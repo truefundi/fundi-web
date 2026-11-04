@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, Info, MessagesSquare, XCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, Info, LogIn, LogOut, MessagesSquare, Send, XCircle } from 'lucide-react';
 import { ConversationStatusBadge } from '@/components/chats/ConversationStatusBadge';
-import { Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner } from '@/components/ui';
-import { useChat } from '@/hooks/useChats';
+import { Button, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner, Textarea, useToast } from '@/components/ui';
+import { useChat, useJoinChat, useLeaveChat, useSendChatMessage } from '@/hooks/useChats';
 import { cn, formatDate, formatPhone } from '@/lib/utils';
 import type { ChatMessage, Conversation } from '@/types/chat';
 
@@ -28,16 +30,23 @@ function Message({ message, chat }: { message: ChatMessage; chat: Conversation }
     );
   }
   const fromTechnician = message.sender === 'technician';
-  const name = fromTechnician ? chat.technician.name : chat.customer.name;
+  const isAdmin = message.sender === 'admin';
+  const name =
+    message.senderName ??
+    (fromTechnician ? chat.technician.name : message.sender === 'customer' ? chat.customer.name : 'Fundi Admin');
   return (
-    <li className={cn('flex flex-col gap-1', fromTechnician ? 'items-end' : 'items-start')}>
+    <li className={cn('flex flex-col gap-1', isAdmin ? 'items-center' : fromTechnician ? 'items-end' : 'items-start')}>
       <span className="text-xs text-slate-500">
         {name} · {time.format(new Date(message.at))}
       </span>
       <p
         className={cn(
           'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm',
-          fromTechnician ? 'rounded-tr-sm bg-brand-500 text-white' : 'rounded-tl-sm bg-slate-100 text-slate-800',
+          isAdmin
+            ? 'rounded-b-sm bg-indigo-100 text-indigo-900'
+            : fromTechnician
+              ? 'rounded-tr-sm bg-brand-500 text-white'
+              : 'rounded-tl-sm bg-slate-100 text-slate-800',
         )}
       >
         {message.text}
@@ -90,7 +99,43 @@ function Outcome({ chat }: { chat: Conversation }) {
 }
 
 export function ChatDetailView({ id }: { id: string }) {
+  const router = useRouter();
+  const toast = useToast();
+  const [messageText, setMessageText] = useState('');
+  const joinChat = useJoinChat();
+  const sendMessage = useSendChatMessage();
+  const leaveChat = useLeaveChat();
   const { data: chat, isLoading, isError, error, refetch } = useChat(id);
+
+  const submitMessage = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const text = messageText.trim();
+    if (!text || sendMessage.isPending || leaveChat.isPending) return;
+    sendMessage.mutate(
+      { id, text },
+      {
+        onSuccess: () => setMessageText(''),
+        onError: (err) => toast(err.message || 'Could not send your message', 'error'),
+      },
+    );
+  };
+
+  const leave = () => {
+    leaveChat.mutate(id, {
+      onSuccess: () => {
+        toast('You left the conversation. The customer and technician can keep chatting.');
+        router.push('/admin/chats');
+      },
+      onError: (err) => toast(err.message || 'Could not leave the conversation', 'error'),
+    });
+  };
+
+  const join = () => {
+    joinChat.mutate(id, {
+      onSuccess: () => toast('You joined the conversation. You can now view and message both participants.'),
+      onError: (err) => toast(err.message || 'Could not join the conversation', 'error'),
+    });
+  };
 
   if (isLoading) {
     return (
@@ -136,17 +181,80 @@ export function ChatDetailView({ id }: { id: string }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader title="Conversation" description="Written in the mobile app" />
+          <CardHeader
+            title="Conversation"
+            description={
+              chat.adminHasJoined
+                ? 'Your messages are visible to both the customer and technician.'
+                : 'Join this conversation to view its messages and participate.'
+            }
+            action={
+              chat.adminHasJoined ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={leave}
+                  loading={leaveChat.isPending}
+                  disabled={sendMessage.isPending || joinChat.isPending}
+                >
+                  <LogOut className="h-4 w-4" aria-hidden />
+                  Leave chat
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={join}
+                  loading={joinChat.isPending}
+                  disabled={leaveChat.isPending || sendMessage.isPending}
+                >
+                  <LogIn className="h-4 w-4" aria-hidden />
+                  Join chat
+                </Button>
+              )
+            }
+          />
           <CardBody>
-            <ol className="space-y-4">
-              {chat.messages.map((message) => (
-                <Message key={message.id} message={message} chat={chat} />
-              ))}
-            </ol>
-            <p className="mt-6 flex items-center gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500">
-              <Info className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Read-only: customers and technicians chat in the Fundi mobile app.
-            </p>
+            {!chat.adminHasJoined ? (
+              <p className="flex items-center gap-2 text-sm text-slate-500">
+                <Info className="h-4 w-4 shrink-0" aria-hidden />
+                You are not a participant yet. Join to view the conversation; leaving later will not affect the customer and technician.
+              </p>
+            ) : (
+              <>
+                <ol className="space-y-4">
+                  {chat.messages.map((message) => (
+                    <Message key={message.id} message={message} chat={chat} />
+                  ))}
+                </ol>
+                <form onSubmit={submitMessage} className="mt-6 space-y-3 border-t border-slate-100 pt-4">
+                  <label htmlFor="admin-chat-message" className="sr-only">
+                    Message both participants
+                  </label>
+                  <Textarea
+                    id="admin-chat-message"
+                    value={messageText}
+                    onChange={(event) => setMessageText(event.target.value)}
+                    placeholder="Write a message to the customer and technician…"
+                    rows={3}
+                    disabled={leaveChat.isPending}
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs text-slate-500">Both participants will see your message.</p>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      loading={sendMessage.isPending}
+                      disabled={!messageText.trim() || leaveChat.isPending}
+                    >
+                      <Send className="h-4 w-4" aria-hidden />
+                      Send message
+                    </Button>
+                  </div>
+                </form>
+              </>
+            )}
           </CardBody>
         </Card>
 
