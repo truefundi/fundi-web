@@ -1,49 +1,136 @@
+
 'use client';
 
 import { useEffect, useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Field, Input, Modal, Select, Textarea, useToast } from '@/components/ui';
+import {
+  Button,
+  Field,
+  Input,
+  Modal,
+  Select,
+  Textarea,
+  useToast,
+} from '@/components/ui';
 import { useCreateJob, useUpdateJob } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
-import { useTechnicians } from '@/hooks/useTechnicians';
-import { getServiceGroup, SERVICE_GROUPS, type ServiceGroup } from '@/config/services';
+import { useCustomers } from '@/hooks/useCustomers';
+import {
+  getServiceGroup,
+  SERVICE_GROUPS,
+  type ServiceGroup,
+} from '@/config/services';
 import { formatMoney } from '@/lib/jobs';
-import { URGENCIES, type Job, type JobInput, type Urgency } from '@/types/job';
+import {
+  URGENCIES,
+  type Job,
+  type JobInput,
+  type Urgency,
+} from '@/types/job';
 
-const EMPTY: JobInput = { customerId: '', partyType: 'technician', service: '', problem: '', urgency: 'Today', location: '' };
+type JobFormInput = JobInput & {
+  latitude: number;
+  longitude: number;
+  offeredAmount: number;
+};
 
-type Errors = Partial<Record<keyof JobInput, string>>;
+const EMPTY: JobFormInput = {
+  customerId: '',
+  partyType: 'customer',
+  service: '',
+  problem: '',
+  urgency: 'Today',
+  location: '',
+  latitude: 0,
+  longitude: 0,
+  offeredAmount: 0,
+};
 
-function validate(input: JobInput, isNew: boolean): Errors {
+type Errors = Partial<Record<keyof JobFormInput, string>>;
+
+function validate(input: JobFormInput, isNew: boolean): Errors {
   const errors: Errors = {};
+
   if (isNew && !input.customerId) {
-    errors.customerId = 'Choose a technician.';
+    errors.customerId = 'Choose a customer.';
   }
-  if (!input.service) errors.service = 'Choose a service.';
-  if (input.problem.trim().length < 5) errors.problem = 'Describe the problem in a few words.';
-  if (input.location.trim().length < 3) errors.location = 'Enter where the technician should go.';
+
+  if (!input.service) {
+    errors.service = 'Choose a service.';
+  }
+
+  if (input.problem.trim().length < 5) {
+    errors.problem = 'Describe the problem in a few words.';
+  }
+
+  if (input.location.trim().length < 3) {
+    errors.location = 'Enter where the technician should go.';
+  }
+
+  if (
+    !Number.isFinite(input.offeredAmount) ||
+    input.offeredAmount <= 0
+  ) {
+    errors.offeredAmount = 'Enter a valid amount for the technician.';
+  }
+
+  if (
+    !Number.isFinite(input.latitude) ||
+    input.latitude < -90 ||
+    input.latitude > 90
+  ) {
+    errors.latitude = 'Enter a valid latitude between -90 and 90.';
+  }
+
+  if (
+    !Number.isFinite(input.longitude) ||
+    input.longitude < -180 ||
+    input.longitude > 180
+  ) {
+    errors.longitude = 'Enter a valid longitude between -180 and 180.';
+  }
+
   return errors;
 }
 
-/** Create a job for a technician, or edit `job` before its visit fee is paid. */
-export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: () => void; job?: Job }) {
+export function JobFormDialog({
+  open,
+  onClose,
+  job,
+}: {
+  open: boolean;
+  onClose: () => void;
+  job?: Job;
+}) {
   const id = useId();
   const router = useRouter();
   const toast = useToast();
+
   const create = useCreateJob();
   const update = useUpdateJob();
-  const technicians = useTechnicians({ status: 'active', sort: 'name', pageSize: 100 });
+
+  const customers = useCustomers({
+    status: 'active',
+    sort: 'name',
+    page: 1,
+    pageSize: 100,
+  });
+
   const services = useServices();
-  const [input, setInput] = useState<JobInput>(EMPTY);
+
+  const [input, setInput] = useState<JobFormInput>(EMPTY);
   const [serviceCategory, setServiceCategory] = useState<ServiceGroup | ''>('');
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+
     setTouched(false);
+
     setInput(
       job
         ? {
+            ...EMPTY,
             customerId: job.customer.id,
             partyType: 'customer',
             service: job.service,
@@ -53,60 +140,118 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
           }
         : EMPTY,
     );
+
     setServiceCategory('');
   }, [open, job]);
 
   useEffect(() => {
     if (!open || !job || !services.data) return;
-    const jobService = services.data.find((service) => service.name === job.service);
-    if (jobService) setServiceCategory(jobService.category ?? getServiceGroup(jobService.name));
+
+    const jobService = services.data.find(
+      (service) => service.name === job.service,
+    );
+
+    if (jobService) {
+      setServiceCategory(
+        jobService.category ?? getServiceGroup(jobService.name),
+      );
+    }
   }, [open, job, services.data]);
 
   const isNew = !job;
   const errors = touched ? validate(input, isNew) : {};
   const saving = create.isPending || update.isPending;
-  const set = <K extends keyof JobInput>(key: K, value: JobInput[K]) => setInput((v) => ({ ...v, [key]: value }));
 
-  // Hidden services cannot get new jobs, but an existing job keeps its own service in the list.
-  const serviceOptions = (services.data ?? []).filter((s) => s.isActive || s.name === job?.service);
-  const categoryServiceOptions = serviceOptions.filter(
-    (service) => (service.category ?? getServiceGroup(service.name)) === serviceCategory,
+  const set = <K extends keyof JobFormInput>(
+    key: K,
+    value: JobFormInput[K],
+  ) => {
+    setInput((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  };
+
+  const serviceOptions = (services.data ?? []).filter(
+    (service) => service.isActive || service.name === job?.service,
   );
-  const selected = serviceOptions.find((s) => s.name === input.service);
-  const fee = selected && (input.urgency === 'Emergency' ? selected.emergencyVisitFee : selected.visitFee);
 
-  const accountOptions = technicians.data?.items;
+  const categoryServiceOptions = serviceOptions.filter(
+    (service) =>
+      (service.category ?? getServiceGroup(service.name)) ===
+      serviceCategory,
+  );
+
+  const selected = serviceOptions.find(
+    (service) => service.name === input.service,
+  );
+
+  const fee =
+    selected &&
+    (input.urgency === 'Emergency'
+      ? selected.emergencyVisitFee
+      : selected.visitFee);
+
+  const accountOptions = customers.data?.items;
+
   const chooseAccount = (accountId: string) => {
-    const account = accountOptions?.find((item) => item.id === accountId);
-    // Start from the selected user's saved location; the admin can still change it.
-    setInput((v) => ({ ...v, customerId: accountId, location: v.location || account?.location || '' }));
+    const account = accountOptions?.find(
+      (item) => item.id === accountId,
+    );
+
+    setInput((current) => ({
+      ...current,
+      customerId: accountId,
+      location: current.location || account?.location || '',
+    }));
   };
 
   const save = () => {
     setTouched(true);
-    if (Object.keys(validate(input, isNew)).length > 0) return;
+
+    if (Object.keys(validate(input, isNew)).length > 0) {
+      return;
+    }
+
     if (job) {
-      const { service, problem, urgency, location } = input;
+      const { service, problem, urgency, location, offeredAmount, latitude, longitude } =
+        input;
+
       update.mutate(
-        { id: job.id, input: { service, problem, urgency, location } },
+        {
+          id: job.id,
+          input: {
+            service,
+            problem,
+            urgency,
+            location,
+            offeredAmount,
+            latitude,
+            longitude,
+          } as never,
+        },
         {
           onSuccess: () => {
             toast(`Job ${job.reference} updated`);
             onClose();
           },
-          onError: (err) => toast(err.message || 'Could not update the job', 'error'),
+          onError: (err) =>
+            toast(err.message || 'Could not update the job', 'error'),
         },
       );
-    } else {
-      create.mutate(input, {
-        onSuccess: (created) => {
-          toast(`Job ${created.reference} created`);
-          onClose();
-          router.push(`/admin/jobs/${created.id}`);
-        },
-        onError: (err) => toast(err.message || 'Could not create the job', 'error'),
-      });
+
+      return;
     }
+
+    create.mutate(input, {
+      onSuccess: (created) => {
+        toast(`Job ${created.reference} created`);
+        onClose();
+        router.push(`/admin/jobs/${created.id}`);
+      },
+      onError: (err) =>
+        toast(err.message || 'Could not create the job', 'error'),
+    });
   };
 
   return (
@@ -114,12 +259,21 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
       open={open}
       onClose={onClose}
       title={job ? `Edit job ${job.reference}` : 'New job'}
-      description={job ? 'Details can change until the visit fee is paid.' : 'Create a request on behalf of a technician.'}
+      description={
+        job
+          ? 'Details can change until the visit fee is paid.'
+          : 'Create a request on behalf of a customer.'
+      }
       footer={
         <>
-          <Button variant="secondary" onClick={onClose} disabled={saving}>
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            disabled={saving}
+          >
             Cancel
           </Button>
+
           <Button onClick={save} loading={saving}>
             {job ? 'Save changes' : 'Create job'}
           </Button>
@@ -128,14 +282,14 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
     >
       <form
         className="space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
+        onSubmit={(event) => {
+          event.preventDefault();
           save();
         }}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
-            label={job ? 'Customer' : 'Technician'}
+            label="Customer"
             htmlFor={`${id}-customer`}
             error={errors.customerId}
             hint={job ? 'The customer cannot be changed.' : undefined}
@@ -143,15 +297,22 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
             <Select
               id={`${id}-customer`}
               value={input.customerId}
-              onChange={(e) => chooseAccount(e.target.value)}
-              disabled={!isNew || technicians.isLoading}
+              onChange={(event) => chooseAccount(event.target.value)}
+              disabled={!isNew || customers.isLoading}
               invalid={Boolean(errors.customerId)}
             >
               {job ? (
-                <option value={job.customer.id}>{job.customer.name}</option>
+                <option value={job.customer.id}>
+                  {job.customer.name}
+                </option>
               ) : (
                 <>
-                  <option value="">{technicians.isLoading ? 'Loading technicians…' : 'Choose a technician'}</option>
+                  <option value="">
+                    {customers.isLoading
+                      ? 'Loading customers…'
+                      : 'Choose a customer'}
+                  </option>
+
                   {accountOptions?.map((account) => (
                     <option key={account.id} value={account.id}>
                       {account.name} · {account.location}
@@ -164,17 +325,27 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Category" htmlFor={`${id}-service-category`}>
+          <Field
+            label="Category"
+            htmlFor={`${id}-service-category`}
+          >
             <Select
               id={`${id}-service-category`}
               value={serviceCategory}
-              onChange={(e) => {
-                setServiceCategory(e.target.value as ServiceGroup | '');
+              onChange={(event) => {
+                setServiceCategory(
+                  event.target.value as ServiceGroup | '',
+                );
                 set('service', '');
               }}
               disabled={services.isLoading}
             >
-              <option value="">{services.isLoading ? 'Loading categories…' : 'Choose a category'}</option>
+              <option value="">
+                {services.isLoading
+                  ? 'Loading categories…'
+                  : 'Choose a category'}
+              </option>
+
               {SERVICE_GROUPS.map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -182,11 +353,16 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
               ))}
             </Select>
           </Field>
-          <Field label="Service" htmlFor={`${id}-service`} error={errors.service}>
+
+          <Field
+            label="Service"
+            htmlFor={`${id}-service`}
+            error={errors.service}
+          >
             <Select
               id={`${id}-service`}
               value={input.service}
-              onChange={(e) => set('service', e.target.value)}
+              onChange={(event) => set('service', event.target.value)}
               disabled={services.isLoading || !serviceCategory}
               invalid={Boolean(errors.service)}
             >
@@ -197,47 +373,138 @@ export function JobFormDialog({ open, onClose, job }: { open: boolean; onClose: 
                     ? 'Choose a category first'
                     : 'Choose a service'}
               </option>
-              {categoryServiceOptions.map((s) => (
-                <option key={s.id} value={s.name}>
-                  {s.name}
+
+              {categoryServiceOptions.map((service) => (
+                <option key={service.id} value={service.name}>
+                  {service.name}
                 </option>
               ))}
             </Select>
           </Field>
+
           <Field
             label="Urgency"
             htmlFor={`${id}-urgency`}
-            hint={fee !== undefined ? `Visit fee: ${formatMoney(fee)}` : undefined}
+            hint={
+              fee !== undefined
+                ? `Booking fee: ${formatMoney(fee)}`
+                : 'Select the job urgency.'
+            }
           >
-            <Select id={`${id}-urgency`} value={input.urgency} onChange={(e) => set('urgency', e.target.value as Urgency)}>
-              {URGENCIES.map((u) => (
-                <option key={u} value={u}>
-                  {u}
+            <Select
+              id={`${id}-urgency`}
+              value={input.urgency}
+              onChange={(event) =>
+                set('urgency', event.target.value as Urgency)
+              }
+            >
+              {URGENCIES.map((urgency) => (
+                <option key={urgency} value={urgency}>
+                  {urgency}
                 </option>
               ))}
             </Select>
           </Field>
         </div>
 
-        <Field label="Problem" htmlFor={`${id}-problem`} error={errors.problem}>
+        <Field
+          label="Problem description"
+          htmlFor={`${id}-problem`}
+          error={errors.problem}
+        >
           <Textarea
             id={`${id}-problem`}
             value={input.problem}
-            onChange={(e) => set('problem', e.target.value)}
+            onChange={(event) => set('problem', event.target.value)}
             placeholder="e.g. Leaking pipe under the kitchen sink"
             invalid={Boolean(errors.problem)}
           />
         </Field>
 
-        <Field label="Location" htmlFor={`${id}-location`} error={errors.location}>
+        <Field
+          label="Service address"
+          htmlFor={`${id}-location`}
+          error={errors.location}
+        >
           <Input
             id={`${id}-location`}
             value={input.location}
-            onChange={(e) => set('location', e.target.value)}
+            onChange={(event) => set('location', event.target.value)}
             placeholder="e.g. Kimironko, Gasabo"
             invalid={Boolean(errors.location)}
           />
         </Field>
+
+        <Field
+          label="Technician offered amount"
+          htmlFor={`${id}-offered-amount`}
+          error={errors.offeredAmount}
+          hint="Amount payable to the technician. Excludes the booking fee."
+        >
+          <Input
+            id={`${id}-offered-amount`}
+            type="number"
+            min="1"
+            step="1"
+            value={String(input.offeredAmount || '')}
+            onChange={(event) =>
+              set('offeredAmount', Number(event.target.value))
+            }
+            placeholder="Enter amount in RWF"
+            invalid={Boolean(errors.offeredAmount)}
+          />
+        </Field>
+
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">Customer coordinates</p>
+          <p className="text-xs text-gray-500">
+            Enter the actual coordinates of the service location. Do not use
+            estimated or invented coordinates.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Latitude"
+              htmlFor={`${id}-latitude`}
+              error={errors.latitude}
+            >
+              <Input
+                id={`${id}-latitude`}
+                type="number"
+                step="any"
+                min="-90"
+                max="90"
+                value={String(input.latitude || '')}
+                onChange={(event) =>
+                  set('latitude', Number(event.target.value))
+                }
+                placeholder="e.g. -1.9441"
+                invalid={Boolean(errors.latitude)}
+              />
+            </Field>
+
+            <Field
+              label="Longitude"
+              htmlFor={`${id}-longitude`}
+              error={errors.longitude}
+            >
+              <Input
+                id={`${id}-longitude`}
+                type="number"
+                step="any"
+                min="-180"
+                max="180"
+                value={String(input.longitude || '')}
+                onChange={(event) =>
+                  set('longitude', Number(event.target.value))
+                }
+                placeholder="e.g. 30.0619"
+                invalid={Boolean(errors.longitude)}
+              />
+            </Field>
+          </div>
+        </div>
+
         <button type="submit" hidden />
       </form>
     </Modal>

@@ -1,7 +1,6 @@
-import { tokenStorage } from "./token-storage";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
 export interface ApiResponse<T = unknown> {
   data?: T;
@@ -19,28 +18,30 @@ export async function fetchApi<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
-  const token = tokenStorage.get();
+  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   try {
     const response = await fetch(url, {
       ...options,
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
         ...options.headers,
       },
     });
 
     const data = await response.json().catch(() => ({}));
 
-    if (response.status === 401 && token) {
+    if (response.status === 401) {
       onUnauthorized?.();
     }
 
     if (!response.ok) {
+      const message = data.message || data.error || 'An error occurred while fetching data';
+
       return {
-        error: data.message || "An error occurred while fetching data",
+        error: Array.isArray(message) ? message.join(', ') : message,
         statusCode: response.status,
       };
     }
@@ -48,7 +49,9 @@ export async function fetchApi<T>(
     return { data, statusCode: response.status };
   } catch (err) {
     return {
-      error: (err instanceof Error && err.message) || "Network error, failed to reach Fundi API server",
+      error:
+        (err instanceof Error && err.message) ||
+        'Network error, failed to reach Fundi API server',
       statusCode: 500,
     };
   }

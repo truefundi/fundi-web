@@ -56,12 +56,14 @@ export function JobsView() {
     page,
     pageSize: DEFAULT_PAGE_SIZE,
   });
-  const { data: stats } = useJobStats();
 
-  const tabs: { value: Tab; label: string; count?: number }[] = [
-    { value: 'all', label: 'All', count: stats?.total },
-    ...JOB_GROUPS.map((g) => ({ value: g, label: JOB_GROUP_LABEL[g], count: stats?.byGroup[g] })),
-  ];
+const tabs: { value: Tab; label: string }[] = [
+  { value: 'all', label: 'All' },
+  ...JOB_GROUPS.map((g) => ({
+    value: g,
+    label: JOB_GROUP_LABEL[g],
+  })),
+];
   const hasFilters = Boolean(values.search || group || service || urgency);
 
   return (

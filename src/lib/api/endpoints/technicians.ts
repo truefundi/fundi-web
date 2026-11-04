@@ -1,10 +1,40 @@
 import { env } from '@/config/env';
 import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
+import { mapBackendTechnician, type BackendTechnician } from '@/lib/api/adapters/technicians';
 import type { PaginatedResponse, TechnicianQuery } from '@/types/api';
 import type { AccountStatus } from '@/types/customer';
-import type { Technician, TechnicianInput, TechnicianProfilePatch, TechnicianVerification } from '@/types/technician';
+import type { Technician, TechnicianInput, TechnicianProfilePatch, TechnicianVerification, VerificationStatus } from '@/types/technician';
 import { api, ApiError, unwrap } from '../client';
 import { queryAccounts } from '../mock-utils';
+
+const ACCOUNT_TO_API: Record<AccountStatus, 'ACTIVE' | 'SUSPENDED' | 'INACTIVE'> = {
+  active: 'ACTIVE',
+  suspended: 'SUSPENDED',
+  inactive: 'INACTIVE',
+};
+
+const VERIFICATION_TO_API: Record<VerificationStatus, 'PENDING' | 'APPROVED' | 'REJECTED'> = {
+  not_submitted: 'PENDING',
+  pending: 'PENDING',
+  verified: 'APPROVED',
+  rejected: 'REJECTED',
+};
+
+function toLiveQuery(query: TechnicianQuery) {
+  return {
+    search: query.search,
+    page: query.page,
+    limit: query.pageSize,
+    category: query.trade,
+    verificationStatus: query.verification ? VERIFICATION_TO_API[query.verification] : undefined,
+    status: query.status ? ACCOUNT_TO_API[query.status] : undefined,
+    availabilityStatus: query.available === undefined ? undefined : query.available ? 'ONLINE' : 'OFFLINE',
+  };
+}
+
+async function readLive(profile: Promise<BackendTechnician> | BackendTechnician): Promise<Technician> {
+  return mapBackendTechnician(await profile);
+}
 
 /** Reviewer recorded on mock decisions; the real API takes it from the admin session. */
 const MOCK_REVIEWER = 'Fundi Admin';
@@ -27,7 +57,20 @@ function review(technician: Technician, changes: Partial<TechnicianVerification>
 
 export const techniciansApi = {
   async list(query: TechnicianQuery = {}): Promise<PaginatedResponse<Technician>> {
-    if (!env.useMocks) return unwrap(api.get('/admin/technicians', { query: { ...query } }));
+    if (!env.useMocks) {
+      const response = await unwrap(
+        api.get<{ data: BackendTechnician[]; pagination: { page: number; limit: number; total: number } }>(
+          '/admin/technicians',
+          { query: toLiveQuery(query) },
+        ),
+      );
+      return {
+        items: response.data.map(mapBackendTechnician),
+        total: response.pagination.total,
+        page: response.pagination.page,
+        pageSize: response.pagination.limit,
+      };
+    }
     await delay();
     return clone(
       queryAccounts(

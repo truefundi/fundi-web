@@ -1,23 +1,17 @@
-export type AdminRole = 'SUPER_ADMIN' | 'OPERATIONS_MANAGER' | 'SUPPORT_AGENT';
 
-export const ADMIN_ROLES: { value: AdminRole; label: string; description: string; badgeTone: 'success' | 'warning' | 'progress' }[] = [
+export type AdminRole = 'ADMIN';
+
+export const ADMIN_ROLES: {
+  value: AdminRole;
+  label: string;
+  description: string;
+  badgeTone: 'success' | 'warning' | 'progress';
+}[] = [
   {
-    value: 'SUPER_ADMIN',
-    label: 'Super Admin',
-    description: 'Full platform authority. Direct approval for all actions, commission changes, and user management.',
+    value: 'ADMIN',
+    label: 'Administrator',
+    description: 'Full access to all administrative features and actions.',
     badgeTone: 'success',
-  },
-  {
-    value: 'OPERATIONS_MANAGER',
-    label: 'Operations Manager',
-    description: 'Manages day-to-day operations. Can directly approve user verifications and disputes; requires approval for system-wide deletions.',
-    badgeTone: 'progress',
-  },
-  {
-    value: 'SUPPORT_AGENT',
-    label: 'Support Agent / Reviewer',
-    description: 'First-line reviewer. Reviews submitted documents and phone records; requests approval from senior admins for approvals and suspensions.',
-    badgeTone: 'warning',
   },
 ];
 
@@ -47,11 +41,7 @@ export const PRIVILEGE_MATRIX: ActionPrivilegeDefinition[] = [
     category: 'User Onboarding',
     description: 'Approve user after verifying Certificate, National ID, and Phone Number match.',
     riskLevel: 'MEDIUM',
-    permissions: {
-      SUPER_ADMIN: 'DIRECT',
-      OPERATIONS_MANAGER: 'DIRECT',
-      SUPPORT_AGENT: 'REQUIRES_APPROVAL',
-    },
+    permissions: { ADMIN: 'DIRECT' },
   },
   {
     actionType: 'SUSPEND_ACCOUNT',
@@ -59,11 +49,7 @@ export const PRIVILEGE_MATRIX: ActionPrivilegeDefinition[] = [
     category: 'Account Governance',
     description: 'Temporarily disable technician or customer access due to compliance or dispute issues.',
     riskLevel: 'HIGH',
-    permissions: {
-      SUPER_ADMIN: 'DIRECT',
-      OPERATIONS_MANAGER: 'DIRECT',
-      SUPPORT_AGENT: 'REQUIRES_APPROVAL',
-    },
+    permissions: { ADMIN: 'DIRECT' },
   },
   {
     actionType: 'DELETE_USER',
@@ -71,11 +57,7 @@ export const PRIVILEGE_MATRIX: ActionPrivilegeDefinition[] = [
     category: 'Account Governance',
     description: 'Permanently remove an account and associated profile records from the platform.',
     riskLevel: 'CRITICAL',
-    permissions: {
-      SUPER_ADMIN: 'DIRECT',
-      OPERATIONS_MANAGER: 'REQUIRES_APPROVAL',
-      SUPPORT_AGENT: 'RESTRICTED',
-    },
+    permissions: { ADMIN: 'DIRECT' },
   },
   {
     actionType: 'CHANGE_COMMISSION',
@@ -83,11 +65,7 @@ export const PRIVILEGE_MATRIX: ActionPrivilegeDefinition[] = [
     category: 'Financial & Business',
     description: 'Adjust the global percentage split for visit fees between Fundi and technicians.',
     riskLevel: 'CRITICAL',
-    permissions: {
-      SUPER_ADMIN: 'DIRECT',
-      OPERATIONS_MANAGER: 'REQUIRES_APPROVAL',
-      SUPPORT_AGENT: 'RESTRICTED',
-    },
+    permissions: { ADMIN: 'DIRECT' },
   },
   {
     actionType: 'RESOLVE_DISPUTE',
@@ -95,11 +73,7 @@ export const PRIVILEGE_MATRIX: ActionPrivilegeDefinition[] = [
     category: 'Financial & Business',
     description: 'Issue official binding resolution and fund distribution on customer/technician disputes.',
     riskLevel: 'HIGH',
-    permissions: {
-      SUPER_ADMIN: 'DIRECT',
-      OPERATIONS_MANAGER: 'DIRECT',
-      SUPPORT_AGENT: 'REQUIRES_APPROVAL',
-    },
+    permissions: { ADMIN: 'DIRECT' },
   },
   {
     actionType: 'FORCE_CANCEL_JOB',
@@ -107,11 +81,7 @@ export const PRIVILEGE_MATRIX: ActionPrivilegeDefinition[] = [
     category: 'Operations & Jobs',
     description: 'Administrative emergency cancellation of a confirmed, en-route, or in-progress repair.',
     riskLevel: 'MEDIUM',
-    permissions: {
-      SUPER_ADMIN: 'DIRECT',
-      OPERATIONS_MANAGER: 'DIRECT',
-      SUPPORT_AGENT: 'REQUIRES_APPROVAL',
-    },
+    permissions: { ADMIN: 'DIRECT' },
   },
 ];
 
@@ -172,8 +142,8 @@ export function canPerformDirectly(role: AdminRole, actionType: ApprovalActionTy
 }
 
 export function canRequestApproval(role: AdminRole, actionType: ApprovalActionType): boolean {
-  const perm = getActionPrivilege(actionType).permissions[role];
-  return perm === 'REQUIRES_APPROVAL' || perm === 'DIRECT';
+  const permission = getActionPrivilege(actionType).permissions[role];
+  return permission === 'REQUIRES_APPROVAL' || permission === 'DIRECT';
 }
 
 export function canApproveRequest(role: AdminRole, actionType: ApprovalActionType): boolean {
@@ -181,7 +151,7 @@ export function canApproveRequest(role: AdminRole, actionType: ApprovalActionTyp
 }
 
 export const PERMISSION_LABEL: Record<PermissionLevel, string> = {
-  DIRECT: 'Direct approval',
+  DIRECT: 'Direct access',
   REQUIRES_APPROVAL: 'Request approval',
   RESTRICTED: 'No access',
 };

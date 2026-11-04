@@ -47,9 +47,9 @@ export interface JobQuery {
 
 /** Job counts per status and per list group, for tabs and the dashboard. */
 export interface JobStats {
-  total: number;
-  byStatus: Partial<Record<JobStatus, number>>;
-  byGroup: Record<JobGroup, number>;
+  active: number;
+  completed: number;
+  openDisputes: number;
 }
 
 export interface UserQuery extends ListQuery {

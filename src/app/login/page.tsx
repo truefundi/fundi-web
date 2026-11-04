@@ -1,21 +1,15 @@
+
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  Mail,
-} from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, isLoading, login } = useAuth();
+  const { user, isLoading, requestDevOtp, isDevOtpEnabled } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,21 +17,43 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
- 
   useEffect(() => {
-    if (!isLoading && user) router.replace("/admin");
+    if (!isLoading && user) {
+      router.replace("/admin");
+    }
   }, [isLoading, user, router]);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault(); 
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError("");
+
+    if (!isDevOtpEnabled) {
+      setError(
+        "Development OTP login is unavailable. Please use the configured production login flow."
+      );
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Please enter your admin email.");
+      return;
+    }
+
     setSubmitting(true);
 
-    const result = await login(email, password);
+    try {
+      const result = await requestDevOtp(email.trim());
 
-    setSubmitting(false);
-    if (result.ok) router.push("/verify-2fa");
-    else setError(result.error || "Something went wrong");
+      if (result.ok) {
+        router.push("/verify-2fa");
+      } else {
+        setError(result.error || "Unable to request OTP. Please try again.");
+      }
+    } catch {
+      setError("Unable to connect to the server. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -45,8 +61,9 @@ export default function LoginPage() {
       <h1 className="mt-4 text-center text-3xl font-bold tracking-tight text-slate-900">
         Fundi Admin Portal
       </h1>
+
       <p className="mt-2 text-center text-sm text-slate-600">
-        Enter your credentials to access the management console.
+        Sign in to access the management console.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -57,15 +74,18 @@ export default function LoginPage() {
           >
             Email
           </label>
+
           <div className="relative">
             <Mail
               size={18}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
             />
+
             <input
               id="email"
               type="email"
               required
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@fundi.rw"
@@ -81,19 +101,21 @@ export default function LoginPage() {
           >
             Password
           </label>
+
           <div className="relative">
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="Password (not used in development OTP)"
+              autoComplete="current-password"
               className="h-11 w-full rounded-xl border border-slate-200 pl-3.5 pr-11 text-sm outline-none placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
             />
+
             <button
               type="button"
-              onClick={() => setShowPassword((v) => !v)}
+              onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500"
             >
@@ -113,25 +135,18 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || isLoading || !isDevOtpEnabled}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? (
-            "Signing in…"
+            "Requesting OTP..."
           ) : (
             <>
-              Sign In  <ArrowRight size={16} />
+              Sign In <ArrowRight size={16} />
             </>
           )}
         </button>
       </form>
-
-      <p className="mt-8 text-center text-sm text-slate-600">
-        Need an account?{" "}
-        <Link href="/signup" className="font-semibold text-brand-600 hover:text-brand-700">
-          Get started
-        </Link>
-      </p>
     </AuthLayout>
   );
 }

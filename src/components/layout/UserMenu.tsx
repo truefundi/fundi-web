@@ -61,9 +61,17 @@ export function UserMenu() {
           <Link href="/admin/profile" role="menuitem" onClick={close} className={itemClass}>
             <UserRound className="h-4 w-4 text-slate-400" aria-hidden /> Profile
           </Link>
-          <Link href="/admin/profile#change-password" role="menuitem" onClick={close} className={itemClass}>
-            <KeyRound className="h-4 w-4 text-slate-400" aria-hidden /> Change password
-          </Link>
+
+<Link
+  href="/admin/change-password"
+  role="menuitem"
+  onClick={close}
+  className={itemClass}
+>
+  <KeyRound className="h-4 w-4 text-slate-400" aria-hidden />
+  Change password
+</Link>
+
           <Link href="/admin/settings" role="menuitem" onClick={close} className={itemClass}>
             <Settings className="h-4 w-4 text-slate-400" aria-hidden /> Settings
           </Link>

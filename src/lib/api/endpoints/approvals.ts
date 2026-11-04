@@ -31,9 +31,10 @@ function applyCommissionRate(rate: number) {
 
 async function applyApprovedAction(request: ApprovalRequest): Promise<void> {
   switch (request.actionType) {
-    case 'VERIFY_USER':
-      await techniciansApi.approve(request.resourceId, request.verificationChecklist);
-      return;
+case 'VERIFY_USER':
+
+  await techniciansApi.approve(request.resourceId);
+  return;
     case 'SUSPEND_ACCOUNT':
       if (request.resourceType === 'customer') {
         await customersApi.updateStatus(request.resourceId, 'suspended');
@@ -126,9 +127,9 @@ export const approvalsApi = {
     if (!canApproveRequest(reviewer.role, request.actionType)) {
       throw new ApiError('Your role cannot approve this action. Ask a Super Admin or Operations Manager.', 403);
     }
-    if (request.requester.id === reviewer.id && reviewer.role !== 'SUPER_ADMIN') {
-      throw new ApiError('Ask another admin with direct approval rights to review this request.', 403);
-    }
+if (request.requester.id === reviewer.id) {
+  throw new ApiError('Another administrator must review this request.', 403);
+}
     if (decision.status === 'APPROVED') {
       await applyApprovedAction(request);
     }

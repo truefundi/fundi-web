@@ -8,7 +8,6 @@ import { useCreateTechnician, useUpdateTechnician } from '@/hooks/useTechnicians
 import {
   WORK_HOURS_LABEL,
   type Technician,
-  type TechnicianProfilePatch,
   type WorkHours,
 } from '@/types/technician';
 
@@ -72,6 +71,29 @@ function validate(form: FormState): Errors {
   return errors;
 }
 
+/** A titled group of fields. Every group after the first gets a divider above it. */
+function FormSection({
+  title,
+  hint,
+  first,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  first?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={first ? 'space-y-3' : 'space-y-3 border-t border-slate-200 pt-5'}>
+      <div>
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+        {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 interface EditTechnicianDrawerProps {
   /** Leave out to add a new technician. */
   technician?: Technician;
@@ -109,7 +131,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    const patch: TechnicianProfilePatch = {
+    const input = {
       name: form.name.trim(),
       phone: form.phone.replace(/\s/g, ''),
       email: form.email.trim() || undefined,
@@ -120,19 +142,11 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
     };
     try {
       if (technician) {
-        await update.mutateAsync({ id: technician.id, patch });
+        await update.mutateAsync({ id: technician.id, patch: input });
         toast('Profile updated');
         onClose();
       } else {
-        const created = await create.mutateAsync({
-          name: form.name.trim(),
-          phone: form.phone.replace(/s/g, ''),
-          email: form.email.trim() || undefined,
-          location: form.location.trim(),
-          trades: form.trades,
-          yearsExperience: Number(form.yearsExperience),
-          workSettings: { radiusKm: form.radiusKm, maxJobsPerDay: form.maxJobsPerDay, hours: form.hours },
-        });
+        const created = await create.mutateAsync(input);
         toast(`${created.name} added`);
         onClose();
         router.push(`/admin/technicians/${created.id}`);
@@ -148,7 +162,11 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
       onClose={onClose}
       variant="drawer"
       title={technician ? 'Edit profile' : 'Add technician'}
-      description={technician ? `Update ${technician.name}'s details.` : 'They will need to submit documents and be verified before receiving jobs.'}
+      description={
+        technician
+          ? `Update ${technician.name}'s details.`
+          : 'They will need to submit documents and be verified before receiving jobs.'
+      }
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={saving}>
@@ -160,103 +178,121 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
         </>
       }
     >
-      <form className="space-y-4 pb-2" onSubmit={submit} noValidate>
-        <Field label="Full name" htmlFor="edit-name" error={errors.name}>
-          <Input id="edit-name" value={form.name} onChange={(e) => set('name', e.target.value)} invalid={!!errors.name} />
-        </Field>
-        <Field label="Phone" htmlFor="edit-phone" error={errors.phone}>
-          <Input
-            id="edit-phone"
-            type="tel"
-            value={form.phone}
-            onChange={(e) => set('phone', e.target.value)}
-            invalid={!!errors.phone}
-            placeholder="+250788123456"
-          />
-        </Field>
-        <Field label="Email (optional)" htmlFor="edit-email" error={errors.email}>
-          <Input
-            id="edit-email"
-            type="email"
-            value={form.email}
-            onChange={(e) => set('email', e.target.value)}
-            invalid={!!errors.email}
-          />
-        </Field>
-        <Field label="Location" htmlFor="edit-location" error={errors.location}>
-          <Input
-            id="edit-location"
-            value={form.location}
-            onChange={(e) => set('location', e.target.value)}
-            invalid={!!errors.location}
-            placeholder="e.g. Kimironko, Gasabo"
-          />
-        </Field>
+      <form className="space-y-5 pb-2" onSubmit={submit} noValidate>
+        {/* 1. Who they are and how to reach them */}
+        <FormSection title="Contact details" first>
+          <Field label="Full name" htmlFor="edit-name" error={errors.name}>
+            <Input
+              id="edit-name"
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              invalid={!!errors.name}
+            />
+          </Field>
 
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-slate-700">Trades</legend>
-          <div className="flex flex-wrap gap-2">
-            {SERVICE_CATEGORIES.map((trade) => (
-              <FilterChip
-                key={trade}
-                label={trade}
-                selected={form.trades.includes(trade)}
-                onClick={() => toggleTrade(trade)}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Phone" htmlFor="edit-phone" error={errors.phone}>
+              <Input
+                id="edit-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => set('phone', e.target.value)}
+                invalid={!!errors.phone}
+                placeholder="+250788123456"
               />
-            ))}
+            </Field>
+            <Field label="Email (optional)" htmlFor="edit-email" error={errors.email}>
+              <Input
+                id="edit-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => set('email', e.target.value)}
+                invalid={!!errors.email}
+              />
+            </Field>
           </div>
-          {errors.trades && (
-            <p className="text-xs font-medium text-red-600" role="alert">
-              {errors.trades}
-            </p>
-          )}
-        </fieldset>
 
-        <Field label="Years of experience" htmlFor="edit-years" error={errors.yearsExperience}>
-          <Input
-            id="edit-years"
-            type="number"
-            min={0}
-            max={60}
-            value={form.yearsExperience}
-            onChange={(e) => set('yearsExperience', e.target.value)}
-            invalid={!!errors.yearsExperience}
-          />
-        </Field>
+          <Field label="Location" htmlFor="edit-location" error={errors.location}>
+            <Input
+              id="edit-location"
+              value={form.location}
+              onChange={(e) => set('location', e.target.value)}
+              invalid={!!errors.location}
+              placeholder="e.g. Kimironko, Gasabo"
+            />
+          </Field>
+        </FormSection>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Service radius" htmlFor="edit-radius">
-            <Select id="edit-radius" value={form.radiusKm} onChange={(e) => set('radiusKm', Number(e.target.value))}>
-              {RADIUS_OPTIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r} km
-                </option>
+        {/* 2. What they do */}
+        <FormSection title="Trades" hint="Select all that apply.">
+          <fieldset className="space-y-1.5">
+            <legend className="sr-only">Trades</legend>
+            <div className="flex flex-wrap gap-2">
+              {SERVICE_CATEGORIES.map((trade) => (
+                <FilterChip
+                  key={trade}
+                  label={trade}
+                  selected={form.trades.includes(trade)}
+                  onClick={() => toggleTrade(trade)}
+                />
               ))}
-            </Select>
-          </Field>
-          <Field label="Max jobs / day" htmlFor="edit-max-jobs">
-            <Select
-              id="edit-max-jobs"
-              value={form.maxJobsPerDay}
-              onChange={(e) => set('maxJobsPerDay', Number(e.target.value))}
-            >
-              {MAX_JOBS_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        </div>
-        <Field label="Working hours" htmlFor="edit-hours">
-          <Select id="edit-hours" value={form.hours} onChange={(e) => set('hours', e.target.value as WorkHours)}>
-            {(Object.keys(WORK_HOURS_LABEL) as WorkHours[]).map((h) => (
-              <option key={h} value={h}>
-                {WORK_HOURS_LABEL[h]}
-              </option>
-            ))}
-          </Select>
-        </Field>
+            </div>
+            {errors.trades && (
+              <p className="text-xs font-medium text-red-600" role="alert">
+                {errors.trades}
+              </p>
+            )}
+          </fieldset>
+        </FormSection>
+
+        {/* 3. How and when they work */}
+        <FormSection title="Experience and availability">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Years of experience" htmlFor="edit-years" error={errors.yearsExperience}>
+              <Input
+                id="edit-years"
+                type="number"
+                min={0}
+                max={60}
+                value={form.yearsExperience}
+                onChange={(e) => set('yearsExperience', e.target.value)}
+                invalid={!!errors.yearsExperience}
+              />
+            </Field>
+            <Field label="Working hours" htmlFor="edit-hours">
+              <Select id="edit-hours" value={form.hours} onChange={(e) => set('hours', e.target.value as WorkHours)}>
+                {(Object.keys(WORK_HOURS_LABEL) as WorkHours[]).map((h) => (
+                  <option key={h} value={h}>
+                    {WORK_HOURS_LABEL[h]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Service radius" htmlFor="edit-radius">
+              <Select id="edit-radius" value={form.radiusKm} onChange={(e) => set('radiusKm', Number(e.target.value))}>
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r} km
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Max jobs / day" htmlFor="edit-max-jobs">
+              <Select
+                id="edit-max-jobs"
+                value={form.maxJobsPerDay}
+                onChange={(e) => set('maxJobsPerDay', Number(e.target.value))}
+              >
+                {MAX_JOBS_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+        </FormSection>
+
         {/* Lets Enter submit the form */}
         <button type="submit" className="hidden" aria-hidden tabIndex={-1} />
       </form>

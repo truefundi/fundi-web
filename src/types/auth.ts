@@ -1,18 +1,20 @@
+
 export interface AdminUser {
   id: string;
-
+  fullName: string;
   email: string;
-
-  password: string;
+  role: 'ADMIN';
 }
 
 export interface LoginResponse {
-  require2FA: boolean;
-
-  challengeToken: string;
+  enrollmentRequired: boolean;
+  otpauthUri?: string;
+  secret?: string;
+  expiresInSeconds: number;
+  message: string;
 }
 
 export interface VerifyResponse {
-  accessToken: string;
   user: AdminUser;
+  expiresInSeconds: number;
 }

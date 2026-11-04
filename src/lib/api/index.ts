@@ -9,4 +9,5 @@ export { healthApi } from './endpoints/health';
 export { jobsApi } from './endpoints/jobs';
 export { servicesApi } from './endpoints/services';
 export { techniciansApi } from './endpoints/technicians';
+export { technicianDocumentsApi } from './endpoints/technician-documents';
 export { usersApi } from './endpoints/users';

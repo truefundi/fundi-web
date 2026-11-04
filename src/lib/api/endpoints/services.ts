@@ -23,13 +23,13 @@ const byName = (a: Service, b: Service) =>
 
 export const servicesApi = {
   async list(): Promise<Service[]> {
-    if (!env.useMocks) return unwrap(api.get('/admin/services'));
+    if (!env.useMocks) return unwrap(api.get('/catalog/admin/categories'));
     await delay();
     return clone([...mockDb.services].sort(byName));
   },
 
   async create(input: ServiceInput): Promise<Service> {
-    if (!env.useMocks) return unwrap(api.post('/admin/services', input));
+    if (!env.useMocks) return unwrap(api.post('/catalog/categories', input));
     await delay();
     assertUniqueName(input.name);
     const service: Service = {
@@ -43,7 +43,7 @@ export const servicesApi = {
   },
 
   async update(id: string, input: ServiceInput): Promise<Service> {
-    if (!env.useMocks) return unwrap(api.patch(`/admin/services/${id}`, input));
+    if (!env.useMocks) return unwrap(api.patch(`/catalog/categories/${id}`, input));
     await delay();
     assertUniqueName(input.name, id);
     const service = findMock(id);
@@ -54,7 +54,7 @@ export const servicesApi = {
   /** A service with open jobs cannot be deleted; the admin should hide it instead. */
   async remove(id: string): Promise<void> {
     if (!env.useMocks) {
-      await unwrap(api.delete(`/admin/services/${id}`));
+      await unwrap(api.delete(`/catalog/categories/${id}`));
       return;
     }
     await delay();
