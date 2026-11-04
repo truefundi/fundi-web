@@ -5,6 +5,7 @@ import { techniciansApi } from '@/lib/api';
 import type { TechnicianQuery } from '@/types/api';
 import type { AccountStatus } from '@/types/customer';
 import type { Technician, TechnicianInput, TechnicianProfilePatch } from '@/types/technician';
+import { dashboardKeys } from './useDashboard';
 import { statsKey } from './useCustomers';
 
 export const technicianKeys = {
@@ -34,6 +35,7 @@ function useTechnicianMutation<TVars>(mutationFn: (vars: TVars) => Promise<Techn
       queryClient.setQueryData(technicianKeys.detail(technician.id), technician);
       queryClient.invalidateQueries({ queryKey: technicianKeys.all });
       queryClient.invalidateQueries({ queryKey: statsKey });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.peopleGrowth });
     },
   });
 }
@@ -60,6 +62,7 @@ export function useCreateTechnician() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: technicianKeys.all });
       queryClient.invalidateQueries({ queryKey: statsKey });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.peopleGrowth });
     },
   });
 }
@@ -72,6 +75,7 @@ export function useDeleteTechnician() {
       queryClient.removeQueries({ queryKey: technicianKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: technicianKeys.all });
       queryClient.invalidateQueries({ queryKey: statsKey });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.peopleGrowth });
     },
   });
 }

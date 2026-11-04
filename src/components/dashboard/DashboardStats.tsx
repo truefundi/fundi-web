@@ -33,9 +33,10 @@ export function DashboardStats() {
       <StatCard
         label="Total users"
         value={data?.totalUsers ?? '—'}
-        hint={data ? `${data.totalCustomers} customers · ${data.totalTechnicians} technicians` : 'Customers and technicians'}
+        hint={data ? `${data.totalCustomers} customers - ${data.totalTechnicians} technicians` : 'Customers and technicians'}
         icon={UsersRound}
         loading={loading}
+        href="/admin/users"
       />
       <StatCard
         label="Customers"
@@ -43,6 +44,7 @@ export function DashboardStats() {
         hint="People who request repairs"
         icon={Users}
         loading={loading}
+        href="/admin/customers"
       />
       <StatCard
         label="Technicians"
@@ -50,6 +52,7 @@ export function DashboardStats() {
         hint={live.data ? `${live.data.total} LIVE right now` : 'Skilled workers on Fundi'}
         icon={HardHat}
         loading={loading}
+        href="/admin/technicians"
       />
       <StatCard
         label="Pending approvals"
@@ -57,6 +60,7 @@ export function DashboardStats() {
         hint="Technicians waiting for verification"
         icon={BadgeCheck}
         loading={loading}
+        href="/admin/approvals"
       />
     </div>
   );

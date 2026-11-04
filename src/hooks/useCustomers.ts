@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { customersApi } from '@/lib/api';
+import { dashboardKeys } from '@/hooks/useDashboard';
 import type { CustomerQuery } from '@/types/api';
 import type { AccountStatus } from '@/types/customer';
 
@@ -31,6 +32,7 @@ export function useUpdateCustomerStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
       queryClient.invalidateQueries({ queryKey: statsKey });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.peopleGrowth });
     },
   });
 }
