@@ -92,34 +92,6 @@ function getMonthlySignups(): Promise<MonthPoint[]> {
   });
 }
 
-function getPoints(values: number[], maxValue: number) {
-  const width = CHART.right - CHART.left;
-  const height = CHART.bottom - CHART.top;
-  return values.map((value, index) => ({
-    x: CHART.left + (width * index) / (values.length - 1),
-    y: CHART.bottom - (height * value) / maxValue,
-    value,
-  }));
-}
-
-function getCurvePath(points: ReturnType<typeof getPoints>) {
-  if (points.length === 0) return '';
-
-  return points.reduce((path, point, index) => {
-    if (index === 0) return `M ${point.x} ${point.y}`;
-
-    const previous = points[index - 1];
-    const beforePrevious = points[index - 2] ?? previous;
-    const next = points[index + 1] ?? point;
-    const firstControlX = previous.x + (point.x - beforePrevious.x) / 6;
-    const firstControlY = previous.y + (point.y - beforePrevious.y) / 6;
-    const secondControlX = point.x - (next.x - previous.x) / 6;
-    const secondControlY = point.y - (next.y - previous.y) / 6;
-
-    return `${path} C ${firstControlX} ${firstControlY}, ${secondControlX} ${secondControlY}, ${point.x} ${point.y}`;
-  }, '');
-}
-
 export function PeopleGrowthChart() {
   const [activeMonthIndex, setActiveMonthIndex] = useState<number | null>(null);
   const [visibleSeries, setVisibleSeries] = useState({ customers: true, technicians: true });
@@ -132,26 +104,30 @@ export function PeopleGrowthChart() {
   const maxCount = Math.max(...chartData.flatMap((month) => [month.customers, month.technicians]), 1);
   const tickSize = Math.max(1, Math.ceil(maxCount / 4));
   const scaleMax = tickSize * 4;
+  const plotWidth = CHART.right - CHART.left;
+  const plotHeight = CHART.bottom - CHART.top;
+  const groupWidth = plotWidth / chartData.length;
+  const barWidth = Math.min(28, groupWidth * 0.28);
+  const barGap = Math.min(8, groupWidth * 0.08);
   const series = [
     {
       name: 'Customers',
       color: '#f97316',
-      points: getPoints(chartData.map((month) => month.customers), scaleMax),
       key: 'customers' as const,
       visible: visibleSeries.customers,
     },
     {
       name: 'Technicians',
       color: '#0284c7',
-      points: getPoints(chartData.map((month) => month.technicians), scaleMax),
       key: 'technicians' as const,
       visible: visibleSeries.technicians,
     },
   ];
+  const displayedSeries = series.filter(({ visible }) => visible);
   const activeMonth = activeMonthIndex === null ? undefined : chartData[activeMonthIndex];
-  const activeX =
-    activeMonthIndex === null ? CHART.left : CHART.left + ((CHART.right - CHART.left) * activeMonthIndex) / (chartData.length - 1);
+  const activeX = activeMonthIndex === null ? CHART.left : CHART.left + groupWidth * (activeMonthIndex + 0.5);
   const tooltipX = Math.max(CHART.left, Math.min(activeX - 70, CHART.right - 140));
+  const visibleSeriesCount = displayedSeries.length;
 
   return (
     <Card className="mt-6">
@@ -211,7 +187,7 @@ export function PeopleGrowthChart() {
               })}
               <line x1={CHART.left} x2={CHART.right} y1={CHART.bottom} y2={CHART.bottom} stroke="#cbd5e1" />
               {chartData.map((month, index) => {
-                const x = CHART.left + ((CHART.right - CHART.left) * index) / (chartData.length - 1);
+                const x = CHART.left + groupWidth * (index + 0.5);
                 return (
                   <text
                     key={month.key}
@@ -235,49 +211,75 @@ export function PeopleGrowthChart() {
                   pointerEvents="none"
                 />
               )}
-              {series.filter(({ visible }) => visible).map(({ name, color, points, key }) => (
-                <g key={name}>
-                  <path
-                    d={getCurvePath(points)}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {points.map(({ x, y, value }, index) => (
-                    <circle
-                      key={chartData[index].key}
-                      cx={x}
-                      cy={y}
-                      r={activeMonthIndex === index ? 6 : 4}
-                      fill={color}
-                      stroke="white"
-                      strokeWidth="2"
-                      className="cursor-pointer focus-visible:stroke-slate-900 focus-visible:stroke-[3]"
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${chartData[index].title}: ${value} ${name.toLowerCase()}`}
-                      onMouseEnter={() => setActiveMonthIndex(index)}
-                      onFocus={() => setActiveMonthIndex(index)}
-                      onBlur={() => setActiveMonthIndex(null)}
-                      onClick={() => setActiveMonthIndex(index)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          setActiveMonthIndex(index);
-                        }
-                      }}
-                    >
-                      <title>{`${chartData[index].title}: ${value} ${name.toLowerCase()}`}</title>
-                    </circle>
-                  ))}
-                  <desc>{`${name}: ${chartData.map((month) => month[key]).join(', ')}`}</desc>
-                </g>
+              {chartData.map((month, monthIndex) => {
+                const center = CHART.left + groupWidth * (monthIndex + 0.5);
+                const totalBarWidth = barWidth * displayedSeries.length + barGap * (displayedSeries.length - 1);
+                const firstBarX = center - totalBarWidth / 2;
+                return (
+                  <g key={month.key}>
+                    {displayedSeries.map(({ name, color, key }, seriesIndex) => {
+                      const value = month[key];
+                      const height = (plotHeight * value) / scaleMax;
+                      const x = firstBarX + seriesIndex * (barWidth + barGap);
+                      const y = CHART.bottom - height;
+                      return (
+                        <g
+                          key={key}
+                          className="cursor-pointer focus:outline-none"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${month.title}: ${value} ${name.toLowerCase()}`}
+                          onMouseEnter={() => setActiveMonthIndex(monthIndex)}
+                          onFocus={() => setActiveMonthIndex(monthIndex)}
+                          onBlur={() => setActiveMonthIndex(null)}
+                          onClick={() => setActiveMonthIndex(monthIndex)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              setActiveMonthIndex(monthIndex);
+                            }
+                          }}
+                        >
+                          <rect
+                            x={x}
+                            y={y}
+                            width={barWidth}
+                            height={height}
+                            rx="4"
+                            fill={color}
+                            className="focus-visible:stroke-slate-900 focus-visible:stroke-2"
+                          >
+                            <title>{`${month.title}: ${value} ${name.toLowerCase()}`}</title>
+                          </rect>
+                          <text
+                            x={x + barWidth / 2}
+                            y={Math.max(CHART.top + 10, y - 5)}
+                            textAnchor="middle"
+                            className="fill-slate-600 text-[10px]"
+                            pointerEvents="none"
+                          >
+                            {value}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </g>
+                );
+              })}
+              {series.map(({ name, key }) => (
+                <desc key={key}>{`${name}: ${chartData.map((month) => month[key]).join(', ')}`}</desc>
               ))}
               {activeMonth && (
                 <g pointerEvents="none">
-                  <rect x={tooltipX} y={CHART.top + 6} width="140" height="58" rx="8" fill="#0f172a" opacity="0.95" />
+                  <rect
+                    x={tooltipX}
+                    y={CHART.top + 6}
+                    width="140"
+                    height={36 + visibleSeriesCount * 15}
+                    rx="8"
+                    fill="#0f172a"
+                    opacity="0.95"
+                  />
                   <text x={tooltipX + 10} y={CHART.top + 22} fill="white" className="text-[10px] font-semibold">
                     {activeMonth.title}
                   </text>
