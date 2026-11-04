@@ -2,7 +2,8 @@ import type { JobParty } from './job';
 
 /**
  * Customers choose a technician in the mobile app and chat to agree on the visit.
- * The admin sees these conversations read-only.
+ * Admins can join a conversation to message both parties, then leave without
+ * affecting the customer-technician conversation.
  */
 export type ConversationStatus = 'negotiating' | 'agreed' | 'declined';
 
@@ -17,7 +18,8 @@ export const CONVERSATION_STATUS_LABEL: Record<ConversationStatus, string> = {
 export interface ChatMessage {
   id: string;
   /** `system` messages record outcomes, such as "Agreed. Job FD-1045 was created". */
-  sender: 'customer' | 'technician' | 'system';
+  sender: 'customer' | 'technician' | 'admin' | 'system';
+  senderName?: string;
   text: string;
   at: string;
 }
@@ -39,6 +41,8 @@ export interface Conversation {
   startedAt: string;
   lastMessageAt: string;
   messages: ChatMessage[];
+  /** Whether the authenticated admin explicitly joined this conversation. */
+  adminHasJoined?: boolean;
 }
 
 export interface ConversationQuery {
