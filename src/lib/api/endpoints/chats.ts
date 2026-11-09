@@ -1,5 +1,6 @@
 import { env } from '@/config/env';
 import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
+import { mapBackendConversation } from '@/lib/api/adapters/chats';
 import type { ChatMessage, Conversation, ConversationQuery } from '@/types/chat';
 import { api, ApiError, unwrap } from '../client';
 
@@ -13,7 +14,11 @@ function matchesSearch(chat: Conversation, search?: string): boolean {
 
 export const chatsApi = {
   async list(query: ConversationQuery = {}, adminId?: string): Promise<Conversation[]> {
-    if (!env.useMocks) return unwrap(api.get('/admin/conversations', { query: { ...query } }));
+    if (!env.useMocks) {
+      const response = await unwrap<any>(api.get('/admin/conversations', { query: { ...query } }));
+      const rawList = Array.isArray(response) ? response : response?.data || [];
+      return rawList.map(mapBackendConversation);
+    }
     await delay();
     return clone(
       mockDb.chats
@@ -26,7 +31,10 @@ export const chatsApi = {
   },
 
   async get(id: string, adminId?: string): Promise<Conversation> {
-    if (!env.useMocks) return unwrap(api.get(`/admin/conversations/${id}`));
+    if (!env.useMocks) {
+      const response = await unwrap<any>(api.get(`/admin/conversations/${id}`));
+      return mapBackendConversation(response);
+    }
     await delay();
     const chat = mockDb.chats.find((c) => c.id === id);
     if (!chat) throw new MockNotFoundError('Conversation', id);
@@ -39,7 +47,9 @@ export const chatsApi = {
   },
 
   async sendMessage(id: string, text: string, adminId: string, senderName: string): Promise<ChatMessage> {
-    if (!env.useMocks) return unwrap(api.post(`/admin/conversations/${id}/messages`, { text }));
+    if (!env.useMocks) {
+      throw new ApiError('Admin messaging is read-only; messages are exchanged between customer and technician.', 403);
+    }
     await delay();
     const chat = mockDb.chats.find((c) => c.id === id);
     if (!chat) throw new MockNotFoundError('Conversation', id);
@@ -61,7 +71,7 @@ export const chatsApi = {
 
   async join(id: string, adminId: string): Promise<void> {
     if (!env.useMocks) {
-      await unwrap(api.post<null>(`/admin/conversations/${id}/join`));
+      // Backend admin conversation review is read-only; join is a UI-only state in admin portal
       return;
     }
     await delay();
@@ -74,7 +84,6 @@ export const chatsApi = {
 
   async leave(id: string, adminId: string): Promise<void> {
     if (!env.useMocks) {
-      await unwrap(api.post<null>(`/admin/conversations/${id}/leave`));
       return;
     }
     await delay();

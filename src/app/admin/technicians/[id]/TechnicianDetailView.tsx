@@ -22,7 +22,7 @@ import {
 } from '@/components/ui';
 import { useDeleteTechnician, useTechnician, useUpdateTechnicianStatus } from '@/hooks/useTechnicians';
 import { formatDate, formatPhone, formatRelative } from '@/lib/utils';
-import { WORK_HOURS_LABEL } from '@/types/technician';
+import { WORK_HOURS_LABEL, type WorkHours } from '@/types/technician';
 
 function BackLink() {
   return (
@@ -89,7 +89,10 @@ export function TechnicianDetailView({ id }: { id: string }) {
     );
   }
 
-  const { workSettings } = technician;
+  const workSettings = technician.workSettings ?? { radiusKm: 10, maxJobsPerDay: 4, hours: 'always' as WorkHours };
+  const trades = Array.isArray(technician.trades) ? technician.trades : [];
+  const tradesSummary = trades.length > 0 ? trades.join(' · ') : 'No trade specified';
+  const tradesList = trades.length > 0 ? trades.join(', ') : '—';
 
   return (
     <>
@@ -97,12 +100,12 @@ export function TechnicianDetailView({ id }: { id: string }) {
 
       {/* Orange profile hero, as on the mobile profile screen */}
       <section className="flex flex-col gap-4 rounded-xl bg-brand-500 p-6 text-white shadow-sm sm:flex-row sm:items-center">
-        <Avatar name={technician.name} size="lg" inverse />
+        <Avatar name={technician.name || 'Technician'} size="lg" inverse />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-100">{technician.trades.join(' · ')}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-100">{tradesSummary}</p>
           <h1 className="mt-0.5 flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <span className="truncate">{technician.name}</span>
-            {technician.verification.status === 'verified' && (
+            <span className="truncate">{technician.name || '—'}</span>
+            {technician.verification?.status === 'verified' && (
               <ShieldCheck className="h-5 w-5 shrink-0" aria-label="Verified" />
             )}
           </h1>
@@ -113,7 +116,7 @@ export function TechnicianDetailView({ id }: { id: string }) {
             </span>
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" aria-hidden />
-              {technician.location}
+              {technician.location || '—'}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className={`h-2 w-2 rounded-full ${technician.isAvailable ? 'bg-white' : 'bg-white/40'}`} aria-hidden />
@@ -130,12 +133,12 @@ export function TechnicianDetailView({ id }: { id: string }) {
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Rating"
-          value={technician.jobsCompleted > 0 ? technician.rating.toFixed(1) : '—'}
+          value={technician.jobsCompleted > 0 && technician.rating != null ? technician.rating.toFixed(1) : '—'}
           icon={Star}
         />
-        <StatCard label="Jobs completed" value={technician.jobsCompleted} icon={Briefcase} />
-        <StatCard label="Experience" value={`${technician.yearsExperience} yrs`} icon={Clock} />
-        <StatCard label="Service radius" value={`${workSettings.radiusKm} km`} icon={Radar} />
+        <StatCard label="Jobs completed" value={technician.jobsCompleted ?? 0} icon={Briefcase} />
+        <StatCard label="Experience" value={`${technician.yearsExperience ?? 0} yrs`} icon={Clock} />
+        <StatCard label="Service radius" value={`${workSettings.radiusKm ?? 0} km`} icon={Radar} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -152,11 +155,11 @@ export function TechnicianDetailView({ id }: { id: string }) {
             <CardBody>
               <Details
                 rows={[
-                  ['Full name', technician.name],
+                  ['Full name', technician.name || '—'],
                   ['Phone', formatPhone(technician.phone)],
                   ['Email', technician.email ?? '—'],
-                  ['Location', technician.location],
-                  ['Services', technician.trades.join(', ')],
+                  ['Location', technician.location || '—'],
+                  ['Services', tradesList],
                   ['Joined', formatDate(technician.createdAt)],
                   ['Last active', formatRelative(technician.lastActiveAt)],
                 ]}
@@ -169,9 +172,9 @@ export function TechnicianDetailView({ id }: { id: string }) {
             <CardBody>
               <Details
                 rows={[
-                  ['Service radius', `${workSettings.radiusKm} km`],
-                  ['Max jobs per day', workSettings.maxJobsPerDay],
-                  ['Working hours', WORK_HOURS_LABEL[workSettings.hours]],
+                  ['Service radius', `${workSettings.radiusKm ?? 0} km`],
+                  ['Max jobs per day', workSettings.maxJobsPerDay ?? '—'],
+                  ['Working hours', workSettings.hours && WORK_HOURS_LABEL[workSettings.hours] ? WORK_HOURS_LABEL[workSettings.hours] : 'Any time'],
                 ]}
               />
             </CardBody>
@@ -214,7 +217,7 @@ export function TechnicianDetailView({ id }: { id: string }) {
       <ConfirmDialog
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        title={`Delete ${technician.name}?`}
+        title={`Delete ${technician.name || 'technician'}?`}
         description="Their profile and account are removed permanently. To keep their history, suspend the account instead."
         confirmLabel="Delete technician"
         destructive
@@ -222,7 +225,7 @@ export function TechnicianDetailView({ id }: { id: string }) {
         onConfirm={() =>
           deleteTechnician.mutate(technician.id, {
             onSuccess: () => {
-              toast(`${technician.name} deleted`);
+              toast(`${technician.name || 'Technician'} deleted`);
               router.push('/admin/technicians');
             },
             onError: (err) => {

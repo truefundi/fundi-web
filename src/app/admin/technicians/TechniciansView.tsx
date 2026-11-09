@@ -205,7 +205,7 @@ export function TechniciansView() {
                         </div>
                       </Td>
                       <Td>
-                        <VerificationBadge status={t.verification.status} />
+                        <VerificationBadge status={t.verification?.status ?? 'pending'} />
                       </Td>
                       <Td>
                         <AccountStatusBadge status={t.status} />

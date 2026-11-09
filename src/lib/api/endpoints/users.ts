@@ -1,7 +1,9 @@
 import { env } from "@/config/env";
 import { clone, delay, mockDb } from "@/mocks/mock-db";
+import { mapBackendCustomer, type BackendUser } from "@/lib/api/adapters/customers";
 import type { PaginatedResponse, UserQuery } from "@/types/api";
 import type { UserRecord } from "@/types/user";
+import { api, unwrap } from "../client";
 import { queryAccounts } from "../mock-utils";
 import { customersApi } from "./customers";
 import { techniciansApi } from "./technicians";
@@ -17,7 +19,25 @@ export const usersApi = {
           queryAccounts(mockDb.admins, { ...filters, page, pageSize }),
         );
       }
-      return { items: [], total: 0, page, pageSize };
+      const response = await unwrap<{ data: BackendUser[]; pagination: { page: number; limit: number; total: number } }>(
+        api.get('/users', {
+          query: {
+            role: 'ADMIN',
+            search: filters.search,
+            page,
+            limit: pageSize,
+          },
+        }),
+      );
+      return {
+        items: (response.data || []).map((u) => ({
+          ...mapBackendCustomer(u),
+          role: 'ADMIN' as const,
+        })),
+        total: response.pagination?.total ?? 0,
+        page: response.pagination?.page ?? 1,
+        pageSize: response.pagination?.limit ?? pageSize,
+      };
     }
 
     if (role === "CUSTOMER") {
@@ -46,19 +66,12 @@ export const usersApi = {
     const [customers, technicians, admins] = await Promise.all([
       customersApi.list({ ...filters, page: 1, pageSize: requestedCount }),
       techniciansApi.list({ ...filters, page: 1, pageSize: requestedCount }),
-      env.useMocks
-        ? usersApi.list({
-            ...filters,
-            role: "ADMIN",
-            page: 1,
-            pageSize: requestedCount,
-          })
-        : Promise.resolve({
-            items: [],
-            total: 0,
-            page: 1,
-            pageSize: requestedCount,
-          }),
+      usersApi.list({
+        ...filters,
+        role: "ADMIN",
+        page: 1,
+        pageSize: requestedCount,
+      }),
     ]);
     const items: UserRecord[] = [
       ...customers.items.map((user) => ({

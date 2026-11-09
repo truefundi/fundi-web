@@ -1,5 +1,6 @@
 import { env } from '@/config/env';
 import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
+import { mapBackendJob, type BackendJob } from '@/lib/api/adapters/jobs';
 import type { Conversation } from '@/types/chat';
 import { DISPUTE_OUTCOME_LABEL, JOB_STATUS_LABEL, type DisputeOutcome, type Job } from '@/types/job';
 import { api, ApiError, unwrap } from '../client';
@@ -22,6 +23,12 @@ export interface DisputeCase {
   chat?: Conversation;
 }
 
+const OUTCOME_TO_API: Record<DisputeOutcome, 'CUSTOMER' | 'TECHNICIAN' | 'PARTIAL'> = {
+  customer: 'CUSTOMER',
+  technician: 'TECHNICIAN',
+  partial: 'PARTIAL',
+};
+
 const isOpen = (job: Job) => Boolean(job.dispute && !job.dispute.resolution);
 
 function findDisputed(jobId: string): Job {
@@ -32,7 +39,10 @@ function findDisputed(jobId: string): Job {
 
 export const disputesApi = {
   async list(state: DisputeState): Promise<Job[]> {
-    if (!env.useMocks) return unwrap(api.get('/admin/disputes', { query: { state } }));
+    if (!env.useMocks) {
+      const response = await unwrap<BackendJob[]>(api.get('/admin/disputes', { query: { state } }));
+      return (response || []).map(mapBackendJob);
+    }
     await delay();
     return clone(
       mockDb.jobs
@@ -42,7 +52,13 @@ export const disputesApi = {
   },
 
   async get(jobId: string): Promise<DisputeCase> {
-    if (!env.useMocks) return unwrap(api.get(`/admin/disputes/${jobId}`));
+    if (!env.useMocks) {
+      const response = await unwrap<{ job: BackendJob; chat?: Conversation }>(api.get(`/admin/disputes/${jobId}`));
+      return {
+        job: mapBackendJob(response.job),
+        chat: response.chat,
+      };
+    }
     await delay();
     const job = findDisputed(jobId);
     const chat = mockDb.chats.find((c) => c.jobId === jobId);
@@ -51,7 +67,15 @@ export const disputesApi = {
 
   /** Records the decision; the job then moves on to settling the decided amount. */
   async resolve(jobId: string, decision: DisputeDecision): Promise<Job> {
-    if (!env.useMocks) return unwrap(api.post(`/admin/disputes/${jobId}/resolve`, decision));
+    if (!env.useMocks) {
+      const payload = {
+        outcome: OUTCOME_TO_API[decision.outcome] ?? (decision.outcome.toUpperCase() as 'CUSTOMER' | 'TECHNICIAN' | 'PARTIAL'),
+        amount: Math.max(0, Math.round(decision.amount)),
+        note: decision.note.trim(),
+      };
+      const response = await unwrap<BackendJob>(api.post(`/admin/disputes/${jobId}/resolve`, payload));
+      return mapBackendJob(response);
+    }
     await delay();
     const job = findDisputed(jobId);
     if (!isOpen(job)) throw new ApiError('This dispute has already been resolved.', 409);

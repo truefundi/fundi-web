@@ -58,7 +58,7 @@ export function VerificationQueue() {
                 <Avatar name={technician.name} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-slate-900">{technician.name}</p>
-                  <p className="truncate text-xs text-slate-500">{technician.trades.join(', ')}</p>
+                  <p className="truncate text-xs text-slate-500">{technician.trades?.length ? technician.trades.join(', ') : 'ï¿½'}</p>
                 </div>
                 <span className="hidden text-xs text-slate-500 sm:block">
                   Applied {formatRelative(technician.verification.submittedAt)}

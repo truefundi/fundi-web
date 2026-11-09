@@ -283,6 +283,7 @@ export const jobsApi = {
       const categoryId = await getBackendCategoryId(jobInput.service);
 
       const payload = {
+        customerId: jobInput.customerId,
         serviceCategoryId: categoryId,
         description: jobInput.problem.trim(),
         locationAddress: jobInput.location.trim(),

@@ -21,15 +21,38 @@ function assertUniqueName(name: string, exceptId?: string) {
 const byName = (a: Service, b: Service) =>
   Number(a.name === 'Other') - Number(b.name === 'Other') || a.name.localeCompare(b.name);
 
+function mapBackendCategory(cat: any): Service {
+  return {
+    id: cat.id,
+    name: cat.name,
+    category: cat.category || 'Mechanical',
+    description: cat.description || `Professional ${cat.name?.toLowerCase() || 'repair'} services`,
+    visitFee: Number(cat.bookingFee) || Number(cat.visitFee) || 15,
+    emergencyVisitFee: (Number(cat.bookingFee) ? Math.round(Number(cat.bookingFee) * 1.5) : Number(cat.emergencyVisitFee)) || 25,
+    isActive: cat.isActive !== false,
+    createdAt: typeof cat.createdAt === 'string' ? cat.createdAt : cat.createdAt?.toISOString?.() ?? new Date().toISOString(),
+  };
+}
+
 export const servicesApi = {
   async list(): Promise<Service[]> {
-    if (!env.useMocks) return unwrap(api.get('/catalog/admin/categories'));
+    if (!env.useMocks) {
+      const response = await unwrap<any[]>(api.get('/catalog/admin/categories'));
+      return (response || []).map(mapBackendCategory).sort(byName);
+    }
     await delay();
     return clone([...mockDb.services].sort(byName));
   },
 
   async create(input: ServiceInput): Promise<Service> {
-    if (!env.useMocks) return unwrap(api.post('/catalog/categories', input));
+    if (!env.useMocks) {
+      const payload = {
+        name: input.name.trim(),
+        ...(input.visitFee ? { bookingFee: Math.round(input.visitFee) } : {}),
+      };
+      const response = await unwrap<any>(api.post('/catalog/categories', payload));
+      return mapBackendCategory(response);
+    }
     await delay();
     assertUniqueName(input.name);
     const service: Service = {
@@ -43,7 +66,15 @@ export const servicesApi = {
   },
 
   async update(id: string, input: ServiceInput): Promise<Service> {
-    if (!env.useMocks) return unwrap(api.patch(`/catalog/categories/${id}`, input));
+    if (!env.useMocks) {
+      const payload = {
+        name: input.name.trim(),
+        isActive: input.isActive,
+        ...(input.visitFee ? { bookingFee: Math.round(input.visitFee) } : {}),
+      };
+      const response = await unwrap<any>(api.patch(`/catalog/categories/${id}`, payload));
+      return mapBackendCategory(response);
+    }
     await delay();
     assertUniqueName(input.name, id);
     const service = findMock(id);

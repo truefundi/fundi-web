@@ -57,7 +57,9 @@ export function Modal({
         tabIndex={-1}
         className={cn(
           'relative flex flex-col bg-white shadow-xl focus:outline-none',
-          drawer ? 'h-full w-full max-w-md' : 'max-h-[90vh] w-full max-w-md rounded-xl',
+          drawer
+  ? 'h-full w-full max-w-md'
+  : 'max-h-[90vh] w-full max-w-3xl rounded-xl',
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">

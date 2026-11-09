@@ -9,7 +9,7 @@ import type { Technician } from '@/types/technician';
 import { VerificationBadge } from './VerificationBadge';
 
 export function VerificationPanel({ technician }: { technician: Technician }) {
-  const { verification } = technician;
+  const verification = technician.verification ?? { status: 'not_submitted', certificateUrls: [] };
   const [preview, setPreview] = useState<{ label: string; url: string } | null>(null);
   const [dialog, setDialog] = useState<'approve' | 'reject' | null>(null);
   const approve = useApproveVerification();
@@ -18,7 +18,7 @@ export function VerificationPanel({ technician }: { technician: Technician }) {
 
   const documents = [
     ...(verification.idDocumentUrl ? [{ label: 'National ID', url: verification.idDocumentUrl }] : []),
-    ...verification.certificateUrls.map((url, i) => ({ label: `Certificate ${i + 1}`, url })),
+    ...(verification.certificateUrls ?? []).map((url, i) => ({ label: `Certificate ${i + 1}`, url })),
   ];
   const canApprove = verification.status === 'pending' || verification.status === 'rejected';
   const canReject = verification.status === 'pending' || verification.status === 'verified';

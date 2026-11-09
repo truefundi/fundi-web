@@ -65,10 +65,10 @@ export const techniciansApi = {
         ),
       );
       return {
-        items: response.data.map(mapBackendTechnician),
-        total: response.pagination.total,
-        page: response.pagination.page,
-        pageSize: response.pagination.limit,
+        items: (response.data || []).map(mapBackendTechnician),
+        total: response.pagination?.total ?? 0,
+        page: response.pagination?.page ?? 1,
+        pageSize: response.pagination?.limit ?? 20,
       };
     }
     await delay();
@@ -78,20 +78,38 @@ export const techniciansApi = {
         query,
         (t) =>
           (!query.verification || t.verification.status === query.verification) &&
-          (!query.trade || t.trades.includes(query.trade)) &&
+          (!query.trade || (t.trades && t.trades.includes(query.trade))) &&
           (query.available === undefined || t.isAvailable === query.available),
       ),
     );
   },
 
   async get(id: string): Promise<Technician> {
-    if (!env.useMocks) return unwrap(api.get(`/admin/technicians/${id}`));
+    if (!env.useMocks) return readLive(unwrap(api.get<BackendTechnician>(`/admin/technicians/${id}`)));
     await delay();
     return clone(findMock(id));
   },
 
   async update(id: string, patch: TechnicianProfilePatch): Promise<Technician> {
-    if (!env.useMocks) return unwrap(api.patch(`/admin/technicians/${id}`, patch));
+    if (!env.useMocks) {
+      // Backend AdminUpdateTechnicianDto accepts profile fields (location, service experiences)
+      const profilePayload: Record<string, unknown> = {};
+      if (patch.location !== undefined) {
+        profilePayload.publicLocationLabel = patch.location;
+        profilePayload.baseAddress = patch.location;
+      }
+      if (patch.trades !== undefined) {
+        profilePayload.serviceExperiences = patch.trades.map((trade) => ({
+          customName: trade,
+          yearsOfExperience: patch.yearsExperience ?? 1,
+        }));
+      }
+
+      if (Object.keys(profilePayload).length > 0) {
+        return readLive(unwrap(api.patch<BackendTechnician>(`/admin/technicians/${id}`, profilePayload)));
+      }
+      return techniciansApi.get(id);
+    }
     await delay();
     const technician = findMock(id);
     const { workSettings, ...rest } = patch;
@@ -101,7 +119,10 @@ export const techniciansApi = {
   },
 
   async updateStatus(id: string, status: AccountStatus): Promise<Technician> {
-    if (!env.useMocks) return unwrap(api.patch(`/admin/technicians/${id}/status`, { status }));
+    if (!env.useMocks) {
+      const apiStatus = ACCOUNT_TO_API[status] ?? (status.toUpperCase() as 'ACTIVE' | 'SUSPENDED' | 'INACTIVE');
+      return readLive(unwrap(api.patch<BackendTechnician>(`/admin/technicians/${id}/status`, { status: apiStatus })));
+    }
     await delay();
     const technician = findMock(id);
     technician.status = status;
@@ -110,13 +131,29 @@ export const techniciansApi = {
   },
 
   async approve(id: string): Promise<Technician> {
-    if (!env.useMocks) return unwrap(api.post(`/admin/technicians/${id}/verification/approve`));
+    if (!env.useMocks) {
+      return readLive(
+        unwrap(
+          api.patch<BackendTechnician>(`/admin/technicians/${id}/verification-status`, {
+            verificationStatus: 'APPROVED',
+          }),
+        ),
+      );
+    }
     await delay();
     return review(findMock(id), { status: 'verified', rejectionReason: undefined });
   },
 
   async reject(id: string, reason: string): Promise<Technician> {
-    if (!env.useMocks) return unwrap(api.post(`/admin/technicians/${id}/verification/reject`, { reason }));
+    if (!env.useMocks) {
+      return readLive(
+        unwrap(
+          api.patch<BackendTechnician>(`/admin/technicians/${id}/verification-status`, {
+            verificationStatus: 'REJECTED',
+          }),
+        ),
+      );
+    }
     await delay();
     const technician = findMock(id);
     technician.isAvailable = false;
@@ -125,7 +162,24 @@ export const techniciansApi = {
 
   /** Adds a technician; they still need verification before they can receive jobs. */
   async create(input: TechnicianInput): Promise<Technician> {
-    if (!env.useMocks) return unwrap(api.post('/admin/technicians', input));
+    if (!env.useMocks) {
+      const payload = {
+        user: {
+          fullName: input.name,
+          phoneNumber: input.phone,
+          email: input.email || undefined,
+        },
+        profile: {
+          publicLocationLabel: input.location,
+          baseAddress: input.location,
+          serviceExperiences: (input.trades || []).map((trade) => ({
+            customName: trade,
+            yearsOfExperience: input.yearsExperience ?? 1,
+          })),
+        },
+      };
+      return readLive(unwrap(api.post<BackendTechnician>('/admin/technicians', payload)));
+    }
     await delay();
     if (mockDb.technicians.some((t) => t.phone === input.phone)) {
       throw new ApiError('A technician with this phone number already exists.', 409);

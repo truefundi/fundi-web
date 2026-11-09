@@ -46,15 +46,15 @@ const EMPTY_FORM: FormState = {
 function toForm(t?: Technician): FormState {
   if (!t) return EMPTY_FORM;
   return {
-    name: t.name,
-    phone: t.phone,
+    name: t.name ?? '',
+    phone: t.phone ?? '',
     email: t.email ?? '',
-    location: t.location,
-    trades: t.trades,
-    yearsExperience: String(t.yearsExperience),
-    radiusKm: t.workSettings.radiusKm,
-    maxJobsPerDay: t.workSettings.maxJobsPerDay,
-    hours: t.workSettings.hours,
+    location: t.location ?? '',
+    trades: t.trades ?? [],
+    yearsExperience: String(t.yearsExperience ?? 0),
+    radiusKm: t.workSettings?.radiusKm ?? 10,
+    maxJobsPerDay: t.workSettings?.maxJobsPerDay ?? 4,
+    hours: t.workSettings?.hours ?? 'days',
   };
 }
 
@@ -160,7 +160,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
     <Modal
       open={open}
       onClose={onClose}
-      variant="drawer"
+      variant="dialog"
       title={technician ? 'Edit profile' : 'Add technician'}
       description={
         technician
@@ -178,7 +178,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
         </>
       }
     >
-      <form className="space-y-5 pb-2" onSubmit={submit} noValidate>
+      <form className="space-y-3 pb-1" onSubmit={submit} noValidate>
         {/* 1. Who they are and how to reach them */}
         <FormSection title="Contact details" first>
           <Field label="Full name" htmlFor="edit-name" error={errors.name}>
