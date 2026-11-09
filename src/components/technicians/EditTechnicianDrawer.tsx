@@ -1,5 +1,6 @@
 'use client';
 
+import { env } from '@/config/env';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Field, FilterChip, Input, Modal, Select, useToast } from '@/components/ui';
@@ -260,7 +261,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
               />
             </Field>
             <Field label="Working hours" htmlFor="edit-hours">
-              <Select id="edit-hours" value={form.hours} onChange={(e) => set('hours', e.target.value as WorkHours)}>
+              <Select disabled={!env.useMocks} id="edit-hours" value={form.hours} onChange={(e) => set('hours', e.target.value as WorkHours)}>
                 {(Object.keys(WORK_HOURS_LABEL) as WorkHours[]).map((h) => (
                   <option key={h} value={h}>
                     {WORK_HOURS_LABEL[h]}
@@ -269,7 +270,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
               </Select>
             </Field>
             <Field label="Service radius" htmlFor="edit-radius">
-              <Select id="edit-radius" value={form.radiusKm} onChange={(e) => set('radiusKm', Number(e.target.value))}>
+              <Select disabled={!env.useMocks} id="edit-radius" value={form.radiusKm} onChange={(e) => set('radiusKm', Number(e.target.value))}>
                 {RADIUS_OPTIONS.map((r) => (
                   <option key={r} value={r}>
                     {r} km
@@ -279,6 +280,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
             </Field>
             <Field label="Max jobs / day" htmlFor="edit-max-jobs">
               <Select
+                disabled={!env.useMocks}
                 id="edit-max-jobs"
                 value={form.maxJobsPerDay}
                 onChange={(e) => set('maxJobsPerDay', Number(e.target.value))}

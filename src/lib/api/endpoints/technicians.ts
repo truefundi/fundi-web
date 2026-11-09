@@ -92,14 +92,23 @@ export const techniciansApi = {
 
   async update(id: string, patch: TechnicianProfilePatch): Promise<Technician> {
     if (!env.useMocks) {
+      if (patch.name !== undefined || patch.phone !== undefined || patch.email !== undefined) {
+        const profile = await unwrap(api.get<BackendTechnician>(`/admin/technicians/${id}`));
+        await unwrap(api.patch(`/users/${profile.user.id}`, {
+          ...(patch.name !== undefined ? { fullName: patch.name } : {}),
+          ...(patch.phone !== undefined ? { phoneNumber: patch.phone } : {}),
+          ...(patch.email ? { email: patch.email } : {}),
+        }));
+      }
       // Backend AdminUpdateTechnicianDto accepts profile fields (location, service experiences)
       const profilePayload: Record<string, unknown> = {};
       if (patch.location !== undefined) {
         profilePayload.publicLocationLabel = patch.location;
         profilePayload.baseAddress = patch.location;
       }
-      if (patch.trades !== undefined) {
-        profilePayload.serviceExperiences = patch.trades.map((trade) => ({
+      if (patch.trades !== undefined || patch.yearsExperience !== undefined) {
+        const trades = patch.trades ?? (await techniciansApi.get(id)).trades;
+        profilePayload.serviceExperiences = trades.map((trade) => ({
           customName: trade,
           yearsOfExperience: patch.yearsExperience ?? 1,
         }));

@@ -22,7 +22,9 @@ export type JobStatus =
   | 'PAYMENT_REPORTED'
   | 'COMPLETED'
   | 'CANCELLED'
-  | 'DISPUTED';
+  | 'DISPUTED'
+  | 'PAUSED'
+  | 'FAILED';
 
 /** The order a job normally moves through (exception states excluded). */
 export const JOB_FLOW: JobStatus[] = [
@@ -47,10 +49,12 @@ export const JOB_FLOW: JobStatus[] = [
 
 /** Same wording as the mobile app, so admins and customers describe a job the same way. */
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
-  REQUESTED: 'Request sent',
+  PAUSED: 'Paused',
+  FAILED: 'Failed',
+  REQUESTED: 'Open',
   MATCHING: 'Customer negotiating',
   OFFERED: 'Offer sent',
-  ACCEPTED: 'Visit fee due',
+  ACCEPTED: 'Assigned',
   VISIT_PAID: 'Visit fee paid',
   EN_ROUTE: 'On the way',
   ARRIVED: 'Technician arrived',
@@ -71,6 +75,8 @@ export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
 export type StatusTone = 'progress' | 'action' | 'success' | 'danger';
 
 export const JOB_STATUS_TONE: Record<JobStatus, StatusTone> = {
+  PAUSED: 'action',
+  FAILED: 'danger',
   REQUESTED: 'progress',
   MATCHING: 'progress',
   OFFERED: 'action',
@@ -108,7 +114,7 @@ export const JOB_GROUP_LABEL: Record<JobGroup, string> = {
 export function jobGroup(status: JobStatus): JobGroup {
   if (status === 'REQUESTED' || status === 'MATCHING' || status === 'OFFERED') return 'matching';
   if (status === 'COMPLETED') return 'completed';
-  if (status === 'CANCELLED') return 'cancelled';
+  if (status === 'CANCELLED' || status === 'FAILED') return 'cancelled';
   if (status === 'DISPUTED') return 'disputed';
   return 'in_progress';
 }
@@ -170,6 +176,11 @@ export type JobRequestParty = 'customer' | 'technician';
 /** What the admin fills in to create a job. */
 export interface JobInput {
   customerId: string;
+  paymentId?: string;
+  phoneVerificationId?: string;
+  latitude?: number;
+  longitude?: number;
+  offeredAmount?: number;
   partyType?: JobRequestParty;
   service: string;
   problem: string;
@@ -219,6 +230,9 @@ export interface Job {
   createdAt: string;
   /** When the job last changed status. */
   updatedAt: string;
+  latitude?: number;
+  longitude?: number;
+  offeredAmount?: number;
   visitFee: number;
   visitPaymentMethod?: PaymentMethod;
   quote?: Quote;

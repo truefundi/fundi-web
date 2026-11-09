@@ -1,45 +1,54 @@
-# Admin API endpoints
+# Connecting Fundi Web to Fundi API
 
-The customers and technicians pages call `customersApi` and `techniciansApi` (in `endpoints/`) through the React Query hooks in `src/hooks/`. Each one has two modes:
+Run the existing backend on port 3000 with its database and Redis available.
+In `fundi-web`, run `npm run dev` and open http://localhost:3001.
+Use an administrator already provisioned by the backend. Sign in with email and
+password, then enroll/verify the authenticator code. The development OTP option
+works only when the backend also runs in development.
 
-| `NEXT_PUBLIC_USE_MOCKS` | Behaviour |
-| --- | --- |
-| `true` | Reads and writes the in-memory copy of `src/mocks/*.json`, with 300–500 ms of simulated latency. Changes reset on page reload. |
-| anything else | Calls the backend at `NEXT_PUBLIC_API_URL` through `api` in `client.ts`. |
+The default frontend configuration is:
 
-When the backend endpoints below are live, set `NEXT_PUBLIC_USE_MOCKS=false`. No UI changes are needed.
+```dotenv
+NEXT_PUBLIC_API_URL=/api/v1
+NEXT_PUBLIC_USE_MOCKS=false
+API_PROXY_TARGET=http://localhost:3000
+```
 
-## Proposed REST contract (for the backend team)
+Next.js forwards `/api/v1/*` to `API_PROXY_TARGET`, including cookies and file
+uploads. This keeps the admin session and its path-scoped 2FA challenge on the
+frontend origin. Restart Next.js after changing environment variables. For a
+remote backend set `API_PROXY_TARGET` to its origin, without `/api/v1`.
+Production requires a reachable backend and cookie flags appropriate to its HTTPS
+hostname; any configured cookie domain must also match the frontend hostname.
 
-All routes are relative to `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:3000/api/v1`). Response bodies use the shapes in `src/types/`.
+Both authentication and data calls share `client.ts`. Admin cookies are httpOnly;
+the client refreshes an expired session once and retries the request. Tokens are
+never copied into local storage.
 
-| Method | Path | Body / query | Returns |
-| --- | --- | --- | --- |
-| GET | `/admin/stats` | — | `AdminStats` |
-| GET | `/admin/customers` | `?search&status&page&pageSize&sort` | `PaginatedResponse<Customer>` |
-| GET | `/admin/customers/:id` | — | `Customer` |
-| PATCH | `/admin/customers/:id/status` | `{ status: AccountStatus }` | `Customer` |
-| GET | `/admin/technicians` | `?search&verification&status&trade&available&page&pageSize&sort` | `PaginatedResponse<Technician>` |
-| GET | `/admin/technicians/:id` | — | `Technician` |
-| PATCH | `/admin/technicians/:id` | `TechnicianProfilePatch` | `Technician` |
-| PATCH | `/admin/technicians/:id/status` | `{ status: AccountStatus }` | `Technician` |
-| POST | `/admin/technicians/:id/verification/approve` | — | `Technician` |
-| POST | `/admin/technicians/:id/verification/reject` | `{ reason: string }` | `Technician` |
+The adapters map the existing backend contracts:
 
-### Enums and query semantics
+- Customers and users: `/users` with `{ data, pagination }`.
+- Technicians: `/admin/technicians`; identity edits use the linked `/users/:id`.
+- Categories: `/catalog/admin/categories` and `/catalog/categories/:id`.
+  Fees are whole RWF amounts; zero is preserved.
+- Jobs, ratings, counts: `/admin/jobs`, `/:id/rating`, and `/summary`.
+- Negotiation review: `/admin/conversations` (read-only).
+- Documents: `/admin/technicians/:id/documents` and `/admin/technician-documents`.
+- Payments and disputes: `/admin/payments` and `/admin/disputes`.
+- Broadcasts: `/admin/broadcasts/preview` and `/admin/broadcasts`.
+- Landing ads: public `/ads`, admin `/admin/ads`, and multipart `/:id/image`.
+- Password changes: `/auth/admin/change-password`; success requires signing in again.
 
-- **Enums**
-  - `AccountStatus`: `active | suspended | inactive`
-  - `VerificationStatus`: `not_submitted | pending | verified | rejected`
-  - `sort`: `newest` (default) | `oldest` | `name`
-- **Services** (`trades`, same list as `SERVICE_CATEGORIES` and the mobile app): Electrical, Plumbing, HVAC, Appliance Repair, Car & Garage, Truck & Mechanical, Home Repair, General Maintenance.
-- **`search`** matches name and email (case-insensitive) and phone digits.
-- **`page`** starts at 1. `pageSize` defaults to 10.
-- **Errors:** return a non-2xx status with `{ "message": "..." }`. The UI shows `message`, and a 404 on a detail route shows "not found".
-- **Reviewer identity:** approving or rejecting should set `verification.reviewedAt` and `reviewedBy` from the authenticated admin.
+`NEXT_PUBLIC_USE_MOCKS=true` explicitly enables demonstration data for endpoints
+with mock implementations. Authentication still requires the real backend.
+Approvals, commission preferences, and technician work settings have no matching
+backend persistence contract; do not treat those local-only values as server data.
+The signup page remains an app-download handoff, not account registration.
 
-## Broadcasts
+Run `npm run test:api`, `npx tsc --noEmit`, and `npm run build` to validate the integration.
 
-The admin Broadcasts screen is currently mock-only. It estimates active customer/technician recipients and records a simulated broadcast in memory; it does **not** send SMS or create notifications in users' inboxes.
-
-Before enabling real delivery, implement authenticated `GET /admin/broadcasts/recipients`, `GET /admin/broadcasts`, and `POST /admin/broadcasts` endpoints with server-side recipient filtering, delivery status tracking, provider integration, idempotency, and failure reporting. Add explicit SMS consent and opt-out handling before sending to real phone numbers, and comply with applicable messaging rules. The current UI requires an admin confirmation but the existing account model does not track consent.
+Admin job creation requires an unused booking payment and an unconsumed,
+unexpired phone verification belonging to the chosen customer. The customer
+completes payment and phone verification in the app; the admin form sends both
+reference IDs. The admin cookie cannot perform customer-only verification calls.
+Editing a job preserves its existing coordinates and offered amount.

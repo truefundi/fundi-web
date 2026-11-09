@@ -5,11 +5,13 @@ import type { JobParty } from './job';
  * Admins can join a conversation to message both parties, then leave without
  * affecting the customer-technician conversation.
  */
-export type ConversationStatus = 'negotiating' | 'agreed' | 'declined';
+export type ConversationStatus = 'pending' | 'negotiating' | 'agreed' | 'declined' | 'expired';
 
-export const CONVERSATION_STATUSES: ConversationStatus[] = ['negotiating', 'agreed', 'declined'];
+export const CONVERSATION_STATUSES: ConversationStatus[] = ['pending', 'negotiating', 'agreed', 'declined', 'expired'];
 
 export const CONVERSATION_STATUS_LABEL: Record<ConversationStatus, string> = {
+  pending: 'Awaiting technician',
+  expired: 'Expired',
   negotiating: 'Negotiating',
   agreed: 'Agreed',
   declined: 'Declined',

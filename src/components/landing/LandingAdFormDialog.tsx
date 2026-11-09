@@ -94,19 +94,19 @@ export function LandingAdFormDialog({
     reader.readAsDataURL(file);
   }
 
-  function save(event: React.FormEvent<HTMLFormElement>) {
+  async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setTouched(true);
     if (Object.keys(validate(values)).length > 0) return;
     try {
       const title = values.title.trim();
-      saveAd({
+      await saveAd({
         ...values,
         title,
         description: values.description.trim(),
         imageAlt: `${title} promotional image`,
       }, ad?.id);
-      toast(ad ? 'Landing ad updated in this browser.' : 'Landing ad added in this browser.');
+      toast(ad ? 'Landing ad updated.' : 'Landing ad added.');
       onClose();
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : 'Could not save the landing ad.';

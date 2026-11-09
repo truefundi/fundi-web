@@ -2,6 +2,23 @@
 import { env } from '@/config/env';
 import type { ApiResponse } from '@/types/api';
 
+let onUnauthorized: (() => void) | null = null;
+let refreshing: Promise<boolean> | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
+
+async function refreshSession(): Promise<boolean> {
+  if (!refreshing) {
+    refreshing = fetch(`${env.apiUrl.replace(/\/$/, '')}/auth/admin/refresh`, {
+      method: 'POST', credentials: 'include',
+      signal: AbortSignal.timeout(env.apiTimeoutMs),
+    }).then((response) => response.ok).catch(() => false).finally(() => { refreshing = null; });
+  }
+  return refreshing;
+}
+
 type QueryValue = string | number | boolean | undefined | null;
 
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
@@ -12,12 +29,12 @@ export interface RequestOptions extends Omit<RequestInit, 'body'> {
 
 function buildUrl(endpoint: string, query?: RequestOptions['query']): string {
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = `${env.apiUrl}${path}`;
+  const url = `${env.apiUrl.replace(/\/$/, '')}${path}`;
   if (!query) return url;
 
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== null) {
+    if (value !== undefined && value !== null && value !== '') {
       params.append(key, String(value));
     }
   }
@@ -49,6 +66,7 @@ function errorMessage(body: unknown, fallback: string): string {
 export async function request<T>(
   endpoint: string,
   options: RequestOptions = {},
+  retried = false,
 ): Promise<ApiResponse<T>> {
   const { body, query, timeoutMs = env.apiTimeoutMs, headers, ...init } = options;
 
@@ -62,12 +80,17 @@ export async function request<T>(
       headers: {
         Accept: 'application/json',
         'ngrok-skip-browser-warning': 'true',
-        ...(body !== undefined && { 'Content-Type': 'application/json' }),
+        ...(body !== undefined && !(body instanceof FormData) && { 'Content-Type': 'application/json' }),
         ...headers,
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
       signal: init.signal ?? controller.signal,
     });
+
+    if (response.status === 401 && (!endpoint.startsWith('/auth/admin/') || endpoint === '/auth/admin/me')) {
+      if (!retried && await refreshSession()) return request<T>(endpoint, options, true);
+      onUnauthorized?.();
+    }
 
     const data = await parseBody(response);
 

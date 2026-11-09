@@ -34,7 +34,7 @@ export function DisputeDecisionForm({ job }: { job: Job }) {
     outcome: touched && !outcome ? 'Choose an outcome.' : undefined,
     amount:
       touched && (amount === '' || !Number.isFinite(value) || value < 0 || value > billed)
-        ? `Enter an amount from $0 to ${formatMoney(billed)}.`
+        ? `Enter an amount from RWF 0 to ${formatMoney(billed)}.`
         : undefined,
     note: touched && note.trim().length < 10 ? 'Explain the decision in at least 10 characters. Both sides will see it.' : undefined,
   };
@@ -100,7 +100,7 @@ export function DisputeDecisionForm({ job }: { job: Job }) {
       </fieldset>
 
       <Field
-        label="Repair amount to settle (USD)"
+        label="Repair amount to settle (RWF)"
         htmlFor={`${id}-amount`}
         error={errors.amount}
         hint="The visit fee is separate and already paid."

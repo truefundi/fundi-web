@@ -26,9 +26,9 @@ export function visitFeeSplit(job: Job, commissionRate = COMMISSION_RATE) {
 }
 
 export function formatMoney(amount: number): string {
-  // Whole amounts as "$75", others always with cents: "$22.50", never "$22.5".
+  // Backend money amounts are denominated in Rwandan francs.
   const digits = Number.isInteger(amount) ? 0 : 2;
-  return `$${amount.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+  return `RWF ${amount.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
 }
 
 /** How long since a moment, in plain words: "12 min", "2 h 5 min", "3 d 4 h". */
@@ -70,5 +70,5 @@ const UNPAID: JobStatus[] = ['REQUESTED', 'MATCHING', 'OFFERED', 'ACCEPTED'];
 export const canEdit = (job: Job) => UNPAID.includes(job.status);
 
 /** Jobs with money involved are never deleted, only cancelled, so the record stays traceable. */
-export const canDelete = (job: Job) => UNPAID.includes(job.status) || (job.status === 'CANCELLED' && !job.visitPaymentMethod);
+export const canDelete = (job: Job) => ['REQUESTED', 'MATCHING', 'OFFERED', 'CANCELLED'].includes(job.status);
 export const canCancel = (job: Job) => job.status !== 'COMPLETED' && job.status !== 'CANCELLED';

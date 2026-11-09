@@ -6,7 +6,7 @@ export interface Service {
   name: string;
   category: ServiceGroup;
   description: string;
-  /** Visit/diagnostic fee in USD (Project Description §8: configurable, not hard-coded). */
+  /** Visit/diagnostic fee in RWF (Project Description §8: configurable, not hard-coded). */
   visitFee: number;
   /** Visit fee when the customer marks the request as an emergency. */
   emergencyVisitFee: number;

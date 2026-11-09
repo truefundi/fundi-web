@@ -1,6 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { env } from '@/config/env';
+import { adsApi } from '@/lib/api/endpoints/ads';
 import { products } from '@/components/landing/content';
 import type { LandingAd, LandingAdInput } from '@/types/landing-ad';
 
@@ -28,8 +31,8 @@ interface LandingAdsContextValue {
   nextProductId: number;
   isLoaded: boolean;
   storageError: string | null;
-  saveAd: (input: LandingAdInput, id?: string) => LandingAd;
-  deleteAd: (id: string) => void;
+  saveAd: (input: LandingAdInput, id?: string) => Promise<LandingAd>;
+  deleteAd: (id: string) => Promise<void>;
 }
 
 const LandingAdsContext = createContext<LandingAdsContextValue | null>(null);
@@ -100,7 +103,9 @@ function parseAds(value: string): StoredAds {
 }
 
 export function LandingAdsProvider({ children }: { children: React.ReactNode }) {
-  const [ads, setAds] = useState(DEFAULT_ADS);
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith('/admin');
+  const [ads, setAds] = useState<LandingAd[]>(env.useMocks ? DEFAULT_ADS : []);
   const [nextProductId, setNextProductId] = useState(
     Math.max(...DEFAULT_ADS.map((ad) => ad.productId)) + 1,
   );
@@ -108,6 +113,7 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
   const [storageError, setStorageError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!env.useMocks) return;
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored !== null) {
@@ -123,6 +129,7 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   useEffect(() => {
+    if (!env.useMocks) return;
     function handleStorage(event: StorageEvent) {
       if (event.key !== STORAGE_KEY) return;
       if (event.newValue === null) {
@@ -145,6 +152,21 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  useEffect(() => {
+    if (env.useMocks) return;
+    let active = true;
+    setIsLoaded(false);
+    adsApi.list(isAdmin).then((items) => {
+      if (!active) return;
+      setAds(items);
+      setNextProductId(Math.max(0, ...items.map((ad) => ad.productId)) + 1);
+      setStorageError(null);
+    }).catch((cause) => {
+      if (active) setStorageError(cause instanceof Error ? cause.message : 'Could not load ads.');
+    }).finally(() => { if (active) setIsLoaded(true); });
+    return () => { active = false; };
+  }, [isAdmin]);
+
   const persist = useCallback((nextAds: LandingAd[], nextId: number) => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ads: nextAds, nextProductId: nextId }));
     setAds(nextAds);
@@ -152,9 +174,15 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
     setStorageError(null);
   }, []);
 
-  const saveAd = useCallback((input: LandingAdInput, id?: string) => {
+  const saveAd = useCallback(async (input: LandingAdInput, id?: string) => {
     const existing = ads.find((ad) => ad.id === id);
     const productId = existing?.productId ?? nextProductId;
+    if (!env.useMocks) {
+      const saved = await adsApi.save(input, productId, id);
+      setAds((current) => existing ? current.map((ad) => ad.id === id ? saved : ad) : [...current, saved]);
+      if (!existing) setNextProductId(productId + 1);
+      return saved;
+    }
     const adId = existing?.id ?? `product-${productId}`;
     const savedAd: LandingAd = { ...input, id: adId, productId };
     const nextAds = existing
@@ -164,7 +192,12 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
     return savedAd;
   }, [ads, nextProductId, persist]);
 
-  const deleteAd = useCallback((id: string) => {
+  const deleteAd = useCallback(async (id: string) => {
+    if (!env.useMocks) {
+      await adsApi.remove(id);
+      setAds((current) => current.filter((ad) => ad.id !== id));
+      return;
+    }
     persist(ads.filter((ad) => ad.id !== id), nextProductId);
   }, [ads, nextProductId, persist]);
 

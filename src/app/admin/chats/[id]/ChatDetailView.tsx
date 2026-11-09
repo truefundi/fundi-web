@@ -1,5 +1,6 @@
 'use client';
 
+import { env } from '@/config/env';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -69,6 +70,9 @@ function Outcome({ chat }: { chat: Conversation }) {
       </div>
     );
   }
+  if (chat.status === 'pending' || chat.status === 'expired') {
+    return <p className="text-sm text-slate-600">{chat.status === 'pending' ? 'Waiting for the technician to accept the request.' : 'This negotiation has expired.'}</p>;
+  }
   if (chat.status === 'declined') {
     return (
       <div className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -92,7 +96,7 @@ function Outcome({ chat }: { chat: Conversation }) {
     <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
       <MessagesSquare className="h-5 w-5 shrink-0 text-blue-600" aria-hidden />
       <p className="text-sm text-blue-800">
-        <span className="font-semibold">Still negotiating.</span> No job yet.
+        <span className="font-semibold">Awaiting agreement.</span> The request is linked to a job.
       </p>
     </div>
   );
@@ -184,12 +188,12 @@ export function ChatDetailView({ id }: { id: string }) {
           <CardHeader
             title="Conversation"
             description={
-              chat.adminHasJoined
+              !env.useMocks ? 'Review messages between the customer and technician.' : chat.adminHasJoined
                 ? 'Your messages are visible to both the customer and technician.'
                 : 'Join this conversation to view its messages and participate.'
             }
             action={
-              chat.adminHasJoined ? (
+              !env.useMocks ? undefined : chat.adminHasJoined ? (
                 <Button
                   type="button"
                   variant="secondary"
@@ -228,7 +232,7 @@ export function ChatDetailView({ id }: { id: string }) {
                     <Message key={message.id} message={message} chat={chat} />
                   ))}
                 </ol>
-                <form onSubmit={submitMessage} className="mt-6 space-y-3 border-t border-slate-100 pt-4">
+                {env.useMocks && <form onSubmit={submitMessage} className="mt-6 space-y-3 border-t border-slate-100 pt-4">
                   <label htmlFor="admin-chat-message" className="sr-only">
                     Message both participants
                   </label>
@@ -252,7 +256,7 @@ export function ChatDetailView({ id }: { id: string }) {
                       Send message
                     </Button>
                   </div>
-                </form>
+                </form>}
               </>
             )}
           </CardBody>

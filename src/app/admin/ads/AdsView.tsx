@@ -20,20 +20,20 @@ export function AdsView() {
     setFormOpen(true);
   }
 
-  function toggleActive(ad: LandingAd) {
+  async function toggleActive(ad: LandingAd) {
     try {
       const { id, ...input } = ad;
-      saveAd({ ...input, isActive: !ad.isActive }, id);
+      await saveAd({ ...input, isActive: !ad.isActive }, id);
       setActionError('');
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : 'Could not update the landing ad.');
     }
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleting) return;
     try {
-      deleteAd(deleting.id);
+      await deleteAd(deleting.id);
       setDeleting(null);
       setActionError('');
     } catch (cause) {

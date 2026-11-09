@@ -1,3 +1,4 @@
+import { api, unwrap } from '../client';
 import { env } from '@/config/env';
 import { delay, mockDb } from '@/mocks/mock-db';
 import type { BroadcastInput, BroadcastPreview, BroadcastRecord } from '@/types/broadcast';
@@ -21,19 +22,22 @@ function previewFor(input: BroadcastInput['audience']): BroadcastPreview {
 
 export const broadcastsApi = {
   async preview(audience: BroadcastInput['audience']): Promise<BroadcastPreview> {
-    if (!env.useMocks) throw new Error('Broadcast previews are only available in mock mode until a delivery backend is connected.');
+    if (!env.useMocks) return unwrap(api.post('/admin/broadcasts/preview', audience));
     await delay();
     return previewFor(audience);
   },
 
   async list(): Promise<BroadcastRecord[]> {
-    if (!env.useMocks) throw new Error('Broadcast history is only available in mock mode until a delivery backend is connected.');
+    if (!env.useMocks) {
+      const response = await unwrap(api.get<{ items: BroadcastRecord[] }>('/admin/broadcasts', { query: { limit: 100 } }));
+      return response.items;
+    }
     await delay();
     return [...mockDb.broadcasts].reverse();
   },
 
   async send(input: BroadcastInput): Promise<BroadcastRecord> {
-    if (!env.useMocks) throw new Error('Broadcast delivery is not configured. Enable mock mode to simulate a broadcast.');
+    if (!env.useMocks) return unwrap(api.post('/admin/broadcasts', input));
     await delay();
     const preview = previewFor(input.audience);
     const record: BroadcastRecord = {

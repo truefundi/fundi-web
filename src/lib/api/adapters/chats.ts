@@ -1,67 +1,33 @@
 import type { ChatMessage, Conversation, ConversationStatus } from '@/types/chat';
 
-function mapBackendMessage(msg: any): ChatMessage {
-  const senderRole = (msg.senderRole || msg.sender || '').toLowerCase();
-  let sender: 'customer' | 'technician' | 'admin' | 'system' = 'customer';
-  if (senderRole.includes('tech')) sender = 'technician';
-  else if (senderRole.includes('admin')) sender = 'admin';
-  else if (senderRole.includes('sys')) sender = 'system';
-
-  return {
-    id: msg.id,
-    sender,
-    senderName: msg.senderName || msg.sender?.fullName,
-    text: msg.text || msg.body || msg.message || '',
-    at: typeof msg.createdAt === 'string' ? msg.createdAt : msg.createdAt?.toISOString?.() ?? (typeof msg.at === 'string' ? msg.at : new Date().toISOString()),
-  };
+export interface BackendConversation {
+  id: string;
+  jobId: string;
+  status: string;
+  request: { service: string | null; description: string };
+  customer: { id: string; fullName: string; phoneNumber: string };
+  technician: { id: string; fullName: string; phoneNumber: string } | null;
+  declineReason: string | null;
+  startedAt: string;
+  lastMessageAt: string;
+  messages: { id: string; senderRole: string; text: string | null; createdAt: string }[];
 }
 
-export function mapBackendConversation(conv: any): Conversation {
-  if (!conv) {
-    return {
-      id: '',
-      status: 'negotiating',
-      service: 'Unspecified',
-      problem: '',
-      customer: { id: '', name: '—', phone: '' },
-      technician: { id: '', name: '—', phone: '' },
-      startedAt: new Date().toISOString(),
-      lastMessageAt: new Date().toISOString(),
-      messages: [],
-    };
-  }
-
-  // Already adapted
-  if ('customer' in conv && 'name' in conv.customer) {
-    return conv as Conversation;
-  }
-
-  const rawStatus = (conv.status || '').toUpperCase();
-  let status: ConversationStatus = 'negotiating';
-  if (rawStatus === 'AGREED') status = 'agreed';
-  else if (rawStatus === 'DECLINED' || rawStatus === 'CANCELLED' || rawStatus === 'EXPIRED') status = 'declined';
-
+export function mapBackendConversation(conv: BackendConversation): Conversation {
   return {
     id: conv.id,
-    status,
-    service: conv.request?.service || conv.service || 'General Service',
-    problem: conv.request?.description || conv.problem || '',
-    customer: {
-      id: conv.customer?.id ?? '',
-      name: conv.customer?.fullName ?? conv.customer?.name ?? 'Customer',
-      phone: conv.customer?.phoneNumber ?? conv.customer?.phone ?? '',
-    },
-    technician: {
-      id: conv.technician?.id ?? '',
-      name: conv.technician?.fullName ?? conv.technician?.name ?? 'Technician',
-      phone: conv.technician?.phoneNumber ?? conv.technician?.phone ?? '',
-    },
-    jobId: conv.jobId,
-    jobReference: conv.jobId ? conv.jobId.slice(0, 8).toUpperCase() : undefined,
+    status: ({ PENDING: 'pending', NEGOTIATING: 'negotiating', AGREED: 'agreed', DECLINED: 'declined', EXPIRED: 'expired' } satisfies Record<string, ConversationStatus>)[conv.status as 'PENDING' | 'NEGOTIATING' | 'AGREED' | 'DECLINED' | 'EXPIRED'] ?? 'pending',
+    service: conv.request.service || 'General Service', problem: conv.request.description,
+    customer: { id: conv.customer.id, name: conv.customer.fullName, phone: conv.customer.phoneNumber },
+    technician: { id: conv.technician?.id ?? '', name: conv.technician?.fullName ?? 'Unassigned', phone: conv.technician?.phoneNumber ?? '' },
+    jobId: conv.jobId, jobReference: conv.jobId.slice(0, 8).toUpperCase(),
     declineReason: conv.declineReason ?? undefined,
-    startedAt: typeof conv.startedAt === 'string' ? conv.startedAt : conv.startedAt?.toISOString?.() ?? new Date().toISOString(),
-    lastMessageAt: typeof conv.lastMessageAt === 'string' ? conv.lastMessageAt : conv.lastMessageAt?.toISOString?.() ?? new Date().toISOString(),
-    messages: (conv.messages || []).map(mapBackendMessage),
+    startedAt: conv.startedAt, lastMessageAt: conv.lastMessageAt,
+    messages: conv.messages.map((message): ChatMessage => ({
+      id: message.id,
+      sender: message.senderRole === 'TECHNICIAN' ? 'technician' : message.senderRole === 'CUSTOMER' ? 'customer' : 'system',
+      text: message.text ?? '', at: message.createdAt,
+    })),
     adminHasJoined: true,
   };
 }

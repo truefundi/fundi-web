@@ -82,7 +82,7 @@ function validateJobLocationAndPayment(
     throw new ApiError('Please provide a valid longitude.', 400);
   }
 
-  if (!Number.isFinite(input.offeredAmount) || input.offeredAmount <= 0) {
+  if (!Number.isInteger(input.offeredAmount) || input.offeredAmount <= 0 || input.offeredAmount > 2_000_000_000) {
     throw new ApiError('Please enter a valid technician payment amount.', 400);
   }
 }
@@ -107,8 +107,8 @@ async function getBackendCategoryId(serviceName: string): Promise<string> {
   return selectedService.id;
 }
 
-function backendPriority(urgency: Urgency): 'NORMAL' | 'URGENT' {
-  return urgency === 'Emergency' ? 'URGENT' : 'NORMAL';
+function backendPriority(urgency: Urgency): 'NORMAL' | 'HIGH' | 'URGENT' {
+  return urgency === 'Emergency' ? 'URGENT' : urgency === 'Today' ? 'HIGH' : 'NORMAL';
 }
 
 export const jobsApi = {
@@ -282,8 +282,13 @@ export const jobsApi = {
 
       const categoryId = await getBackendCategoryId(jobInput.service);
 
+      if (!jobInput.paymentId || !jobInput.phoneVerificationId) {
+        throw new ApiError('A valid booking payment and verified phone reference are required for this customer.', 400);
+      }
       const payload = {
         customerId: jobInput.customerId,
+        paymentId: jobInput.paymentId,
+        phoneVerificationId: jobInput.phoneVerificationId,
         serviceCategoryId: categoryId,
         description: jobInput.problem.trim(),
         locationAddress: jobInput.location.trim(),
@@ -415,10 +420,10 @@ export const jobsApi = {
 
   async rate(_jobId: string, _rating: Rating): Promise<Job> {
     if (!env.useMocks) {
-      throw new ApiError(
-        'Job rating is not currently supported by the backend API.',
-        501,
-      );
+      const response = await unwrap(api.post(`/admin/jobs/${_jobId}/rating`, {
+        ..._rating, overall: Math.round(_rating.overall),
+      }));
+      return mapBackendJob(response as Parameters<typeof mapBackendJob>[0]);
     }
 
     await delay();

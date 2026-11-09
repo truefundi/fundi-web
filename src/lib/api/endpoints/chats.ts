@@ -1,6 +1,6 @@
 import { env } from '@/config/env';
 import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
-import { mapBackendConversation } from '@/lib/api/adapters/chats';
+import { mapBackendConversation, type BackendConversation } from '@/lib/api/adapters/chats';
 import type { ChatMessage, Conversation, ConversationQuery } from '@/types/chat';
 import { api, ApiError, unwrap } from '../client';
 
@@ -15,7 +15,7 @@ function matchesSearch(chat: Conversation, search?: string): boolean {
 export const chatsApi = {
   async list(query: ConversationQuery = {}, adminId?: string): Promise<Conversation[]> {
     if (!env.useMocks) {
-      const response = await unwrap<any>(api.get('/admin/conversations', { query: { ...query } }));
+      const response = await unwrap<{ data: BackendConversation[] }>(api.get('/admin/conversations', { query: { search: query.search?.trim() || undefined, status: query.status?.toUpperCase() } }));
       const rawList = Array.isArray(response) ? response : response?.data || [];
       return rawList.map(mapBackendConversation);
     }
@@ -32,7 +32,7 @@ export const chatsApi = {
 
   async get(id: string, adminId?: string): Promise<Conversation> {
     if (!env.useMocks) {
-      const response = await unwrap<any>(api.get(`/admin/conversations/${id}`));
+      const response = await unwrap<BackendConversation>(api.get(`/admin/conversations/${id}`));
       return mapBackendConversation(response);
     }
     await delay();

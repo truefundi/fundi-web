@@ -1,4 +1,4 @@
-import type { DisputeOutcome, Job, JobParty, JobStatus, Urgency } from '@/types/job';
+import type { DisputeOutcome, Job, JobParty, JobStatus, Urgency, Rating } from '@/types/job';
 
 export type BackendJob = {
   id: string;
@@ -15,6 +15,8 @@ export type BackendJob = {
   createdAt: string;
   updatedAt: string;
   completedAt?: string | null;
+  rating?: Rating | null;
+  bookingPayment?: { amount: number } | null;
   cancellationReason?: string | null;
   customer?: {
     id: string;
@@ -43,9 +45,9 @@ export type BackendJob = {
 const statusMap: Record<BackendJob['status'], JobStatus> = {
   OPEN: 'REQUESTED',
   ASSIGNED: 'ACCEPTED',
-  PAUSED: 'REPAIR_IN_PROGRESS',
+  PAUSED: 'PAUSED',
   COMPLETED: 'COMPLETED',
-  FAILED: 'CANCELLED',
+  FAILED: 'FAILED',
   CANCELLED: 'CANCELLED',
 };
 
@@ -66,82 +68,36 @@ function mapDisputeOutcome(outcome?: string): DisputeOutcome {
   return 'partial';
 }
 
-export function mapBackendJob(job: BackendJob | any): Job {
-  if (!job) {
-    return {
-      id: '',
-      reference: '',
-      service: 'Unspecified service',
-      problem: '',
-      urgency: 'Schedule',
-      location: '',
-      customer: { id: '', name: '—', phone: '' },
-      status: 'REQUESTED',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      visitFee: 0,
-      events: [],
-    };
-  }
-
-  // Already a mapped Job
-  if ('customer' in job && 'events' in job && 'problem' in job) {
-    return job as Job;
-  }
-
+export function mapBackendJob(job: BackendJob): Job {
   const customer: JobParty = {
-    id: job.customer?.id ?? '',
-    name: job.customer?.fullName ?? job.customer?.name ?? 'Unknown customer',
-    phone: job.customer?.phoneNumber ?? job.customer?.phone ?? '',
+    id: job.customer?.id ?? '', name: job.customer?.fullName ?? 'Unknown customer',
+    phone: job.customer?.phoneNumber ?? '',
   };
-
-  const technician: JobParty | undefined = job.currentTechnician
-    ? {
-        id: job.currentTechnician.id,
-        name: job.currentTechnician.fullName || job.currentTechnician.name || 'Technician',
-        phone: job.currentTechnician.phoneNumber || job.currentTechnician.phone || '',
-      }
-    : job.technician
-      ? {
-          id: job.technician.id,
-          name: job.technician.fullName || job.technician.name || 'Technician',
-          phone: job.technician.phoneNumber || job.technician.phone || '',
-        }
-      : undefined;
-
-  const dispute = job.dispute
-    ? {
-        reason: job.dispute.reason,
-        openedBy: (job.dispute.openedBy?.toLowerCase?.() === 'technician' ? 'technician' : 'customer') as 'customer' | 'technician',
-        openedAt: typeof job.dispute.openedAt === 'string' ? job.dispute.openedAt : new Date().toISOString(),
-        resolution: job.dispute.resolution
-          ? {
-              outcome: mapDisputeOutcome(job.dispute.resolution.outcome),
-              amount: job.dispute.resolution.amount ?? 0,
-              note: job.dispute.resolution.note ?? '',
-              resolvedAt: typeof job.dispute.resolution.resolvedAt === 'string' ? job.dispute.resolution.resolvedAt : new Date().toISOString(),
-              resolvedBy: job.dispute.resolution.resolvedBy ?? 'Admin',
-            }
-          : undefined,
-      }
-    : undefined;
-
   return {
-    id: job.id,
-    reference: job.id,
-    service: job.service ?? 'Unspecified service',
-    problem: job.description ?? job.problem ?? '',
-    urgency: mapUrgency(job.priority),
-    location: job.location?.address ?? job.location ?? '',
-    customer,
-    technician,
-    status: statusMap[job.status as BackendJob['status']] ?? job.status ?? 'REQUESTED',
-    createdAt: typeof job.createdAt === 'string' ? job.createdAt : new Date().toISOString(),
-    updatedAt: typeof job.updatedAt === 'string' ? job.updatedAt : new Date().toISOString(),
-    visitFee: 0,
+    id: job.id, reference: job.id, service: job.service ?? 'Unspecified service',
+    problem: job.description ?? '', urgency: mapUrgency(job.priority),
+    location: job.location?.address ?? '', customer,
+    latitude: job.location?.latitude ?? undefined,
+    longitude: job.location?.longitude ?? undefined,
+    offeredAmount: job.offeredAmount ?? undefined,
+    technician: job.currentTechnician ? {
+      id: job.currentTechnician.id, name: job.currentTechnician.fullName, phone: '',
+    } : undefined,
+    status: statusMap[job.status], createdAt: job.createdAt, updatedAt: job.updatedAt,
+    visitFee: job.bookingPayment?.amount ?? 0,
     completedAt: job.completedAt ?? undefined,
     cancellationReason: job.cancellationReason ?? undefined,
-    dispute,
+    rating: job.rating ?? undefined,
+    dispute: job.dispute ? {
+      reason: job.dispute.reason,
+      openedBy: job.dispute.openedBy.toLowerCase() === 'technician' ? 'technician' : 'customer',
+      openedAt: job.dispute.openedAt,
+      resolution: job.dispute.resolution ? {
+        ...job.dispute.resolution,
+        outcome: mapDisputeOutcome(job.dispute.resolution.outcome),
+        resolvedBy: job.dispute.resolution.resolvedBy ?? 'Admin',
+      } : undefined,
+    } : undefined,
     events: [],
   };
 }

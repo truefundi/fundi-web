@@ -25,4 +25,6 @@ export interface BroadcastRecord extends BroadcastInput, BroadcastPreview {
   id: string;
   createdAt: string;
   mode: 'simulated' | 'queued';
+  status?: 'SENT' | 'PARTIAL' | 'FAILED';
+  error?: string | null;
 }

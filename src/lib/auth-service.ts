@@ -37,10 +37,15 @@ export const authService = {
       body: JSON.stringify({ email, otp }),
     }),
 
+  changePassword: (currentPassword: string, newPassword: string) =>
+    fetchApi<{ message: string; sessionsRevoked: boolean }>('/auth/admin/change-password', {
+      method: 'POST', body: JSON.stringify({ currentPassword, newPassword }),
+    }),
+
   me: () => fetchApi<AdminUser>('/auth/admin/me'),
 
   refresh: () =>
-    fetchApi<{ message: string }>('/auth/admin/refresh', {
+    fetchApi<VerifyResponse>('/auth/admin/refresh', {
       method: 'POST',
     }),
 

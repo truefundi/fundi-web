@@ -14,6 +14,7 @@ import {
 } from '@/components/ui';
 import { useCreateJob, useUpdateJob } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
+import { env } from '@/config/env';
 import { useCustomers } from '@/hooks/useCustomers';
 import {
   getServiceGroup,
@@ -36,6 +37,8 @@ type JobFormInput = JobInput & {
 
 const EMPTY: JobFormInput = {
   customerId: '',
+  paymentId: '',
+  phoneVerificationId: '',
   partyType: 'customer',
   service: '',
   problem: '',
@@ -55,12 +58,18 @@ function validate(input: JobFormInput, isNew: boolean): Errors {
     errors.customerId = 'Choose a customer.';
   }
 
+  if (isNew && !env.useMocks) {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuid.test(input.paymentId ?? '')) errors.paymentId = 'Enter a valid booking payment ID.';
+    if (!uuid.test(input.phoneVerificationId ?? '')) errors.phoneVerificationId = 'Enter a verified phone reference ID.';
+  }
+
   if (!input.service) {
     errors.service = 'Choose a service.';
   }
 
-  if (input.problem.trim().length < 5) {
-    errors.problem = 'Describe the problem in a few words.';
+  if (input.problem.trim().length < 10 || input.problem.trim().length > 5000) {
+    errors.problem = 'Describe the problem in 10–5000 characters.';
   }
 
   if (input.location.trim().length < 3) {
@@ -68,8 +77,8 @@ function validate(input: JobFormInput, isNew: boolean): Errors {
   }
 
   if (
-    !Number.isFinite(input.offeredAmount) ||
-    input.offeredAmount <= 0
+    !Number.isInteger(input.offeredAmount) ||
+    input.offeredAmount <= 0 || input.offeredAmount > 2_000_000_000
   ) {
     errors.offeredAmount = 'Enter a valid amount for the technician.';
   }
@@ -137,6 +146,9 @@ export function JobFormDialog({
             problem: job.problem,
             urgency: job.urgency,
             location: job.location,
+            latitude: job.latitude ?? 0,
+            longitude: job.longitude ?? 0,
+            offeredAmount: job.offeredAmount ?? 0,
           }
         : EMPTY,
     );
@@ -228,7 +240,7 @@ export function JobFormDialog({
             offeredAmount,
             latitude,
             longitude,
-          } as never,
+          },
         },
         {
           onSuccess: () => {
@@ -406,6 +418,21 @@ export function JobFormDialog({
             </Select>
           </Field>
         </div>
+
+        {isNew && !env.useMocks && (
+          <>
+            <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+              This customer must first pay the booking fee and verify their phone in the Fundi app.
+              Use their unused payment and phone verification references to create the job.
+            </p>
+            <Field label="Booking payment ID" htmlFor={`${id}-payment`} error={errors.paymentId}>
+              <Input id={`${id}-payment`} value={input.paymentId ?? ''} onChange={(event) => set('paymentId', event.target.value.trim())} />
+            </Field>
+            <Field label="Verified phone reference ID" htmlFor={`${id}-verification`} error={errors.phoneVerificationId}>
+              <Input id={`${id}-verification`} value={input.phoneVerificationId ?? ''} onChange={(event) => set('phoneVerificationId', event.target.value.trim())} />
+            </Field>
+          </>
+        )}
 
         <Field
           label="Problem description"

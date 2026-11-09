@@ -1,5 +1,6 @@
 import { env } from '@/config/env';
 import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
+import { mapBackendConversation, type BackendConversation } from '@/lib/api/adapters/chats';
 import { mapBackendJob, type BackendJob } from '@/lib/api/adapters/jobs';
 import type { Conversation } from '@/types/chat';
 import { DISPUTE_OUTCOME_LABEL, JOB_STATUS_LABEL, type DisputeOutcome, type Job } from '@/types/job';
@@ -53,10 +54,10 @@ export const disputesApi = {
 
   async get(jobId: string): Promise<DisputeCase> {
     if (!env.useMocks) {
-      const response = await unwrap<{ job: BackendJob; chat?: Conversation }>(api.get(`/admin/disputes/${jobId}`));
+      const response = await unwrap<{ job: BackendJob; chat?: BackendConversation | null }>(api.get(`/admin/disputes/${jobId}`));
       return {
         job: mapBackendJob(response.job),
-        chat: response.chat,
+        chat: response.chat ? mapBackendConversation(response.chat) : undefined,
       };
     }
     await delay();

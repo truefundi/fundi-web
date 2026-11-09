@@ -49,8 +49,8 @@ function validate(input: ServiceFormValues): Errors {
     errors.description = 'Describe the service in a few words.';
   }
 
-  if (!Number.isFinite(input.visitFee) || input.visitFee <= 0) {
-    errors.visitFee = 'Enter a booking fee above 0.';
+  if (!Number.isInteger(input.visitFee) || input.visitFee < 0) {
+    errors.visitFee = 'Enter a whole booking fee of 0 or more.';
   }
 
   return errors;
@@ -231,15 +231,15 @@ export function ServiceFormDialog({
         </Field>
 
         <Field
-          label="Booking Fee (USD)"
+          label="Booking Fee (RWF)"
           htmlFor={`${id}-fee`}
           error={errors.visitFee}
         >
           <Input
             id={`${id}-fee`}
             type="number"
-            min={0.01}
-            step="0.01"
+            min={0}
+            step="1"
             value={
               Number.isNaN(input.visitFee) ? '' : input.visitFee
             }

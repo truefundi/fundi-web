@@ -1,58 +1,12 @@
+import { request, setUnauthorizedHandler } from './api/client';
+export { setUnauthorizedHandler };
+export type { ApiResponse } from '@/types/api';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
-
-export interface ApiResponse<T = unknown> {
-  data?: T;
-  error?: string;
-  statusCode?: number;
-}
-
-let onUnauthorized: (() => void) | null = null;
-
-export function setUnauthorizedHandler(handler: () => void) {
-  onUnauthorized = handler;
-}
-
-export async function fetchApi<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
-        ...options.headers,
-      },
-    });
-
-    const data = await response.json().catch(() => ({}));
-
-    if (response.status === 401) {
-      onUnauthorized?.();
-    }
-
-    if (!response.ok) {
-      const message = data.message || data.error || 'An error occurred while fetching data';
-
-      return {
-        error: Array.isArray(message) ? message.join(', ') : message,
-        statusCode: response.status,
-      };
-    }
-
-    return { data, statusCode: response.status };
-  } catch (err) {
-    return {
-      error:
-        (err instanceof Error && err.message) ||
-        'Network error, failed to reach Fundi API server',
-      statusCode: 500,
-    };
-  }
+// Compatibility entry point for authentication; all requests share session handling.
+export function fetchApi<T>(endpoint: string, options: RequestInit = {}) {
+  const { body, ...init } = options;
+  return request<T>(endpoint, {
+    ...init,
+    body: typeof body === 'string' ? JSON.parse(body) : body,
+  });
 }

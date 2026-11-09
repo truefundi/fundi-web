@@ -13,8 +13,6 @@ import {
 import {
   Button,
   Card,
-  CardBody,
-  CardHeader,
   Field,
   Input,
   Modal,
@@ -86,14 +84,12 @@ export function BroadcastsView() {
   const history = useBroadcasts();
   const send = useSendBroadcast();
 
-  const [localBroadcasts, setLocalBroadcasts] = useState<MockBroadcast[]>([]);
 
   const historyData = history.data as MockBroadcast[] | undefined;
   const historyRecords: MockBroadcast[] =
-    historyData && historyData.length > 0 ? historyData : MOCK_BROADCASTS;
+    historyData ?? (env.useMocks ? MOCK_BROADCASTS : []);
 
   const broadcasts: MockBroadcast[] = [
-    ...localBroadcasts,
     ...historyRecords,
   ].sort(
     (a, b) =>
@@ -137,13 +133,6 @@ export function BroadcastsView() {
     setError('');
     setSuccess('');
 
-    if (!env.useMocks) {
-      setError(
-        'Broadcast delivery is not configured yet. Enable mock mode to simulate a broadcast.',
-      );
-      return;
-    }
-
     if (title.trim().length < 2) {
       setError('The notification title must contain at least 2 characters.');
       return;
@@ -182,21 +171,10 @@ export function BroadcastsView() {
         channels,
       });
 
-      const newBroadcast: MockBroadcast = {
-        id: `local-${Date.now()}`,
-        title: title.trim(),
-        message: message.trim(),
-        audience: { roles: [...roles], status: 'active' },
-        channels: [...channels],
-        createdAt: new Date().toISOString(),
-        userCount: result.userCount,
-        smsRecipientCount: result.smsRecipientCount,
-        inAppRecipientCount: result.inAppRecipientCount,
-      };
-
-      setLocalBroadcasts((current) => [newBroadcast, ...current]);
       setSuccess(
-        `Simulation saved for ${result.userCount} active users. No messages were delivered.`,
+        env.useMocks
+          ? `Simulation saved for ${result.userCount} active users. No messages were delivered.`
+          : `Broadcast ${result.status?.toLowerCase() ?? 'sent'} for ${result.userCount} active users.${result.error ? ` ${result.error}` : ''}`,
       );
 
       setTitle('');
@@ -377,7 +355,6 @@ export function BroadcastsView() {
               type="submit"
               loading={send.isPending}
               disabled={
-                !env.useMocks ||
                 preview.isLoading ||
                 preview.isError ||
                 !preview.data?.userCount
@@ -399,7 +376,7 @@ export function BroadcastsView() {
           </h2>
         </div>
 
-        {history.isError && localBroadcasts.length === 0 ? (
+        {history.isError ? (
           <Card className="p-4 text-sm text-red-700 border-red-200 bg-red-50" role="alert">
             {history.error.message}
           </Card>

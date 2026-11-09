@@ -37,6 +37,7 @@ interface AuthContextValue {
   verifyDevOtp: (otp: string) => Promise<ActionResult>;
   verifyCode: (code: string) => Promise<ActionResult>;
   logout: () => void;
+  reloadUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -93,12 +94,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthenticatorSetup(null);
       setDevOtpEmail(null);
       setDevOtp(null);
-      router.replace('/login');
+      if (window.location.pathname.startsWith('/admin') || window.location.pathname === '/dashboard') {
+        router.replace('/login');
+      }
     };
 
     setUnauthorizedHandler(handleUnauthorized);
 
-    return () => setUnauthorizedHandler(() => undefined);
+    return () => setUnauthorizedHandler(null);
   }, [router]);
 
   const login = async (
@@ -221,6 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifyDevOtp,
         verifyCode,
         logout,
+        reloadUser: async () => { const { data } = await authService.me(); if (data) setUser(data); },
       }}
     >
       {children}

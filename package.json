@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "dev:open": "node scripts/dev-open.mjs",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint ."
+    "start": "next start -p 3001",
+    "lint": "eslint .",
+    "test:api": "node --test scripts/test-api-contracts.cjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",

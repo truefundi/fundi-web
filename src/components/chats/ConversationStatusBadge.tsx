@@ -2,6 +2,8 @@ import { Badge, type BadgeTone } from '@/components/ui';
 import { CONVERSATION_STATUS_LABEL, type ConversationStatus } from '@/types/chat';
 
 const tones: Record<ConversationStatus, BadgeTone> = {
+  pending: 'warning',
+  expired: 'neutral',
   negotiating: 'info',
   agreed: 'success',
   declined: 'neutral',

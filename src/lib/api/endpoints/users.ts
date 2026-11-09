@@ -12,32 +12,19 @@ export const usersApi = {
   async list(query: UserQuery = {}): Promise<PaginatedResponse<UserRecord>> {
     const { role, page = 1, pageSize = 10, ...filters } = query;
 
-    if (role === "ADMIN") {
-      if (env.useMocks) {
-        await delay();
-        return clone(
-          queryAccounts(mockDb.admins, { ...filters, page, pageSize }),
-        );
-      }
-      const response = await unwrap<{ data: BackendUser[]; pagination: { page: number; limit: number; total: number } }>(
-        api.get('/users', {
-          query: {
-            role: 'ADMIN',
-            search: filters.search,
-            page,
-            limit: pageSize,
-          },
-        }),
-      );
+    if (!env.useMocks) {
+      const response = await unwrap(api.get<{ data: BackendUser[]; pagination: { page: number; limit: number; total: number } }>('/users', {
+        query: { role, search: filters.search, status: filters.status?.toUpperCase(), page, limit: pageSize },
+      }));
       return {
-        items: (response.data || []).map((u) => ({
-          ...mapBackendCustomer(u),
-          role: 'ADMIN' as const,
-        })),
-        total: response.pagination?.total ?? 0,
-        page: response.pagination?.page ?? 1,
-        pageSize: response.pagination?.limit ?? pageSize,
+        items: response.data.map((user) => ({ ...mapBackendCustomer(user), role: user.role })),
+        total: response.pagination.total, page: response.pagination.page, pageSize: response.pagination.limit,
       };
+    }
+
+    if (role === "ADMIN") {
+      await delay();
+      return clone(queryAccounts(mockDb.admins, { ...filters, page, pageSize }));
     }
 
     if (role === "CUSTOMER") {
