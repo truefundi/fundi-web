@@ -130,12 +130,12 @@ export function JobDetailView({ id }: { id: string }) {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{job.reference}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{job.problem || job.service}</h1>
             <JobStatusBadge status={job.status} />
             <UrgencyBadge urgency={job.urgency} />
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            {job.service} · Requested {formatDate(job.createdAt)}
+           {job.service} - Requested {formatDate(job.createdAt)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
