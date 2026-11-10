@@ -16,6 +16,7 @@ export function Logo({ dark = false, href = '/', src }: { dark?: boolean; href?:
         width={120}
         height={40}
         className="h-10 w-auto"
+        style={{ width: 'auto' }}
       />
     </Link>
   );

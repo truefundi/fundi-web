@@ -26,6 +26,9 @@ export type BackendTechnician = {
     publicLocationLabel?: string | null;
   } | null;
   nationalIdNumber?: string | null;
+  gender?: Technician['gender'] | null;
+  paymentMethod?: Technician['paymentMethod'] | null;
+  paymentNumber?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -54,5 +57,9 @@ export function mapBackendTechnician(profile: BackendTechnician): Technician {
     rating: 0, jobsCompleted: 0, isAvailable: profile.availabilityStatus === 'ONLINE',
     verification: { status: VERIFICATION[profile.verificationStatus], certificateUrls: [] },
     workSettings: { radiusKm: 10, maxJobsPerDay: 4, hours: 'always' },
+    gender: profile.gender ?? undefined,
+    nationalIdNumber: profile.nationalIdNumber ?? undefined,
+    paymentMethod: profile.paymentMethod ?? undefined,
+    paymentNumber: profile.paymentNumber ?? undefined,
   };
 }

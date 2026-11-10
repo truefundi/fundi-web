@@ -45,15 +45,23 @@ export interface Technician extends Account {
   isAvailable: boolean;
   verification: TechnicianVerification;
   workSettings: WorkSettings;
+  gender?: 'FEMALE' | 'MALE' | 'NON_BINARY' | 'PREFER_NOT_TO_SAY';
+  nationalIdNumber?: string;
+  paymentMethod?: 'MOMO' | 'BANK_TRANSFER' | 'CASH' | 'OTHER';
+  paymentNumber?: string;
 }
 
 /** What the admin fills in to add a technician; verification starts as "not submitted". */
 export type TechnicianInput = Pick<Technician, 'name' | 'phone' | 'location' | 'trades' | 'yearsExperience'> & {
   email?: string;
   workSettings: WorkSettings;
+  gender: NonNullable<Technician['gender']>;
+  nationalIdNumber: string;
+  paymentMethod: NonNullable<Technician['paymentMethod']>;
+  paymentNumber: string;
 };
 
 /** Fields an admin may edit on a technician profile. */
 export type TechnicianProfilePatch = Partial<
-  Pick<Technician, 'name' | 'phone' | 'email' | 'location' | 'trades' | 'yearsExperience'>
+  Pick<Technician, 'name' | 'phone' | 'email' | 'location' | 'trades' | 'yearsExperience' | 'gender' | 'nationalIdNumber' | 'paymentMethod' | 'paymentNumber'>
 > & { workSettings?: Partial<WorkSettings> };

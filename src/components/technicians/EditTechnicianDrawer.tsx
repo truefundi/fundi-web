@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Field, FilterChip, Input, Modal, Select, useToast } from '@/components/ui';
 import { SERVICE_CATEGORIES, type ServiceCategory } from '@/config/services';
 import { useCreateTechnician, useUpdateTechnician } from '@/hooks/useTechnicians';
+import { technicianDocumentsApi } from '@/lib/api';
 import {
   WORK_HOURS_LABEL,
   type Technician,
@@ -28,6 +29,14 @@ interface FormState {
   radiusKm: number;
   maxJobsPerDay: number;
   hours: WorkHours;
+  profilePicture: File | null;
+  nationalIdDocument: File | null;
+  certificateDocument: File | null;
+  certificateType: 'TVET_CERTIFICATE' | 'DIPLOMA' | 'ADVANCED_DIPLOMA' | 'DEGREE' | 'VIDEO';
+  gender: 'FEMALE' | 'MALE' | 'NON_BINARY' | 'PREFER_NOT_TO_SAY' | '';
+  nationalIdNumber: string;
+  paymentMethod: 'MOMO' | 'BANK_TRANSFER' | 'CASH' | 'OTHER' | '';
+  paymentNumber: string;
 }
 
 type Errors = Partial<Record<keyof FormState, string>>;
@@ -42,6 +51,14 @@ const EMPTY_FORM: FormState = {
   radiusKm: 10,
   maxJobsPerDay: 4,
   hours: 'days',
+  profilePicture: null,
+  nationalIdDocument: null,
+  certificateDocument: null,
+  certificateType: 'TVET_CERTIFICATE',
+  gender: '',
+  nationalIdNumber: '',
+  paymentMethod: '',
+  paymentNumber: '',
 };
 
 function toForm(t?: Technician): FormState {
@@ -56,6 +73,14 @@ function toForm(t?: Technician): FormState {
     radiusKm: t.workSettings?.radiusKm ?? 10,
     maxJobsPerDay: t.workSettings?.maxJobsPerDay ?? 4,
     hours: t.workSettings?.hours ?? 'days',
+    profilePicture: null,
+    nationalIdDocument: null,
+    certificateDocument: null,
+    certificateType: 'TVET_CERTIFICATE',
+    gender: t.gender ?? '',
+    nationalIdNumber: t.nationalIdNumber ?? '',
+    paymentMethod: t.paymentMethod ?? '',
+    paymentNumber: t.paymentNumber ?? '',
   };
 }
 
@@ -67,6 +92,12 @@ function validate(form: FormState): Errors {
   if (form.email && !EMAIL_PATTERN.test(form.email.trim())) errors.email = 'Enter a valid email address.';
   if (!form.location.trim()) errors.location = 'Location is required.';
   if (form.trades.length === 0) errors.trades = 'Select at least one trade.';
+  if (!form.gender) errors.gender = 'Select a gender.';
+  if (!/^\d{16}$/.test(form.nationalIdNumber.replace(/\s/g, ''))) {
+    errors.nationalIdNumber = 'National ID number must contain exactly 16 digits.';
+  }
+  if (!form.paymentMethod) errors.paymentMethod = 'Select a payment method.';
+  if (!form.paymentNumber.trim()) errors.paymentNumber = 'Payment number is required.';
   const years = Number(form.yearsExperience);
   if (!Number.isInteger(years) || years < 0 || years > 60) errors.yearsExperience = 'Enter a whole number from 0 to 60.';
   return errors;
@@ -138,16 +169,40 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
       email: form.email.trim() || undefined,
       location: form.location.trim(),
       trades: form.trades,
+      gender: form.gender as Exclude<FormState['gender'], ''>,
+      nationalIdNumber: form.nationalIdNumber.trim(),
+      paymentMethod: form.paymentMethod as Exclude<FormState['paymentMethod'], ''>,
+      paymentNumber: form.paymentNumber.replace(/\s/g, ''),
       yearsExperience: Number(form.yearsExperience),
       workSettings: { radiusKm: form.radiusKm, maxJobsPerDay: form.maxJobsPerDay, hours: form.hours },
     };
     try {
       if (technician) {
         await update.mutateAsync({ id: technician.id, patch: input });
+        if (form.profilePicture) await technicianDocumentsApi.uploadProfilePicture(technician.id, form.profilePicture);
+        if (form.nationalIdDocument) {
+          await technicianDocumentsApi.uploadDocument(technician.id, form.nationalIdDocument, 'NATIONAL_ID', 'National ID');
+        }
+        if (form.certificateDocument) {
+          await technicianDocumentsApi.uploadDocument(technician.id, form.certificateDocument, 'CERTIFICATE', 'Professional certificate', {
+            certificateType: form.certificateType,
+            customCategoryName: form.trades[0],
+          });
+        }
         toast('Profile updated');
         onClose();
       } else {
         const created = await create.mutateAsync(input);
+        if (form.profilePicture) await technicianDocumentsApi.uploadProfilePicture(created.id, form.profilePicture);
+        if (form.nationalIdDocument) {
+          await technicianDocumentsApi.uploadDocument(created.id, form.nationalIdDocument, 'NATIONAL_ID', 'National ID');
+        }
+        if (form.certificateDocument) {
+          await technicianDocumentsApi.uploadDocument(created.id, form.certificateDocument, 'CERTIFICATE', 'Professional certificate', {
+            certificateType: form.certificateType,
+            customCategoryName: form.trades[0],
+          });
+        }
         toast(`${created.name} added`);
         onClose();
         router.push(`/admin/technicians/${created.id}`);
@@ -225,9 +280,9 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
         </FormSection>
 
         {/* 2. What they do */}
-        <FormSection title="Trades" hint="Select all that apply.">
+        <FormSection title="Jobs they can do" hint="Select every service this technician can perform.">
           <fieldset className="space-y-1.5">
-            <legend className="sr-only">Trades</legend>
+            <legend className="sr-only">Jobs they can do</legend>
             <div className="flex flex-wrap gap-2">
               {SERVICE_CATEGORIES.map((trade) => (
                 <FilterChip
@@ -244,6 +299,33 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
               </p>
             )}
           </fieldset>
+        </FormSection>
+
+        <FormSection title="Identity and payment details" hint="These fields are required by the technician profile API.">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Gender" htmlFor="edit-gender" error={errors.gender}>
+              <Select id="edit-gender" value={form.gender} onChange={(e) => set('gender', e.target.value as FormState['gender'])}>
+                <option value="">Select gender</option>
+                <option value="FEMALE">Female</option>
+                <option value="MALE">Male</option>
+              </Select>
+            </Field>
+            <Field label="National ID number" htmlFor="edit-national-id-number" error={errors.nationalIdNumber}>
+              <Input id="edit-national-id-number" value={form.nationalIdNumber} onChange={(e) => set('nationalIdNumber', e.target.value.replace(/\D/g, '').slice(0, 16))} invalid={!!errors.nationalIdNumber} inputMode="numeric" maxLength={16} placeholder="16-digit National ID" />
+            </Field>
+            <Field label="Payment method" htmlFor="edit-payment-method" error={errors.paymentMethod}>
+              <Select id="edit-payment-method" value={form.paymentMethod} onChange={(e) => set('paymentMethod', e.target.value as FormState['paymentMethod'])}>
+                <option value="">Select payment method</option>
+                <option value="MOMO">Mobile Money</option>
+                <option value="BANK_TRANSFER">Bank transfer</option>
+                <option value="CASH">Cash</option>
+                <option value="OTHER">Other</option>
+              </Select>
+            </Field>
+            <Field label="Payment number" htmlFor="edit-payment-number" error={errors.paymentNumber}>
+              <Input id="edit-payment-number" value={form.paymentNumber} onChange={(e) => set('paymentNumber', e.target.value)} invalid={!!errors.paymentNumber} placeholder="+250788123456" />
+            </Field>
+          </div>
         </FormSection>
 
         {/* 3. How and when they work */}
@@ -291,6 +373,45 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
                   </option>
                 ))}
               </Select>
+            </Field>
+          </div>
+        </FormSection>
+
+        {/* Documents are uploaded after the technician profile has been saved. */}
+        <FormSection title="Verification documents" hint="These files upload last, after the technician profile is created or updated.">
+          <div className="space-y-3">
+            <Field label="Profile picture" htmlFor="technician-profile-picture">
+              <Input
+                id="technician-profile-picture"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => set('profilePicture', event.target.files?.[0] ?? null)}
+              />
+            </Field>
+            <Field label="National ID document" htmlFor="technician-national-id">
+              <Input
+                id="technician-national-id"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={(event) => set('nationalIdDocument', event.target.files?.[0] ?? null)}
+              />
+            </Field>
+            <Field label="Certificate type" htmlFor="technician-certificate-type">
+              <Select id="technician-certificate-type" value={form.certificateType} onChange={(event) => set('certificateType', event.target.value as FormState['certificateType'])}>
+                <option value="TVET_CERTIFICATE">TVET certificate</option>
+                <option value="DIPLOMA">Diploma</option>
+                <option value="ADVANCED_DIPLOMA">Advanced diploma</option>
+                <option value="DEGREE">Degree</option>
+                <option value="VIDEO">Video</option>
+              </Select>
+            </Field>
+            <Field label={`${form.certificateType === 'DIPLOMA' ? 'Diploma' : 'Professional certificate'} (optional)`} htmlFor="technician-certificate">
+              <Input
+                id="technician-certificate"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={(event) => set('certificateDocument', event.target.files?.[0] ?? null)}
+              />
             </Field>
           </div>
         </FormSection>

@@ -7,6 +7,7 @@ import { ArrowLeft, Briefcase, Clock, MapPin, Pencil, Phone, Radar, ShieldCheck,
 import { AccountStatusAction, AccountStatusBadge } from '@/components/accounts/AccountStatus';
 import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDrawer';
 import { VerificationPanel } from '@/components/technicians/VerificationPanel';
+import { TechnicianDocumentsPanel } from '@/components/technicians/TechnicianDocumentsPanel';
 import {
   Avatar,
   Button,
@@ -179,6 +180,7 @@ export function TechnicianDetailView({ id }: { id: string }) {
               />
             </CardBody>
           </Card>
+          <TechnicianDocumentsPanel technicianId={technician.id} />
         </div>
 
         <div className="space-y-6">

@@ -106,6 +106,10 @@ export const techniciansApi = {
         profilePayload.publicLocationLabel = patch.location;
         profilePayload.baseAddress = patch.location;
       }
+      if (patch.gender !== undefined) profilePayload.gender = patch.gender;
+      if (patch.nationalIdNumber !== undefined) profilePayload.nationalIdNumber = patch.nationalIdNumber;
+      if (patch.paymentMethod !== undefined) profilePayload.paymentMethod = patch.paymentMethod;
+      if (patch.paymentNumber !== undefined) profilePayload.paymentNumber = patch.paymentNumber;
       if (patch.trades !== undefined || patch.yearsExperience !== undefined) {
         const trades = patch.trades ?? (await techniciansApi.get(id)).trades;
         profilePayload.serviceExperiences = trades.map((trade) => ({
@@ -179,6 +183,10 @@ export const techniciansApi = {
           email: input.email || undefined,
         },
         profile: {
+          gender: input.gender,
+          nationalIdNumber: input.nationalIdNumber,
+          paymentMethod: input.paymentMethod,
+          paymentNumber: input.paymentNumber,
           publicLocationLabel: input.location,
           baseAddress: input.location,
           serviceExperiences: (input.trades || []).map((trade) => ({

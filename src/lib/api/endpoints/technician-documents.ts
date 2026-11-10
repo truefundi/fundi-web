@@ -30,6 +30,22 @@ export interface VerificationChecklistResponse {
 }
 
 export const technicianDocumentsApi = {
+  async uploadProfilePicture(technicianId: string, file: File): Promise<void> {
+    const form = new FormData();
+    form.append('file', file);
+    await unwrap(api.put(`/admin/technicians/${technicianId}/picture`, form));
+  },
+
+  async uploadDocument(technicianId: string, file: File, type: 'NATIONAL_ID' | 'CERTIFICATE', title: string, options?: { certificateType?: string; customCategoryName?: string }): Promise<TechnicianDocumentRecord> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('type', type);
+    form.append('title', title);
+    if (options?.certificateType) form.append('certificateType', options.certificateType);
+    if (options?.customCategoryName) form.append('customCategoryName', options.customCategoryName);
+    return unwrap(api.post(`/admin/technicians/${technicianId}/documents`, form));
+  },
+
   async list(technicianId: string): Promise<TechnicianDocumentRecord[]> {
     return unwrap(api.get(`/admin/technicians/${technicianId}/documents`));
   },
