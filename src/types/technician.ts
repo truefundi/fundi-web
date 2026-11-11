@@ -38,6 +38,7 @@ export interface WorkSettings {
 }
 
 export interface Technician extends Account {
+  profilePictureUrl?: string;
   trades: ServiceCategory[];
   yearsExperience: number;
   rating: number;

@@ -3,10 +3,12 @@
 import { env } from '@/config/env';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button, Field, FilterChip, Input, Modal, Select, useToast } from '@/components/ui';
 import { SERVICE_CATEGORIES, type ServiceCategory } from '@/config/services';
 import { useCreateTechnician, useUpdateTechnician } from '@/hooks/useTechnicians';
 import { technicianDocumentsApi } from '@/lib/api';
+import { technicianDocumentKeys } from '@/hooks/useTechnicianDocuments';
 import {
   WORK_HOURS_LABEL,
   type Technician,
@@ -32,7 +34,7 @@ interface FormState {
   profilePicture: File | null;
   nationalIdDocument: File | null;
   certificateDocument: File | null;
-  certificateType: 'TVET_CERTIFICATE' | 'DIPLOMA' | 'ADVANCED_DIPLOMA' | 'DEGREE' | 'VIDEO';
+  certificateType: 'TVET_CERTIFICATE' | 'DIPLOMA' | 'ADVANCED_DIPLOMA' | 'DEGREE' | 'SHORT_COURSE' | 'OTHER';
   gender: 'FEMALE' | 'MALE' | 'NON_BINARY' | 'PREFER_NOT_TO_SAY' | '';
   nationalIdNumber: string;
   paymentMethod: 'MOMO' | 'BANK_TRANSFER' | 'CASH' | 'OTHER' | '';
@@ -84,7 +86,7 @@ function toForm(t?: Technician): FormState {
   };
 }
 
-function validate(form: FormState): Errors {
+function validate(form: FormState, isNew: boolean): Errors {
   const errors: Errors = {};
   if (form.name.trim().length < 2) errors.name = 'Name is required.';
   const phone = form.phone.replace(/\s/g, '');
@@ -98,6 +100,8 @@ function validate(form: FormState): Errors {
   }
   if (!form.paymentMethod) errors.paymentMethod = 'Select a payment method.';
   if (!form.paymentNumber.trim()) errors.paymentNumber = 'Payment number is required.';
+  if (isNew && !form.nationalIdDocument) errors.nationalIdDocument = 'National ID document is required.';
+  if (isNew && !form.certificateDocument) errors.certificateDocument = 'Certificate 1 is required.';
   const years = Number(form.yearsExperience);
   if (!Number.isInteger(years) || years < 0 || years > 60) errors.yearsExperience = 'Enter a whole number from 0 to 60.';
   return errors;
@@ -139,6 +143,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
   const update = useUpdateTechnician();
   const create = useCreateTechnician();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const saving = update.isPending || create.isPending;
   const toast = useToast();
 
@@ -159,7 +164,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    const found = validate(form);
+    const found = validate(form, !technician);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
@@ -184,11 +189,15 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
           await technicianDocumentsApi.uploadDocument(technician.id, form.nationalIdDocument, 'NATIONAL_ID', 'National ID');
         }
         if (form.certificateDocument) {
-          await technicianDocumentsApi.uploadDocument(technician.id, form.certificateDocument, 'CERTIFICATE', 'Professional certificate', {
+          await technicianDocumentsApi.uploadDocument(technician.id, form.certificateDocument, 'CERTIFICATE', 'Certificate 1', {
             certificateType: form.certificateType,
             customCategoryName: form.trades[0],
           });
         }
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: technicianDocumentKeys.list(technician.id) }),
+          queryClient.invalidateQueries({ queryKey: technicianDocumentKeys.checklist(technician.id) }),
+        ]);
         toast('Profile updated');
         onClose();
       } else {
@@ -198,7 +207,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
           await technicianDocumentsApi.uploadDocument(created.id, form.nationalIdDocument, 'NATIONAL_ID', 'National ID');
         }
         if (form.certificateDocument) {
-          await technicianDocumentsApi.uploadDocument(created.id, form.certificateDocument, 'CERTIFICATE', 'Professional certificate', {
+          await technicianDocumentsApi.uploadDocument(created.id, form.certificateDocument, 'CERTIFICATE', 'Certificate 1', {
             certificateType: form.certificateType,
             customCategoryName: form.trades[0],
           });
@@ -388,7 +397,7 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
                 onChange={(event) => set('profilePicture', event.target.files?.[0] ?? null)}
               />
             </Field>
-            <Field label="National ID document" htmlFor="technician-national-id">
+            <Field label="National ID document" htmlFor="technician-national-id" error={errors.nationalIdDocument}>
               <Input
                 id="technician-national-id"
                 type="file"
@@ -396,16 +405,17 @@ export function EditTechnicianDrawer({ technician, open, onClose }: EditTechnici
                 onChange={(event) => set('nationalIdDocument', event.target.files?.[0] ?? null)}
               />
             </Field>
-            <Field label="Certificate type" htmlFor="technician-certificate-type">
+            <Field label="Certificate type" htmlFor="technician-certificate-type" hint="An accepted TVET certificate is required for technician approval.">
               <Select id="technician-certificate-type" value={form.certificateType} onChange={(event) => set('certificateType', event.target.value as FormState['certificateType'])}>
                 <option value="TVET_CERTIFICATE">TVET certificate</option>
                 <option value="DIPLOMA">Diploma</option>
                 <option value="ADVANCED_DIPLOMA">Advanced diploma</option>
                 <option value="DEGREE">Degree</option>
-                <option value="VIDEO">Video</option>
+                <option value="SHORT_COURSE">Short course certificate</option>
+                <option value="OTHER">Other certificate</option>
               </Select>
             </Field>
-            <Field label={`${form.certificateType === 'DIPLOMA' ? 'Diploma' : 'Professional certificate'} (optional)`} htmlFor="technician-certificate">
+            <Field label="Certificate 1" htmlFor="technician-certificate" error={errors.certificateDocument}>
               <Input
                 id="technician-certificate"
                 type="file"

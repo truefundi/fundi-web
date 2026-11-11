@@ -29,6 +29,7 @@ export type BackendTechnician = {
   gender?: Technician['gender'] | null;
   paymentMethod?: Technician['paymentMethod'] | null;
   paymentNumber?: string | null;
+  profilePictureUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -61,5 +62,6 @@ export function mapBackendTechnician(profile: BackendTechnician): Technician {
     nationalIdNumber: profile.nationalIdNumber ?? undefined,
     paymentMethod: profile.paymentMethod ?? undefined,
     paymentNumber: profile.paymentNumber ?? undefined,
+    profilePictureUrl: profile.profilePictureUrl ?? undefined,
   };
 }

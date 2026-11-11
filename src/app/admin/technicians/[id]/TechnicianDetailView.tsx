@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Briefcase, Clock, MapPin, Pencil, Phone, Radar, ShieldCheck, Star, Trash2, UserX } from 'lucide-react';
 import { AccountStatusAction, AccountStatusBadge } from '@/components/accounts/AccountStatus';
 import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDrawer';
-import { VerificationPanel } from '@/components/technicians/VerificationPanel';
 import { TechnicianDocumentsPanel } from '@/components/technicians/TechnicianDocumentsPanel';
 import {
   Avatar,
@@ -180,12 +179,9 @@ export function TechnicianDetailView({ id }: { id: string }) {
               />
             </CardBody>
           </Card>
-          <TechnicianDocumentsPanel technicianId={technician.id} />
         </div>
 
         <div className="space-y-6">
-          <VerificationPanel technician={technician} />
-
           <Card>
             <CardHeader title="Account" action={<AccountStatusBadge status={technician.status} />} />
             <CardBody className="space-y-4">
@@ -213,6 +209,10 @@ export function TechnicianDetailView({ id }: { id: string }) {
             </CardBody>
           </Card>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <TechnicianDocumentsPanel technician={technician} />
       </div>
 
       <EditTechnicianDrawer technician={technician} open={editOpen} onClose={() => setEditOpen(false)} />
