@@ -1,10 +1,8 @@
-import type { ServiceGroup } from '@/config/services';
-
 /** A service category customers can request and technicians can offer. */
 export interface Service {
   id: string;
   name: string;
-  category: ServiceGroup;
+  category: string;
   description: string;
   /** Visit/diagnostic fee in RWF (Project Description §8: configurable, not hard-coded). */
   visitFee: number;

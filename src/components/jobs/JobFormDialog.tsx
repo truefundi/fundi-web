@@ -19,7 +19,6 @@ import { useCustomers } from '@/hooks/useCustomers';
 import {
   getServiceGroup,
   SERVICE_GROUPS,
-  type ServiceGroup,
 } from '@/config/services';
 import { formatMoney } from '@/lib/jobs';
 import {
@@ -128,7 +127,7 @@ export function JobFormDialog({
   const services = useServices();
 
   const [input, setInput] = useState<JobFormInput>(EMPTY);
-  const [serviceCategory, setServiceCategory] = useState<ServiceGroup | ''>('');
+  const [serviceCategory, setServiceCategory] = useState('');
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
@@ -187,6 +186,15 @@ export function JobFormDialog({
   const serviceOptions = (services.data ?? []).filter(
     (service) => service.isActive || service.name === job?.service,
   );
+
+  const serviceCategories = [
+    ...new Set([
+      ...SERVICE_GROUPS,
+      ...serviceOptions.map(
+        (service) => service.category || getServiceGroup(service.name),
+      ),
+    ]),
+  ].sort((a, b) => a.localeCompare(b));
 
   const categoryServiceOptions = serviceOptions.filter(
     (service) =>
@@ -345,9 +353,7 @@ export function JobFormDialog({
               id={`${id}-service-category`}
               value={serviceCategory}
               onChange={(event) => {
-                setServiceCategory(
-                  event.target.value as ServiceGroup | '',
-                );
+                setServiceCategory(event.target.value);
                 set('service', '');
               }}
               disabled={services.isLoading}
@@ -358,7 +364,7 @@ export function JobFormDialog({
                   : 'Choose a category'}
               </option>
 
-              {SERVICE_GROUPS.map((category) => (
+              {serviceCategories.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>

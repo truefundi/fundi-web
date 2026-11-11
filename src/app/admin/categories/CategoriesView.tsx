@@ -1,80 +1,69 @@
-
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  ChevronDown,
+  Layers,
   Pencil,
   Plus,
-  Tags,
   Trash2,
   Wrench,
 } from 'lucide-react';
+import { CategoryFormDialog } from '@/components/services/CategoryFormDialog';
 import { ServiceFormDialog } from '@/components/services/ServiceFormDialog';
 import {
   Badge,
   Button,
-  Card,
   ConfirmDialog,
   EmptyState,
   ErrorState,
   PageHeader,
-  Table,
   TableSkeleton,
-  Td,
-  Th,
-  Tr,
   useToast,
 } from '@/components/ui';
-import {
-  getServiceGroup,
-  SERVICE_GROUPS,
-  SERVICE_CATEGORY_STYLE,
-  type ServiceCategory,
-  type ServiceGroup,
-} from '@/config/services';
+import { SERVICE_CATEGORY_STYLE, type ServiceCategory } from '@/config/services';
 import { useDeleteService, useServices } from '@/hooks/useServices';
+import {
+  readCatalogAdminMetadata,
+  writeCatalogAdminMetadata,
+  type AdminCategory,
+  type CatalogAdminMetadata,
+} from '@/lib/catalog-admin-metadata';
 import { formatMoney } from '@/lib/jobs';
 import { cn } from '@/lib/utils';
 import type { Service } from '@/types/service';
 
-type ServiceFilter = 'All Services' | ServiceGroup;
+const EMPTY_METADATA: CatalogAdminMetadata = {
+  categories: [],
+  serviceIcons: {},
+};
 
-function getDisplayGroup(service: Service): ServiceGroup {
-  const category = String(service.category ?? '');
-
-  if (
-    [
-      'Car Services',
-      'Car Repairment',
-      'Car & Garage',
-      'Truck & Mechanical',
-    ].includes(category)
-  ) {
-    return 'Car Services';
-  }
-
-  if (
-    ['Home Services', 'Service Repairment'].includes(category)
-  ) {
-    return 'Home Services';
-  }
-
-  return getServiceGroup(category || service.name);
-}
-
-function ServiceIcon({ name }: { name: string }) {
-  const style = SERVICE_CATEGORY_STYLE[name as ServiceCategory];
+function ServiceIcon({
+  service,
+  icon,
+}: {
+  service: Service;
+  icon?: string;
+}) {
+  const style = SERVICE_CATEGORY_STYLE[service.name as ServiceCategory];
   const Icon = style?.icon ?? Wrench;
 
   return (
     <span
       className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-        style?.className ?? 'bg-slate-100 text-slate-600',
+        'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl',
+        icon ? 'bg-slate-100' : style?.className ?? 'bg-slate-100 text-slate-600',
       )}
     >
-      <Icon className="h-5 w-5" aria-hidden />
+      {icon ? (
+        <span
+          role="img"
+          aria-label={`${service.name} icon`}
+          className="h-full w-full bg-cover bg-center"
+          style={{ backgroundImage: `url("${icon}")` }}
+        />
+      ) : (
+        <Icon className="h-5 w-5" aria-hidden />
+      )}
     </span>
   );
 }
@@ -84,307 +73,270 @@ export function CategoriesView() {
   const { data, isLoading, isError, error, refetch } = useServices();
   const remove = useDeleteService();
 
-  const [editing, setEditing] = useState<Service | undefined>();
-  const [formOpen, setFormOpen] = useState(false);
+  const [metadata, setMetadata] = useState(EMPTY_METADATA);
+  const [metadataError, setMetadataError] = useState('');
+  const [metadataLoaded, setMetadataLoaded] = useState(false);
+  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
+  const [serviceFormOpen, setServiceFormOpen] = useState(false);
+  const [serviceCategory, setServiceCategory] = useState<string>();
+  const [editing, setEditing] = useState<Service>();
   const [deleting, setDeleting] = useState<Service | null>(null);
-  const [selectedFilter, setSelectedFilter] =
-    useState<ServiceFilter>('All Services');
-  const [manageOpenFor, setManageOpenFor] = useState<
-    Service['id'] | null
-  >(null);
 
-  const services = data ?? [];
+  const services = useMemo(() => data ?? [], [data]);
 
-  const groupedServices = useMemo(
-    () =>
-      SERVICE_GROUPS.map((category) => ({
-        category,
-        services: services.filter(
-          (service) => getDisplayGroup(service) === category,
-        ),
-      })),
-    [services],
-  );
+  const loadMetadata = () => {
+    try {
+      setMetadata(readCatalogAdminMetadata());
+      setMetadataError('');
+    } catch (cause) {
+      const message = cause instanceof Error
+        ? cause.message
+        : 'Could not load saved category details.';
+      setMetadataError(message);
+    } finally {
+      setMetadataLoaded(true);
+    }
+  };
 
-  const visibleServices =
-    selectedFilter === 'All Services'
-      ? services
-      : services.filter(
-          (service) => getDisplayGroup(service) === selectedFilter,
-        );
+  useEffect(() => {
+    loadMetadata();
+  }, []);
 
-  const openForm = (service?: Service) => {
+  const categories = useMemo(() => {
+    const names = new Set([
+      ...metadata.categories.map((category) => category.name),
+      ...services.map((service) => service.category),
+    ]);
+    return [...names].filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [metadata.categories, services]);
+
+  const openNewService = (category?: string) => {
+    setEditing(undefined);
+    setServiceCategory(category);
+    setServiceFormOpen(true);
+  };
+
+  const openEditService = (service: Service) => {
     setEditing(service);
-    setFormOpen(true);
-    setManageOpenFor(null);
+    setServiceCategory(undefined);
+    setServiceFormOpen(true);
+  };
+
+  const saveCategory = (category: AdminCategory) => {
+    const nextMetadata: CatalogAdminMetadata = {
+      ...metadata,
+      categories: [...metadata.categories, category],
+    };
+    try {
+      writeCatalogAdminMetadata(nextMetadata);
+      setMetadata(nextMetadata);
+      setCategoryFormOpen(false);
+      toast(`${category.name} added`);
+    } catch (cause) {
+      toast(
+        cause instanceof Error ? cause.message : 'Could not save the category.',
+        'error',
+      );
+    }
+  };
+
+  const saveServiceIcon = (serviceId: string, icon: string | null) => {
+    const serviceIcons = { ...metadata.serviceIcons };
+    if (icon) serviceIcons[serviceId] = icon;
+    else delete serviceIcons[serviceId];
+
+    const nextMetadata = { ...metadata, serviceIcons };
+    try {
+      writeCatalogAdminMetadata(nextMetadata);
+      setMetadata(nextMetadata);
+      return true;
+    } catch (cause) {
+      toast(
+        cause instanceof Error ? cause.message : 'Could not save the service icon.',
+        'error',
+      );
+      return false;
+    }
   };
 
   return (
     <>
       <PageHeader
-        title="Service Management"
-        description="Manage Home Services and Car Services, their booking fees, and availability."
+        title="Categories & Services"
+        description="Organize service offerings into categories and manage their booking fees."
         actions={
-          <Button onClick={() => openForm()}>
+          <Button onClick={() => setCategoryFormOpen(true)}>
             <Plus className="h-4 w-4" aria-hidden />
-            Add service
+            Add category
           </Button>
         }
       />
 
-      {/* Category summary and quick filters */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <button
-          type="button"
-          onClick={() => setSelectedFilter('All Services')}
-          aria-pressed={selectedFilter === 'All Services'}
-          className={cn(
-            'rounded-xl border bg-white p-4 text-left transition hover:border-slate-400',
-            selectedFilter === 'All Services'
-              ? 'border-slate-900 ring-1 ring-slate-900'
-              : 'border-slate-200',
-          )}
-        >
-          <p className="text-sm text-slate-500">All Services</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {services.length}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            View all services
-          </p>
-        </button>
-
-        {SERVICE_GROUPS.map((group) => {
-          const count =
-            groupedServices.find((item) => item.category === group)
-              ?.services.length ?? 0;
-
-          return (
-            <button
-              key={group}
-              type="button"
-              onClick={() => setSelectedFilter(group)}
-              aria-pressed={selectedFilter === group}
-              className={cn(
-                'rounded-xl border bg-white p-4 text-left transition hover:border-slate-400',
-                selectedFilter === group
-                  ? 'border-slate-900 ring-1 ring-slate-900'
-                  : 'border-slate-200',
-              )}
-            >
-              <p className="text-sm text-slate-500">{group}</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {count}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                View category
-              </p>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Table heading and filter */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900">
-            {selectedFilter}
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {visibleServices.length} service
-            {visibleServices.length === 1 ? '' : 's'}
-          </p>
+      {isError ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <ErrorState message={error.message} onRetry={() => refetch()} />
         </div>
-
-        <label className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-700">
-            Category
-          </span>
-          <select
-            value={selectedFilter}
-            onChange={(event) =>
-              setSelectedFilter(event.target.value as ServiceFilter)
-            }
-            className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 sm:w-52"
-          >
-            <option value="All Services">All Services</option>
-            {SERVICE_GROUPS.map((group) => (
-              <option key={group} value={group}>
-                {group}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      {/* One compact table for all services or the selected category */}
-      <Card className="relative overflow-visible">
-        {isError ? (
-          <ErrorState
-            message={error.message}
-            onRetry={() => refetch()}
-          />
-        ) : isLoading || !data ? (
-          <div className="overflow-hidden rounded-xl">
-            <Table>
-              <tbody>
-                <TableSkeleton columns={5} rows={6} />
-              </tbody>
-            </Table>
-          </div>
-        ) : visibleServices.length === 0 ? (
+      ) : metadataError ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <ErrorState message={metadataError} onRetry={loadMetadata} />
+        </div>
+      ) : isLoading || !data || !metadataLoaded ? (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5">
+          <TableSkeleton columns={4} rows={5} />
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <EmptyState
-            icon={Tags}
-            title="No services found"
-            description="Add a service or choose another category."
+            icon={Layers}
+            title="No categories yet"
+            description="Add a category to start organizing your services."
             action={
-              <Button onClick={() => openForm()}>
+              <Button onClick={() => setCategoryFormOpen(true)}>
                 <Plus className="h-4 w-4" aria-hidden />
-                Add service
+                Add category
               </Button>
             }
           />
-        ) : (
-          <div className="w-full overflow-x-auto rounded-xl">
-            <Table>
-              <thead>
-                <tr className="bg-slate-50">
-                  <Th className="w-[34%] whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Service
-                  </Th>
-                  <Th className="w-[22%] whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Category
-                  </Th>
-                  <Th className="w-[15%] whitespace-nowrap px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Booking Fee
-                  </Th>
-                  <Th className="w-[12%] whitespace-nowrap px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Status
-                  </Th>
-                  <Th className="w-[17%] whitespace-nowrap px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Manage
-                  </Th>
-                </tr>
-              </thead>
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {categories.map((category) => {
+            const categoryServices = services.filter(
+              (service) => service.category === category,
+            );
+            const description = metadata.categories.find(
+              (item) => item.name === category,
+            )?.description;
 
-              <tbody>
-                {visibleServices.map((service) => (
-                  <Tr key={service.id}>
-                    <Td className="px-4 py-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <ServiceIcon name={service.name} />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">
-                            {service.name}
-                          </p>
-                          <p className="mt-1 max-w-[220px] truncate text-xs text-slate-500">
-                            {service.description}
-                          </p>
-                        </div>
-                      </div>
-                    </Td>
-
-                    <Td className="px-3 py-3">
-                      <span className="text-sm text-slate-600">
-                        {getDisplayGroup(service)}
-                      </span>
-                    </Td>
-
-                    <Td className="whitespace-nowrap px-3 py-3 text-right">
-                      <span className="text-sm font-semibold tabular-nums text-slate-900">
-                        {formatMoney(service.visitFee)}
-                      </span>
-                    </Td>
-
-                    <Td className="px-3 py-3">
-                      <Badge
-                        tone={service.isActive ? 'success' : 'neutral'}
-                      >
-                        {service.isActive ? 'Active' : 'Hidden'}
-                      </Badge>
-                    </Td>
-
-                    <Td className="px-4 py-3 text-right">
-                      <div className="relative inline-block text-left">
-                        <button
-                          type="button"
-                          aria-haspopup="menu"
-                          aria-expanded={manageOpenFor === service.id}
-                          aria-label={`Manage ${service.name}`}
-                          onClick={() =>
-                            setManageOpenFor((current) =>
-                              current === service.id ? null : service.id,
-                            )
-                          }
-                          className={cn(
-                            'inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition',
-                            manageOpenFor === service.id
-                              ? 'border-slate-400 bg-slate-100 text-slate-900'
-                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
-                          )}
+            return (
+              <section
+                key={category}
+                aria-labelledby={`category-${category}`}
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+              >
+                <header className="flex flex-col gap-4 border-b border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-100 bg-brand-50 text-brand-600">
+                      <Layers className="h-5 w-5" aria-hidden />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2
+                          id={`category-${category}`}
+                          className="truncate text-base font-semibold text-slate-900"
                         >
-                          Manage
-                          <ChevronDown
-                            className={cn(
-                              'h-4 w-4 transition-transform',
-                              manageOpenFor === service.id && 'rotate-180',
-                            )}
-                            aria-hidden
+                          {category}
+                        </h2>
+                        <Badge tone={categoryServices.some((service) => service.isActive) ? 'success' : 'neutral'}>
+                          {categoryServices.some((service) => service.isActive) ? 'Active' : 'No active services'}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {description || `${categoryServices.length} service${categoryServices.length === 1 ? '' : 's'} in this category`}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => openNewService(category)}
+                  >
+                    <Plus className="h-4 w-4" aria-hidden />
+                    Add service
+                  </Button>
+                </header>
+
+                {categoryServices.length === 0 ? (
+                  <div className="px-5 py-8 text-center">
+                    <p className="text-sm text-slate-500">No services in this category yet.</p>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => openNewService(category)}
+                    >
+                      <Plus className="h-4 w-4" aria-hidden />
+                      Add the first service
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {categoryServices.map((service) => (
+                      <article
+                        key={service.id}
+                        className="rounded-xl border border-slate-200 bg-white p-4 transition-shadow hover:shadow-sm"
+                      >
+                        <div className="flex items-start gap-3">
+                          <ServiceIcon
+                            service={service}
+                            icon={metadata.serviceIcons[service.id]}
                           />
-                        </button>
-
-                        {manageOpenFor === service.id && (
-                          <div
-                            role="menu"
-                            className="absolute right-0 top-full z-50 mt-2 w-40 rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-lg"
-                          >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="min-w-0 text-sm font-semibold text-slate-900">
+                                {service.name}
+                              </h3>
+                              <span className="shrink-0 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold tabular-nums text-emerald-700">
+                                {formatMoney(service.visitFee)}
+                              </span>
+                            </div>
+                            <p className="mt-1 line-clamp-2 min-h-9 text-xs leading-5 text-slate-500">
+                              {service.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+                          <Badge tone={service.isActive ? 'success' : 'neutral'}>
+                            {service.isActive ? 'Active' : 'Hidden'}
+                          </Badge>
+                          <div className="flex items-center gap-1">
                             <button
                               type="button"
-                              role="menuitem"
-                              onClick={() => openForm(service)}
-                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
+                              onClick={() => openEditService(service)}
+                              aria-label={`Edit ${service.name}`}
+                              className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                             >
-                              <Pencil
-                                className="h-4 w-4 text-slate-500"
-                                aria-hidden
-                              />
-                              Edit service
+                              <Pencil className="h-4 w-4" aria-hidden />
                             </button>
-
                             <button
                               type="button"
-                              role="menuitem"
-                              onClick={() => {
-                                setDeleting(service);
-                                setManageOpenFor(null);
-                              }}
-                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-red-600 transition hover:bg-red-50"
+                              onClick={() => setDeleting(service)}
+                              aria-label={`Delete ${service.name}`}
+                              className="rounded-md p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600"
                             >
-                              <Trash2
-                                className="h-4 w-4"
-                                aria-hidden
-                              />
-                              Delete service
+                              <Trash2 className="h-4 w-4" aria-hidden />
                             </button>
                           </div>
-                        )}
-                      </div>
-                    </Td>
-                  </Tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        )}
-      </Card>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      )}
+
+      <CategoryFormDialog
+        open={categoryFormOpen}
+        onClose={() => setCategoryFormOpen(false)}
+        existingNames={categories}
+        onSave={saveCategory}
+      />
 
       <ServiceFormDialog
-        open={formOpen}
+        open={serviceFormOpen}
         onClose={() => {
-          setFormOpen(false);
+          setServiceFormOpen(false);
           setEditing(undefined);
+          setServiceCategory(undefined);
         }}
         service={editing}
+        categories={categories}
+        initialCategory={serviceCategory}
+        icon={editing ? metadata.serviceIcons[editing.id] : undefined}
+        onIconChange={saveServiceIcon}
       />
 
       <ConfirmDialog
@@ -400,14 +352,21 @@ export function CategoriesView() {
 
           remove.mutate(deleting.id, {
             onSuccess: () => {
-              toast(`${deleting.name} deleted`);
+              const serviceId = deleting.id;
+              const serviceName = deleting.name;
               setDeleting(null);
+              const iconRemoved = metadata.serviceIcons[serviceId]
+                ? saveServiceIcon(serviceId, null)
+                : true;
+              toast(
+                iconRemoved
+                  ? `${serviceName} deleted`
+                  : `${serviceName} deleted, but its saved icon could not be removed`,
+                iconRemoved ? 'success' : 'error',
+              );
             },
             onError: (err) => {
-              toast(
-                err.message || 'Could not delete the service',
-                'error',
-              );
+              toast(err.message || 'Could not delete the service', 'error');
               setDeleting(null);
             },
           });
