@@ -1,6 +1,6 @@
 import { env } from '@/config/env';
 import { delay, mockDb } from '@/mocks/mock-db';
-import type { JobSummary } from '@/types/api';
+import type { JobPipeline, JobSummary } from '@/types/api';
 import { api, unwrap } from '../client';
 
 export const dashboardApi = {
@@ -17,6 +17,16 @@ export const dashboardApi = {
       active: count((s) => s !== 'COMPLETED' && s !== 'CANCELLED' && s !== 'DISPUTED'),
       completed: count((s) => s === 'COMPLETED'),
       openDisputes: mockDb.jobs.filter((j) => j.dispute && !j.dispute.resolution).length,
+    };
+  },
+
+  async jobPipeline(): Promise<JobPipeline> {
+    if (!env.useMocks) return unwrap(api.get('/admin/jobs/pipeline'));
+    await delay();
+    return {
+      stages: ['Request', 'Match', 'Accept', 'Visit', 'Diagnose', 'Quote', 'Approve', 'Repair', 'Settle', 'Rate']
+        .map((label) => ({ key: label.toLowerCase(), label, count: null, tracked: false, description: 'Unavailable in mock mode.' })),
+      generatedAt: new Date().toISOString(),
     };
   },
 };
