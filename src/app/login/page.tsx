@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, isLoading, requestDevOtp, isDevOtpEnabled } = useAuth();
+  const { user, isLoading, login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,27 +27,25 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!isDevOtpEnabled) {
-      setError(
-        "Development OTP login is unavailable. Please use the configured production login flow."
-      );
+    if (!email.trim()) {
+      setError("Please enter your admin email.");
       return;
     }
 
-    if (!email.trim()) {
-      setError("Please enter your admin email.");
+    if (!password) {
+      setError("Please enter your password.");
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const result = await requestDevOtp(email.trim());
+      const result = await login(email.trim(), password);
 
       if (result.ok) {
         router.push("/verify-2fa");
       } else {
-        setError(result.error || "Unable to request OTP. Please try again.");
+        setError(result.error || "Unable to sign in. Please try again.");
       }
     } catch {
       setError("Unable to connect to the server. Please try again.");
@@ -106,9 +104,10 @@ export default function LoginPage() {
             <input
               id="password"
               type={showPassword ? "text" : "password"}
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (not used in development OTP)"
+              placeholder="Password"
               autoComplete="current-password"
               className="h-11 w-full rounded-xl border border-slate-200 pl-3.5 pr-11 text-sm outline-none placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
             />
@@ -135,7 +134,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={submitting || isLoading || !isDevOtpEnabled}
+          disabled={submitting || isLoading}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? (

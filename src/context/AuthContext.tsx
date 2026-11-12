@@ -29,6 +29,7 @@ interface AuthContextValue {
   user: AdminUser | null;
   isLoading: boolean;
   authenticatorSetup: AuthenticatorSetup | null;
+  isTwoFactorPending: boolean;
   devOtpEmail: string | null;
   devOtp: string | null;
   isDevOtpEnabled: boolean;
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [authenticatorSetup, setAuthenticatorSetup] =
     useState<AuthenticatorSetup | null>(null);
+  const [isTwoFactorPending, setIsTwoFactorPending] = useState(false);
 
   const [devOtpEmail, setDevOtpEmail] = useState<string | null>(null);
   const [devOtp, setDevOtp] = useState<string | null>(null);
@@ -60,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(null);
     setAuthenticatorSetup(null);
+    setIsTwoFactorPending(false);
     setDevOtpEmail(null);
     setDevOtp(null);
 
@@ -92,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleUnauthorized = () => {
       setUser(null);
       setAuthenticatorSetup(null);
+      setIsTwoFactorPending(false);
       setDevOtpEmail(null);
       setDevOtp(null);
       if (window.location.pathname.startsWith('/admin') || window.location.pathname === '/dashboard') {
@@ -136,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthenticatorSetup(null);
     }
 
+    setIsTwoFactorPending(true);
     return { ok: true };
   };
 
@@ -157,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setAuthenticatorSetup(null);
+    setIsTwoFactorPending(false);
     setDevOtpEmail(email);
     setDevOtp(data.otp);
 
@@ -188,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(data.user);
     setAuthenticatorSetup(null);
+    setIsTwoFactorPending(false);
     setDevOtpEmail(null);
     setDevOtp(null);
 
@@ -206,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(data.user);
     setAuthenticatorSetup(null);
+    setIsTwoFactorPending(false);
 
     return { ok: true };
   };
@@ -216,6 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         authenticatorSetup,
+        isTwoFactorPending,
         devOtpEmail,
         devOtp,
         isDevOtpEnabled,

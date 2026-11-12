@@ -24,6 +24,7 @@ export default function Verify2FAPage() {
     verifyCode,
     verifyDevOtp,
     authenticatorSetup,
+    isTwoFactorPending,
     devOtpEmail,
     devOtp,
   } = useAuth();
@@ -45,10 +46,10 @@ export default function Verify2FAPage() {
       return;
     }
 
-    if (!authenticatorSetup && !devOtpEmail) {
+    if (!authenticatorSetup && !devOtpEmail && !isTwoFactorPending) {
       router.replace("/login");
     }
-  }, [user, authenticatorSetup, devOtpEmail, router]);
+  }, [user, authenticatorSetup, devOtpEmail, isTwoFactorPending, router]);
 
   function handleChange(index: number, value: string) {
     const cleaned = value.replace(/\D/g, "");
@@ -199,8 +200,8 @@ async function handleVerify() {
       ) : authenticatorSetup ? (
         <div className="mt-5 space-y-4 text-center">
           <p className="text-sm text-slate-600">
-            Scan this QR code using Google Authenticator, Microsoft
-            Authenticator, or another compatible authenticator app.
+            Set up your authenticator by scanning this QR code with Google
+            Authenticator or another compatible app.
           </p>
 
           <div className="flex justify-center rounded-lg border border-slate-200 bg-white p-4">
@@ -226,7 +227,8 @@ async function handleVerify() {
         </div>
       ) : (
         <p className="mx-auto mt-3 max-w-xs text-center text-sm text-slate-600">
-          Open your authenticator app and enter the current six-digit code.
+          Open Google Authenticator and enter the current six-digit code for
+          your account.
         </p>
       )}
 
