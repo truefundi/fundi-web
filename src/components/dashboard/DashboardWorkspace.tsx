@@ -133,6 +133,34 @@ type DashboardSection =
   "overview" | "jobs" | "payments" | "quality" | "operations";
 type CountRow = { label: string; value: number };
 
+function wrapChartLabel(label: string, maxLength: number) {
+  const words = label.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    if (line && line.length + word.length + 1 > maxLength) {
+      lines.push(line);
+      line = "";
+    }
+
+    let remaining = word;
+    while (remaining.length > maxLength) {
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+      lines.push(remaining.slice(0, maxLength));
+      remaining = remaining.slice(maxLength);
+    }
+
+    line = line ? `${line} ${remaining}` : remaining;
+  }
+
+  if (line) lines.push(line);
+  return lines.length ? lines : [label];
+}
+
 function localDateTime(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -391,6 +419,13 @@ function BarChart({
     ? (right - left) / chartRows.length
     : right - left;
   const barWidth = Math.min(42, slot * 0.56);
+  const labelLines = chartRows.map((row) =>
+    wrapChartLabel(row.label, Math.max(10, Math.floor((slot - 12) / 5.5))),
+  );
+  const chartHeight = Math.max(
+    250,
+    bottom + 18 + Math.max(1, ...labelLines.map((lines) => lines.length)) * 12 + 8,
+  );
   const hovered = hoveredIndex === null ? undefined : chartRows[hoveredIndex];
 
   return (
@@ -455,8 +490,9 @@ function BarChart({
           ) : (
             <div className="overflow-x-auto">
               <svg
-                className="h-64 min-w-[560px] w-full"
-                viewBox="0 0 780 250"
+                className="min-w-[560px] w-full"
+                style={{ height: `${Math.max(256, chartHeight)}px` }}
+                viewBox={`0 0 780 ${chartHeight}`}
                 role="img"
                 aria-label={`${title} bar chart`}
               >
@@ -488,10 +524,6 @@ function BarChart({
                   const height = (row.value / max) * (bottom - top);
                   const x = left + slot * index + (slot - barWidth) / 2;
                   const y = bottom - height;
-                  const label =
-                    row.label.length > 12
-                      ? `${row.label.slice(0, 11)}…`
-                      : row.label;
                   return (
                     <g key={row.label}>
                       <rect
@@ -527,7 +559,16 @@ function BarChart({
                         className="fill-slate-500"
                         fontSize="10"
                       >
-                        {label}
+                        <title>{row.label}</title>
+                        {labelLines[index].map((line, lineIndex) => (
+                          <tspan
+                            key={`${line}-${lineIndex}`}
+                            x={x + barWidth / 2}
+                            dy={lineIndex === 0 ? 0 : 12}
+                          >
+                            {line}
+                          </tspan>
+                        ))}
                       </text>
                     </g>
                   );
