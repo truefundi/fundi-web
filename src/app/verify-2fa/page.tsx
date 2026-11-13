@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -9,7 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, ShieldCheck } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "@/context/AuthContext";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -29,11 +28,11 @@ export default function Verify2FAPage() {
     devOtp,
   } = useAuth();
 
-  const [digits, setDigits] = useState<string[]>(
-    Array(CODE_LENGTH).fill("")
-  );
+  const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [secretCopied, setSecretCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -77,10 +76,7 @@ export default function Verify2FAPage() {
     }
   }
 
-  function handleKeyDown(
-    index: number,
-    e: KeyboardEvent<HTMLInputElement>
-  ) {
+  function handleKeyDown(index: number, e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Backspace" && !digits[index] && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
@@ -112,53 +108,59 @@ export default function Verify2FAPage() {
 
     setDigits(next);
 
-    inputsRef.current[
-      Math.min(pasted.length, CODE_LENGTH - 1)
-    ]?.focus();
+    inputsRef.current[Math.min(pasted.length, CODE_LENGTH - 1)]?.focus();
   }
 
-  
-async function handleVerify() {
-  // Prevent duplicate requests, even before React updates the UI.
-  if (verificationLock.current) return;
+  async function handleVerify() {
+    // Prevent duplicate requests, even before React updates the UI.
+    if (verificationLock.current) return;
 
-  const code = digits.join("");
+    const code = digits.join("");
 
-  if (code.length !== CODE_LENGTH) {
-    setError("Please enter all 6 digits of your verification code.");
-    return;
-  }
-
-  verificationLock.current = true;
-  setError("");
-  setSubmitting(true);
-
-  try {
-    const result = isDevelopmentLogin
-      ? await verifyDevOtp(code)
-      : await verifyCode(code);
-
-    if (result.ok) {
-      router.replace("/admin");
+    if (code.length !== CODE_LENGTH) {
+      setError("Please enter all 6 digits of your verification code.");
       return;
     }
 
-    setError(result.error || "Verification failed. Please try again.");
-    setDigits(Array(CODE_LENGTH).fill(""));
-    inputsRef.current[0]?.focus();
-  } catch {
-    setError("Unable to verify your code. Please try again.");
-    setDigits(Array(CODE_LENGTH).fill(""));
-    inputsRef.current[0]?.focus();
-  } finally {
-    verificationLock.current = false;
-    setSubmitting(false);
-  }
-}
+    verificationLock.current = true;
+    setError("");
+    setSubmitting(true);
 
+    try {
+      const result = isDevelopmentLogin
+        ? await verifyDevOtp(code)
+        : await verifyCode(code);
+
+      if (result.ok) {
+        router.replace("/admin");
+        return;
+      }
+
+      setError(result.error || "Verification failed. Please try again.");
+      setDigits(Array(CODE_LENGTH).fill(""));
+      inputsRef.current[0]?.focus();
+    } catch {
+      setError("Unable to verify your code. Please try again.");
+      setDigits(Array(CODE_LENGTH).fill(""));
+      inputsRef.current[0]?.focus();
+    } finally {
+      verificationLock.current = false;
+      setSubmitting(false);
+    }
+  }
 
   function backToSignIn() {
     router.push("/login");
+  }
+
+  async function copySetupKey() {
+    setCopyError("");
+    try {
+      await navigator.clipboard.writeText(authenticatorSetup?.secret ?? "");
+      setSecretCopied(true);
+    } catch {
+      setCopyError("Copy failed. You can still enter the setup key manually.");
+    }
   }
 
   return (
@@ -167,30 +169,26 @@ async function handleVerify() {
         <ShieldCheck size={22} />
       </div>
 
-<h1 className="mt-6 text-center text-2xl font-bold tracking-tight text-slate-900">
-  Verify Your Login
-</h1>
+      <h1 className="mt-6 text-center text-2xl font-bold tracking-tight text-slate-900">
+        Verify Your Login
+      </h1>
       {isDevelopmentLogin ? (
         <div className="mx-auto mt-3 max-w-sm text-center">
           <p className="text-sm text-slate-600">
             Enter the six-digit development verification code for:
           </p>
 
-          <p className="mt-2 font-semibold text-slate-900">
-            {devOtpEmail}
-          </p>
+          <p className="mt-2 font-semibold text-slate-900">{devOtpEmail}</p>
 
           <p className="mt-2 text-xs text-slate-500">
-            During development, the code is provided by the backend.
-            It expires after five minutes.
+            During development, the code is provided by the backend. It expires
+            after five minutes.
           </p>
 
           {/* Temporary OTP display for local development only */}
           {devOtp && (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-              <p className="text-xs text-amber-800">
-                Your development OTP
-              </p>
+              <p className="text-xs text-amber-800">Your development OTP</p>
               <p className="mt-1 font-mono text-2xl font-bold tracking-widest text-amber-900">
                 {devOtp}
               </p>
@@ -204,25 +202,46 @@ async function handleVerify() {
             Authenticator or another compatible app.
           </p>
 
-          <div className="flex justify-center rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex justify-center rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <QRCodeSVG
               value={authenticatorSetup.otpauthUri}
-              size={180}
+              size={256}
+              level="M"
+              includeMargin
+              bgColor="#ffffff"
+              fgColor="#000000"
+              title="Authenticator app setup QR code"
             />
           </div>
 
           <div className="rounded-lg bg-slate-50 p-3 text-left">
-            <p className="text-xs font-semibold text-slate-600">
-              Manual setup key
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-slate-600">
+                Manual setup key
+              </p>
+              <button
+                type="button"
+                onClick={copySetupKey}
+                className="flex shrink-0 items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-800"
+              >
+                {secretCopied ? <Check size={14} /> : <Copy size={14} />}
+                {secretCopied ? "Copied" : "Copy"}
+              </button>
+            </div>
             <p className="mt-1 break-all font-mono text-sm text-slate-900">
               {authenticatorSetup.secret}
             </p>
+            {copyError && (
+              <p role="alert" className="mt-2 text-xs text-red-600">
+                {copyError}
+              </p>
+            )}
           </div>
 
           <p className="text-xs text-slate-500">
-            Keep your setup key private. Enter the six-digit code
-            generated by your authenticator app below.
+            Keep this page open while setting up your authenticator. If you are
+            viewing it on the same phone, choose manual setup in the app and
+            enter the key above. Then enter the six-digit code below.
           </p>
         </div>
       ) : (
