@@ -1,38 +1,20 @@
-import type { Metadata } from 'next';
-import { PageHeader } from '@/components/ui';
-import { AttentionQueue } from '@/components/dashboard/AttentionQueue';
-import { DashboardStats } from '@/components/dashboard/DashboardStats';
-import { JobPipeline } from '@/components/dashboard/JobPipeline';
-import { PeopleGrowthChart } from '@/components/dashboard/PeopleGrowthChart';
-import { JobsSummary } from '@/components/dashboard/JobsSummary';
-import { VerificationQueue } from '@/components/dashboard/VerificationQueue';
+import type { Metadata } from "next";
+import { PageHeader } from "@/components/ui";
+import { DashboardWorkspace } from "@/components/dashboard/DashboardWorkspace";
 
 // The root layout's title template only applies to child routes, so set the full title here.
-export const metadata: Metadata = { title: { absolute: 'Dashboard | Fundi Admin' } };
+export const metadata: Metadata = {
+  title: { absolute: "Dashboard | Fundi Admin" },
+};
 
 export default function DashboardPage() {
   return (
     <>
-      <PageHeader title="Dashboard" description="Everything happening on Fundi at a glance." />
-
-      <DashboardStats />
-
-      <PeopleGrowthChart />
-
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <VerificationQueue />
-        </div>
-        <JobsSummary />
-      </div>
-
-      <div className="mt-6">
-        <JobPipeline />
-      </div>
-
-      <div className="mt-6">
-        <AttentionQueue />
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Explore platform performance by period, service, and business area."
+      />
+      <DashboardWorkspace />
     </>
   );
 }
