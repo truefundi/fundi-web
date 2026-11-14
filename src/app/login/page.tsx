@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, Mail } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
@@ -138,7 +138,7 @@ export default function LoginPage() {
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? (
-            "Requesting OTP..."
+            "Starting secure sign-in..."
           ) : (
             <>
               Sign In <ArrowRight size={16} />
@@ -146,6 +146,13 @@ export default function LoginPage() {
           )}
         </button>
       </form>
+
+      <Link
+        href="/forgot-password"
+        className="mt-5 block text-center text-sm font-medium text-amber-700 hover:text-amber-800"
+      >
+        Forgot your password?
+      </Link>
     </AuthLayout>
   );
 }
