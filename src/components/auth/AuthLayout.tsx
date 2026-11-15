@@ -34,11 +34,7 @@ export function AuthLayout({
         </div>
       </div>
 
-      <div
-        className={`flex flex-col px-6 py-6 sm:px-12 sm:py-8 ${
-          scrollable ? "min-h-0 overflow-y-auto" : ""
-        }`}
-      >
+      <div className="flex flex-col px-6 py-6 sm:px-12 sm:py-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <Logo src={logoSrc} />
@@ -50,9 +46,7 @@ export function AuthLayout({
             <ArrowLeft className="h-4 w-4" aria-hidden /> Back to home
           </Link>
         </div>
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-6">
-          {children}
-        </div>
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-6">{children}</div>
       </div>
     </div>
   );

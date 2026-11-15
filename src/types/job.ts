@@ -3,99 +3,53 @@
  * Job lifecycle, kept in sync with the mobile app
  * (fundi-mobile-/artifacts/site-visit-logger/constants/jobs.ts).
  */
-export type JobStatus =
-  | 'REQUESTED'
-  | 'MATCHING'
-  | 'OFFERED'
-  | 'ACCEPTED'
-  | 'VISIT_PAID'
-  | 'EN_ROUTE'
-  | 'ARRIVED'
-  | 'DIAGNOSING'
-  | 'DIAGNOSIS_COMPLETE'
-  | 'QUOTE_PENDING'
-  | 'QUOTE_APPROVED'
-  | 'REPAIR_IN_PROGRESS'
-  | 'ADDITIONAL_APPROVAL_REQUIRED'
-  | 'REPAIR_COMPLETED'
-  | 'PAYMENT_PENDING'
-  | 'PAYMENT_REPORTED'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'DISPUTED'
-  | 'PAUSED'
-  | 'FAILED';
+export type JobPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
-/** The order a job normally moves through (exception states excluded). */
+export const JOB_PRIORITIES: JobPriority[] = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
+
+export const JOB_PRIORITY_LABEL: Record<JobPriority, string> = {
+  LOW: 'Low',
+  NORMAL: 'Normal',
+  HIGH: 'High',
+  URGENT: 'Urgent',
+};
+
+/**
+ * Job lifecycle, kept in sync with the backend
+ */
+export type JobStatus =
+  | 'OPEN'
+  | 'ASSIGNED'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED';
+
+/** The order a job normally moves through. */
 export const JOB_FLOW: JobStatus[] = [
-  'REQUESTED',
-  'MATCHING',
-  'OFFERED',
-  'ACCEPTED',
-  'VISIT_PAID',
-  'EN_ROUTE',
-  'ARRIVED',
-  'DIAGNOSING',
-  'DIAGNOSIS_COMPLETE',
-  'QUOTE_PENDING',
-  'QUOTE_APPROVED',
-  'REPAIR_IN_PROGRESS',
-  'ADDITIONAL_APPROVAL_REQUIRED',
-  'REPAIR_COMPLETED',
-  'PAYMENT_PENDING',
-  'PAYMENT_REPORTED',
+  'OPEN',
+  'ASSIGNED',
   'COMPLETED',
 ];
 
-/** Same wording as the mobile app, so admins and customers describe a job the same way. */
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
+  OPEN: 'Open',
+  ASSIGNED: 'Assigned',
   PAUSED: 'Paused',
-  FAILED: 'Failed',
-  REQUESTED: 'Open',
-  MATCHING: 'Customer negotiating',
-  OFFERED: 'Offer sent',
-  ACCEPTED: 'Assigned',
-  VISIT_PAID: 'Visit fee paid',
-  EN_ROUTE: 'On the way',
-  ARRIVED: 'Technician arrived',
-  DIAGNOSING: 'Diagnosing',
-  DIAGNOSIS_COMPLETE: 'Diagnosis complete',
-  QUOTE_PENDING: 'Quote awaiting approval',
-  QUOTE_APPROVED: 'Quote approved',
-  REPAIR_IN_PROGRESS: 'Repair in progress',
-  ADDITIONAL_APPROVAL_REQUIRED: 'Extra work needs approval',
-  REPAIR_COMPLETED: 'Repair completed',
-  PAYMENT_PENDING: 'Payment pending',
-  PAYMENT_REPORTED: 'Payment recorded',
   COMPLETED: 'Completed',
+  FAILED: 'Failed',
   CANCELLED: 'Cancelled',
-  DISPUTED: 'Disputed',
 };
 
 export type StatusTone = 'progress' | 'action' | 'success' | 'danger';
 
 export const JOB_STATUS_TONE: Record<JobStatus, StatusTone> = {
+  OPEN: 'progress',
+  ASSIGNED: 'action',
   PAUSED: 'action',
-  FAILED: 'danger',
-  REQUESTED: 'progress',
-  MATCHING: 'progress',
-  OFFERED: 'action',
-  ACCEPTED: 'action',
-  VISIT_PAID: 'progress',
-  EN_ROUTE: 'progress',
-  ARRIVED: 'progress',
-  DIAGNOSING: 'progress',
-  DIAGNOSIS_COMPLETE: 'progress',
-  QUOTE_PENDING: 'action',
-  QUOTE_APPROVED: 'progress',
-  REPAIR_IN_PROGRESS: 'progress',
-  ADDITIONAL_APPROVAL_REQUIRED: 'action',
-  REPAIR_COMPLETED: 'progress',
-  PAYMENT_PENDING: 'action',
-  PAYMENT_REPORTED: 'progress',
   COMPLETED: 'success',
+  FAILED: 'danger',
   CANCELLED: 'danger',
-  DISPUTED: 'danger',
 };
 
 /** Groups for the admin's job list tabs. */
@@ -112,16 +66,15 @@ export const JOB_GROUP_LABEL: Record<JobGroup, string> = {
 };
 
 export function jobGroup(status: JobStatus): JobGroup {
-  if (status === 'REQUESTED' || status === 'MATCHING' || status === 'OFFERED') return 'matching';
+  if (status === 'OPEN') return 'matching';
   if (status === 'COMPLETED') return 'completed';
   if (status === 'CANCELLED' || status === 'FAILED') return 'cancelled';
-  if (status === 'DISPUTED') return 'disputed';
   return 'in_progress';
 }
 
-export type Urgency = 'Emergency' | 'Today' | 'Schedule';
+export type Urgency = JobPriority;
 
-export const URGENCIES: Urgency[] = ['Emergency', 'Today', 'Schedule'];
+export const URGENCIES: Urgency[] = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
 
 export type SettlementMethod = 'Fundi' | 'Cash' | 'Mobile Money' | 'Other';
 

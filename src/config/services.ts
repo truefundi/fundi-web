@@ -8,12 +8,13 @@ import {
   WashingMachine,
   Wrench,
   Zap,
+  Layers,
   type LucideIcon,
 } from 'lucide-react';
 
 /**
- * Individual trades offered by Fundi.
- * Keep these names compatible with the existing mock data and mobile app.
+ * Built-in skilled-service categories supported by Fundi.
+ * Keep existing names compatible with database records and mobile app data.
  */
 export const SERVICE_CATEGORIES = [
   'Electrical',
@@ -32,13 +33,26 @@ export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
 export const SERVICE_GROUPS = [
   'Home Services',
   'Car Services',
+  'Other Services',
 ] as const;
 
 export type ServiceGroup = (typeof SERVICE_GROUPS)[number];
 
+/** Explicit mapping of built-in categories to their main groups. */
+const CATEGORY_GROUP_MAP: Record<ServiceCategory, ServiceGroup> = {
+  Electrical: 'Home Services',
+  Plumbing: 'Home Services',
+  HVAC: 'Home Services',
+  'Appliance Repair': 'Home Services',
+  'Home Repair': 'Home Services',
+  'General Maintenance': 'Home Services',
+  'Car & Garage': 'Car Services',
+  'Truck & Mechanical': 'Car Services',
+};
+
 /**
- * Maps an existing trade or group name to a main group.
- * This function does not modify any service or mock data.
+ * Maps a category to its main group.
+ * Unrecognized configurable categories are placed under Other Services.
  */
 export function getServiceGroup(
   category: ServiceCategory | ServiceGroup | string,
@@ -92,4 +106,9 @@ export const SERVICE_CATEGORY_STYLE: Record<
     icon: Hammer,
     className: 'bg-orange-100 text-orange-700',
   },
+};
+
+export const DEFAULT_CATEGORY_STYLE = {
+  icon: Layers,
+  className: 'bg-slate-100 text-slate-600',
 };

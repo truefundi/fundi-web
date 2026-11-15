@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -155,6 +156,8 @@ export default function Verify2FAPage() {
 
   async function copySetupKey() {
     setCopyError("");
+    setSecretCopied(false);
+
     try {
       await navigator.clipboard.writeText(authenticatorSetup?.secret ?? "");
       setSecretCopied(true);
@@ -165,13 +168,14 @@ export default function Verify2FAPage() {
 
   return (
     <AuthLayout logoSrc="/images/fundi.png">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-        <ShieldCheck size={22} />
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+        <ShieldCheck size={20} />
       </div>
 
       <h1 className="mt-6 text-center text-2xl font-bold tracking-tight text-slate-900">
         Verify Your Login
       </h1>
+
       {isDevelopmentLogin ? (
         <div className="mx-auto mt-3 max-w-sm text-center">
           <p className="text-sm text-slate-600">
@@ -219,6 +223,7 @@ export default function Verify2FAPage() {
               <p className="text-xs font-semibold text-slate-600">
                 Manual setup key
               </p>
+
               <button
                 type="button"
                 onClick={copySetupKey}
@@ -228,9 +233,11 @@ export default function Verify2FAPage() {
                 {secretCopied ? "Copied" : "Copy"}
               </button>
             </div>
+
             <p className="mt-1 break-all font-mono text-sm text-slate-900">
               {authenticatorSetup.secret}
             </p>
+
             {copyError && (
               <p role="alert" className="mt-2 text-xs text-red-600">
                 {copyError}
@@ -251,7 +258,7 @@ export default function Verify2FAPage() {
         </p>
       )}
 
-      <div className="mt-6 flex justify-between gap-2">
+      <div className="mt-4 flex justify-between gap-2">
         {digits.map((digit, index) => (
           <input
             key={index}
@@ -267,7 +274,7 @@ export default function Verify2FAPage() {
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={handlePaste}
             aria-label={`Verification digit ${index + 1}`}
-            className="h-14 w-12 rounded-lg border border-slate-300 text-center text-xl font-semibold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+            className="h-12 w-10 rounded-lg border border-slate-300 text-center text-lg font-semibold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
           />
         ))}
       </div>
@@ -275,7 +282,7 @@ export default function Verify2FAPage() {
       {error && (
         <p
           role="alert"
-          className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-600"
+          className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600"
         >
           {error}
         </p>
@@ -285,7 +292,7 @@ export default function Verify2FAPage() {
         type="button"
         onClick={handleVerify}
         disabled={submitting || digits.join("").length !== CODE_LENGTH}
-        className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
           "Verifying..."
@@ -299,7 +306,7 @@ export default function Verify2FAPage() {
       <button
         type="button"
         onClick={backToSignIn}
-        className="mx-auto mt-5 flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-800"
+        className="mx-auto mt-3 flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-800"
       >
         <ArrowLeft size={14} />
         Back to sign in
