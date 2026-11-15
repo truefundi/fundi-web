@@ -1,17 +1,41 @@
-/** A service category customers can request and technicians can offer. */
+
+/** A category that groups related services. */
+export interface CatalogCategory {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A service customers can request and technicians can offer. */
 export interface Service {
   id: string;
+  categoryId: string;
   name: string;
   category: string;
   description: string;
-  /** Visit/diagnostic fee in RWF (Project Description §8: configurable, not hard-coded). */
   visitFee: number;
-  /** Visit fee when the customer marks the request as an emergency. */
   emergencyVisitFee: number;
-  /** Hidden services stay in history but customers cannot request them. */
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
+  keywords?: string;
+  icon?: string | null;
+  sosBookingFee?: number | null;
 }
 
-/** Fields the admin fills in when adding or editing a service. */
-export type ServiceInput = Pick<Service, 'name' | 'category' | 'description' | 'visitFee' | 'emergencyVisitFee' | 'isActive'>;
+/** Fields required when creating or updating a service. */
+export type ServiceInput = {
+  name: string;
+  categoryId: string;
+  category: string;
+  description: string;
+  visitFee: number;
+  emergencyVisitFee: number;
+  isActive: boolean;
+  keywords?: string;
+  icon?: string | null;
+  sosBookingFee?: number | null;
+};

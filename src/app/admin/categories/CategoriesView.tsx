@@ -2,19 +2,18 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { House, Car } from 'lucide-react';
 import {
+  Car,
   ChevronDown,
+  House,
   Layers,
   Pencil,
   Plus,
   Trash2,
-  Wrench,
 } from 'lucide-react';
 
 import {
   SERVICE_GROUPS,
-  SERVICE_CATEGORIES,
   SERVICE_CATEGORY_STYLE,
   DEFAULT_CATEGORY_STYLE,
   getServiceGroup,
@@ -35,20 +34,35 @@ import {
   useToast,
 } from '@/components/ui';
 
-import { useDeleteService, useServices } from '@/hooks/useServices';
+import {
+  useDeleteService,
+  useServices,
+} from '@/hooks/useServices';
+
+import {
+  useCategories,
+  useCreateCategory,
+} from '@/hooks/useCategories';
 
 import {
   readCatalogAdminMetadata,
   writeCatalogAdminMetadata,
-  type AdminCategory,
-  type CatalogAdminMetadata,
 } from '@/lib/catalog-admin-metadata';
 
 import { formatMoney } from '@/lib/jobs';
 import { cn } from '@/lib/utils';
-import type { Service } from '@/types/service';
 
-const EMPTY_METADATA: CatalogAdminMetadata = {
+import type {
+  CatalogCategory,
+  Service,
+} from '@/types/service';
+
+type CategoriesMetadata = {
+  categories: [];
+  serviceIcons: Record<string, string>;
+};
+
+const EMPTY_METADATA: CategoriesMetadata = {
   categories: [],
   serviceIcons: {},
 };
@@ -60,11 +74,11 @@ function ServiceIcon({
   service: Service;
   icon?: string;
 }) {
-const style =
-  SERVICE_CATEGORY_STYLE[service.name as ServiceCategory] ??
-  DEFAULT_CATEGORY_STYLE;
+  const style =
+    SERVICE_CATEGORY_STYLE[service.category as ServiceCategory] ??
+    DEFAULT_CATEGORY_STYLE;
 
-const Icon = style.icon;
+  const Icon = style.icon;
 
   return (
     <span
@@ -72,7 +86,7 @@ const Icon = style.icon;
         'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl',
         icon
           ? 'bg-slate-100'
-          : style?.className ?? 'bg-slate-100 text-slate-600',
+          : style.className ?? 'bg-slate-100 text-slate-600',
       )}
     >
       {icon ? (
@@ -101,15 +115,18 @@ function SummaryCard({
   color: string;
 }) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500">{title}</p>
-        <span className={cn('rounded-lg p-2', color)}>
+    <article className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <p className="truncate text-sm font-medium text-slate-500">
+          {title}
+        </p>
+
+        <span className={cn('shrink-0 rounded-lg p-2', color)}>
           <Icon className="h-5 w-5" aria-hidden />
         </span>
       </div>
 
-      <p className="mt-3 text-3xl font-bold tabular-nums text-slate-900">
+      <p className="mt-3 text-2xl font-bold tabular-nums text-slate-900 sm:text-3xl">
         {value}
       </p>
     </article>
@@ -118,8 +135,25 @@ function SummaryCard({
 
 export function CategoriesView() {
   const toast = useToast();
-  const { data, isLoading, isError, error, refetch } = useServices();
+
+  const {
+    data: servicesData,
+    isLoading: servicesLoading,
+    isError: servicesError,
+    error: servicesErrorObject,
+    refetch: refetchServices,
+  } = useServices();
+
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    error: categoriesErrorObject,
+    refetch: refetchCategories,
+  } = useCategories();
+
   const remove = useDeleteService();
+  const createCategory = useCreateCategory();
 
   const [metadata, setMetadata] = useState(EMPTY_METADATA);
   const [metadataError, setMetadataError] = useState('');
@@ -127,22 +161,40 @@ export function CategoriesView() {
 
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
   const [serviceFormOpen, setServiceFormOpen] = useState(false);
+
   const [serviceCategory, setServiceCategory] = useState<string>();
   const [editing, setEditing] = useState<Service>();
   const [deleting, setDeleting] = useState<Service | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  const services = useMemo(() => data ?? [], [data]);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(
+    null,
+  );
 
-  // Summary card counts
+  const services = useMemo(
+    () => servicesData ?? [],
+    [servicesData],
+  );
+
+  const categories = useMemo(
+    () => categoriesData ?? [],
+    [categoriesData],
+  );
+
+  const activeCategories = useMemo(
+    () => categories.filter((category) => category.isActive),
+    [categories],
+  );
+
   const totalServices = services.length;
 
   const homeServices = services.filter(
-    (service) => getServiceGroup(service.category) === 'Home Services',
+    (service) =>
+      getServiceGroup(service.category) === 'Home Services',
   ).length;
 
   const carServices = services.filter(
-    (service) => getServiceGroup(service.category) === 'Car Services',
+    (service) =>
+      getServiceGroup(service.category) === 'Car Services',
   ).length;
 
   const otherServices = Math.max(
@@ -150,53 +202,58 @@ export function CategoriesView() {
     totalServices - homeServices - carServices,
   );
 
-  const loadMetadata = () => {
+  useEffect(() => {
     try {
-      setMetadata(readCatalogAdminMetadata());
+      const saved = readCatalogAdminMetadata();
+
+      setMetadata({
+        categories: [],
+        serviceIcons: saved.serviceIcons ?? {},
+      });
+
       setMetadataError('');
     } catch (cause) {
-      const message =
+      setMetadataError(
         cause instanceof Error
           ? cause.message
-          : 'Could not load saved category details.';
-
-      setMetadataError(message);
+          : 'Could not load saved service icons.',
+      );
     } finally {
       setMetadataLoaded(true);
     }
-  };
-
-  useEffect(() => {
-    loadMetadata();
   }, []);
-
-  const categories = useMemo(() => {
-    const names = new Set(
-      metadata.categories
-        .map((category) => category.name)
-        .filter(Boolean)
-        .reverse(),
-    );
-
-    services
-      .map((service) => service.category)
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b))
-      .forEach((name) => names.add(name));
-
-    return [...names];
-  }, [metadata.categories, services]);
 
   const groupedCategories = useMemo(
     () =>
       SERVICE_GROUPS.map((group) => ({
         name: group,
-        categories: categories.filter(
-          (category) => getServiceGroup(category) === group,
+        categories: activeCategories.filter(
+          (category) => getServiceGroup(category.name) === group,
         ),
       })),
-    [categories],
+    [activeCategories],
   );
+
+  const categoriesWithOther = useMemo(() => {
+    const known = new Set(
+      SERVICE_GROUPS.flatMap((group) =>
+        activeCategories
+          .filter(
+            (category) => getServiceGroup(category.name) === group,
+          )
+          .map((category) => category.id),
+      ),
+    );
+
+    return activeCategories.filter(
+      (category) => !known.has(category.id),
+    );
+  }, [activeCategories]);
+
+  const categoryServices = (category: CatalogCategory) =>
+    services.filter(
+      (service) => service.categoryId === category.id,
+    );
 
   const openNewService = (category?: string) => {
     setEditing(undefined);
@@ -210,34 +267,28 @@ export function CategoriesView() {
     setServiceFormOpen(true);
   };
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (categoryId: string) => {
     setExpandedCategory((current) =>
-      current === category ? null : category,
+      current === categoryId ? null : categoryId,
     );
   };
 
-  const saveCategory = (category: AdminCategory) => {
-    const nextMetadata: CatalogAdminMetadata = {
-      ...metadata,
-      categories: [...metadata.categories, category],
-    };
-
-    try {
-      writeCatalogAdminMetadata(nextMetadata);
-      setMetadata(nextMetadata);
-      setCategoryFormOpen(false);
-      toast(`${category.name} added`);
-    } catch (cause) {
-      toast(
-        cause instanceof Error
-          ? cause.message
-          : 'Could not save the category.',
-        'error',
-      );
-    }
+  const saveCategory = (category: { name: string; description: string }) => {
+    createCategory.mutate(category, {
+      onSuccess: () => {
+        setCategoryFormOpen(false);
+        toast(`${category.name} added successfully`);
+      },
+      onError: (error: Error) => {
+        toast(error.message || 'Could not create category.', 'error');
+      },
+    });
   };
 
-  const saveServiceIcon = (serviceId: string, icon: string | null) => {
+  const saveServiceIcon = (
+    serviceId: string,
+    icon: string | null,
+  ) => {
     const serviceIcons = { ...metadata.serviceIcons };
 
     if (icon) {
@@ -246,7 +297,10 @@ export function CategoriesView() {
       delete serviceIcons[serviceId];
     }
 
-    const nextMetadata = { ...metadata, serviceIcons };
+    const nextMetadata = {
+      ...metadata,
+      serviceIcons,
+    };
 
     try {
       writeCatalogAdminMetadata(nextMetadata);
@@ -259,9 +313,25 @@ export function CategoriesView() {
           : 'Could not save the service icon.',
         'error',
       );
+
       return false;
     }
   };
+
+  const refreshAll = () => {
+    refetchServices();
+    refetchCategories();
+  };
+
+  const loading =
+    servicesLoading ||
+    categoriesLoading ||
+    !metadataLoaded;
+
+  const hasError =
+    servicesError ||
+    categoriesError ||
+    Boolean(metadataError);
 
   return (
     <>
@@ -269,62 +339,66 @@ export function CategoriesView() {
         title="Categories & Services"
         description="Organize service offerings into categories and manage their booking fees."
         actions={
-          <Button onClick={() => setCategoryFormOpen(true)}>
+          <Button
+            onClick={() => setCategoryFormOpen(true)}
+            disabled={createCategory.isPending}
+          >
             <Plus className="h-4 w-4" aria-hidden />
             Add category
           </Button>
         }
       />
 
-      {/* Summary Cards */}
-{!isLoading && !isError && !metadataError && metadataLoaded && data && (
-  <div className="mb-6 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-    <SummaryCard
-      title="Total Services"
-      value={totalServices}
-      icon={Layers}
-      color="bg-blue-50 text-blue-600"
-    />
+      {!loading && !hasError && (
+        <div className="mb-6 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <SummaryCard
+            title="Total Services"
+            value={totalServices}
+            icon={Layers}
+            color="bg-blue-50 text-blue-600"
+          />
 
-    <SummaryCard
-      title="Home Services"
-      value={homeServices}
-      icon={House}
-      color="bg-green-50 text-green-600"
-    />
+          <SummaryCard
+            title="Home Services"
+            value={homeServices}
+            icon={House}
+            color="bg-green-50 text-green-600"
+          />
 
-    <SummaryCard
-      title="Car Services"
-      value={carServices}
-      icon={Car}
-      color="bg-orange-50 text-orange-600"
-    />
+          <SummaryCard
+            title="Car Services"
+            value={carServices}
+            icon={Car}
+            color="bg-orange-50 text-orange-600"
+          />
 
-    <SummaryCard
-      title="Other Services"
-      value={otherServices}
-      icon={Layers}
-      color="bg-purple-50 text-purple-600"
-    />
-  </div>
-)}
-
-      {isError ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <ErrorState
-            message={error?.message ?? 'Could not load services.'}
-            onRetry={() => refetch()}
+          <SummaryCard
+            title="Other Services"
+            value={otherServices}
+            icon={Layers}
+            color="bg-purple-50 text-purple-600"
           />
         </div>
-      ) : metadataError ? (
+      )}
+
+      {hasError ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <ErrorState message={metadataError} onRetry={loadMetadata} />
+          <ErrorState
+            message={
+              servicesError
+                ? servicesErrorObject?.message ?? 'Could not load services.'
+                : categoriesError
+                  ? categoriesErrorObject?.message ?? 'Could not load categories.'
+                  : metadataError
+            }
+            onRetry={refreshAll}
+          />
         </div>
-      ) : isLoading || !data || !metadataLoaded ? (
+      ) : loading ? (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5">
           <TableSkeleton columns={4} rows={5} />
         </div>
-      ) : categories.length === 0 ? (
+      ) : activeCategories.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
           <EmptyState
             icon={Layers}
@@ -346,6 +420,7 @@ export function CategoriesView() {
                 <h2 className="text-xl font-bold text-slate-900">
                   {group.name}
                 </h2>
+
                 <p className="mt-1 text-sm text-slate-500">
                   {group.categories.length} categor
                   {group.categories.length === 1 ? 'y' : 'ies'}
@@ -358,32 +433,34 @@ export function CategoriesView() {
                 </p>
               ) : (
                 <div className="space-y-5">
-                  {group.categories.map((category, index) => {
-                    const categoryServices = services.filter(
-                      (service) => service.category === category,
-                    );
+                  {group.categories.map((category) => {
+                    const items = categoryServices(category);
+                    const activeCount = items.filter(
+                      (service) => service.isActive,
+                    ).length;
 
-                    const description = metadata.categories.find(
-                      (item) => item.name === category,
-                    )?.description;
+                    const isExpanded =
+                      expandedCategory === category.id;
 
-                    const isExpanded = expandedCategory === category;
-                    const servicesId = `category-services-${group.name}-${index}`;
-                    const categoryHeadingId = `category-${group.name}-${index}`;
+                    const servicesId =
+                      `category-services-${category.id}`;
+
+                    const headingId =
+                      `category-heading-${category.id}`;
 
                     return (
                       <section
-                        key={category}
-                        aria-labelledby={categoryHeadingId}
+                        key={category.id}
+                        aria-labelledby={headingId}
                         className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
                       >
-                        <header className="flex flex-col gap-4 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <header className="flex flex-col gap-3 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
                           <button
                             type="button"
                             aria-expanded={isExpanded}
                             aria-controls={servicesId}
-                            onClick={() => toggleCategory(category)}
-                            className="group flex w-full min-w-0 flex-1 items-center justify-between gap-4 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                            onClick={() => toggleCategory(category.id)}
+                            className="group flex w-full min-w-0 flex-1 items-center justify-between gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                           >
                             <span className="flex min-w-0 items-center gap-3">
                               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-100 bg-brand-50 text-brand-600">
@@ -393,36 +470,30 @@ export function CategoriesView() {
                               <span className="min-w-0">
                                 <span className="flex flex-wrap items-center gap-2">
                                   <span
-                                    id={categoryHeadingId}
+                                    id={headingId}
                                     role="heading"
                                     aria-level={3}
-                                    className="truncate text-base font-semibold text-slate-900"
+                                    className="break-words text-base font-semibold text-slate-900"
                                   >
-                                    {category}
+                                    {category.name}
                                   </span>
 
                                   <Badge
                                     tone={
-                                      categoryServices.some(
-                                        (service) => service.isActive,
-                                      )
+                                      activeCount > 0
                                         ? 'success'
                                         : 'neutral'
                                     }
                                   >
-                                    {categoryServices.some(
-                                      (service) => service.isActive,
-                                    )
+                                    {activeCount > 0
                                       ? 'Active'
                                       : 'No active services'}
                                   </Badge>
                                 </span>
 
                                 <span className="mt-1 block text-sm text-slate-500">
-                                  {description ||
-                                    `${categoryServices.length} service${
-                                      categoryServices.length === 1 ? '' : 's'
-                                    } in this category`}
+                                  {items.length} service
+                                  {items.length === 1 ? '' : 's'} in this category
                                 </span>
                               </span>
                             </span>
@@ -430,7 +501,7 @@ export function CategoriesView() {
                             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors group-hover:border-brand-200 group-hover:text-brand-600">
                               <ChevronDown
                                 className={cn(
-                                  'h-4 w-4 transition-transform duration-300 ease-in-out',
+                                  'h-4 w-4 transition-transform duration-300',
                                   isExpanded && 'rotate-180',
                                 )}
                                 aria-hidden
@@ -441,7 +512,8 @@ export function CategoriesView() {
                           <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => openNewService(category)}
+                            className="w-full shrink-0 sm:w-auto"
+                            onClick={() => openNewService(category.name)}
                           >
                             <Plus className="h-4 w-4" aria-hidden />
                             Add service
@@ -451,7 +523,7 @@ export function CategoriesView() {
                         <div
                           id={servicesId}
                           role="region"
-                          aria-labelledby={categoryHeadingId}
+                          aria-labelledby={headingId}
                           aria-hidden={!isExpanded}
                           inert={!isExpanded}
                           className={cn(
@@ -463,7 +535,7 @@ export function CategoriesView() {
                         >
                           <div className="min-h-0 overflow-hidden">
                             <div className="border-t border-slate-100">
-                              {categoryServices.length === 0 ? (
+                              {items.length === 0 ? (
                                 <div className="px-5 py-8 text-center">
                                   <p className="text-sm text-slate-500">
                                     No services in this category yet.
@@ -473,25 +545,28 @@ export function CategoriesView() {
                                     variant="secondary"
                                     size="sm"
                                     className="mt-3"
-                                    onClick={() => openNewService(category)}
+                                    onClick={() => openNewService(category.name)}
                                   >
                                     <Plus className="h-4 w-4" aria-hidden />
                                     Add the first service
                                   </Button>
                                 </div>
                               ) : (
-                                <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
-                                  {categoryServices.map((service) => (
-                                  <article className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm transition-shadow hover:shadow-md">
-                                      <div className="flex items-start gap-3">
+                                <div className="grid min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-3">
+                                  {items.map((service) => (
+                                    <article
+                                      key={service.id}
+                                      className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
+                                    >
+                                      <div className="flex min-w-0 items-start gap-3">
                                         <ServiceIcon
                                           service={service}
                                           icon={metadata.serviceIcons[service.id]}
                                         />
 
                                         <div className="min-w-0 flex-1">
-                                          <div className="flex items-start justify-between gap-2">
-                                            <h3 className="min-w-0 text-sm font-semibold text-slate-900">
+                                          <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                                            <h3 className="min-w-0 break-words text-sm font-semibold text-slate-900">
                                               {service.name}
                                             </h3>
 
@@ -524,22 +599,16 @@ export function CategoriesView() {
                                             aria-label={`Edit ${service.name}`}
                                             className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                                           >
-                                            <Pencil
-                                              className="h-4 w-4"
-                                              aria-hidden
-                                            />
+                                            <Pencil className="h-4 w-4" aria-hidden />
                                           </button>
 
                                           <button
                                             type="button"
                                             onClick={() => setDeleting(service)}
-                                            aria-label={`Delete ${service.name}`}
+                                            aria-label={`Hide ${service.name}`}
                                             className="rounded-md p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600"
                                           >
-                                            <Trash2
-                                              className="h-4 w-4"
-                                              aria-hidden
-                                            />
+                                            <Trash2 className="h-4 w-4" aria-hidden />
                                           </button>
                                         </div>
                                       </div>
@@ -557,13 +626,118 @@ export function CategoriesView() {
               )}
             </section>
           ))}
+
+          {categoriesWithOther.length > 0 && (
+            <section className="space-y-4">
+              <div className="border-b border-slate-200 pb-3">
+                <h2 className="text-xl font-bold text-slate-900">
+                  Other Services
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Categories that have not been assigned to a standard service group.
+                </p>
+              </div>
+
+              <div className="space-y-5">
+                {categoriesWithOther.map((category) => {
+                  const items = categoryServices(category);
+                  const isExpanded = expandedCategory === category.id;
+                  const headingId = `category-heading-${category.id}`;
+                  const servicesId = `category-services-${category.id}`;
+
+                  return (
+                    <section
+                      key={category.id}
+                      className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+                    >
+                      <header className="flex flex-col gap-3 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <button
+                          type="button"
+                          aria-expanded={isExpanded}
+                          aria-controls={servicesId}
+                          onClick={() => toggleCategory(category.id)}
+                          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                        >
+                          <span className="min-w-0">
+                            <span
+                              id={headingId}
+                              role="heading"
+                              aria-level={3}
+                              className="block break-words font-semibold text-slate-900"
+                            >
+                              {category.name}
+                            </span>
+                            <span className="mt-1 block text-sm text-slate-500">
+                              {items.length} service{items.length === 1 ? '' : 's'}
+                            </span>
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              'h-4 w-4 shrink-0 transition-transform',
+                              isExpanded && 'rotate-180',
+                            )}
+                          />
+                        </button>
+
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => openNewService(category.name)}
+                        >
+                          <Plus className="h-4 w-4" aria-hidden />
+                          Add service
+                        </Button>
+                      </header>
+
+                      {isExpanded && (
+                        <div
+                          id={servicesId}
+                          className="grid grid-cols-1 gap-3 border-t border-slate-100 p-3 sm:grid-cols-2 xl:grid-cols-3"
+                        >
+                          {items.map((service) => (
+                            <article
+                              key={service.id}
+                              className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 p-4"
+                            >
+                              <div className="flex min-w-0 items-center gap-3">
+                                <ServiceIcon
+                                  service={service}
+                                  icon={metadata.serviceIcons[service.id]}
+                                />
+                                <div className="min-w-0">
+                                  <p className="break-words text-sm font-semibold">
+                                    {service.name}
+                                  </p>
+                                  <p className="text-xs text-slate-500">
+                                    {formatMoney(service.visitFee)}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => openEditService(service)}
+                                aria-label={`Edit ${service.name}`}
+                                className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                            </article>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
       )}
 
       <CategoryFormDialog
         open={categoryFormOpen}
         onClose={() => setCategoryFormOpen(false)}
-        existingNames={categories}
+        existingNames={categories.map((category) => category.name)}
         onSave={saveCategory}
       />
 
@@ -588,9 +762,9 @@ export function CategoriesView() {
       <ConfirmDialog
         open={Boolean(deleting)}
         onClose={() => setDeleting(null)}
-        title={`Delete ${deleting?.name ?? 'service'}?`}
-        description="Customers will no longer be able to request it. Services with open jobs cannot be deleted: hide them instead."
-        confirmLabel="Delete service"
+        title={`Hide ${deleting?.name ?? 'service'}?`}
+        description="This will deactivate the service so customers can no longer request it. Existing records are retained."
+        confirmLabel="Hide service"
         destructive
         loading={remove.isPending}
         onConfirm={() => {
@@ -609,13 +783,13 @@ export function CategoriesView() {
 
               toast(
                 iconRemoved
-                  ? `${serviceName} deleted`
-                  : `${serviceName} deleted, but its saved icon could not be removed`,
+                  ? `${serviceName} hidden`
+                  : `${serviceName} hidden, but its saved icon could not be removed`,
                 iconRemoved ? 'success' : 'error',
               );
             },
             onError: (err) => {
-              toast(err.message || 'Could not delete the service', 'error');
+              toast(err.message || 'Could not hide the service', 'error');
               setDeleting(null);
             },
           });

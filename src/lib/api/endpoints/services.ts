@@ -1,72 +1,79 @@
+
 import { env } from '@/config/env';
-import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
+import { clone, delay, mockDb } from '@/mocks/mock-db';
 import type { Service, ServiceInput } from '@/types/service';
-import { api, ApiError, unwrap } from '../client';
+import { api, unwrap } from '../client';
 
-function findMock(id: string): Service {
-  const service = mockDb.services.find((s) => s.id === id);
-  if (!service) throw new MockNotFoundError('Service', id);
-  return service;
+interface BackendService {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  bookingFee: number;
+  emergencyVisitFee: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  keywords?: string;
+  icon?: string | null;
+  sosBookingFee?: number | null;
+  category: { id: string; name: string };
 }
 
-/** Names must be unique, ignoring case and extra spaces. */
-function assertUniqueName(name: string, exceptId?: string) {
-  const key = name.trim().toLowerCase();
-  if (mockDb.services.some((s) => s.id !== exceptId && s.name.trim().toLowerCase() === key)) {
-    throw new ApiError(`A service called "${name.trim()}" already exists.`, 409);
-  }
-}
+const mapService = (item: BackendService): Service => ({
+  id: item.id,
+  categoryId: item.categoryId,
+  name: item.name,
+  category: item.category?.name ?? '',
+  description: item.description ?? '',
+  visitFee: Number(item.bookingFee ?? 0),
+  emergencyVisitFee: Number(item.emergencyVisitFee ?? 0),
+  isActive: item.isActive,
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+  keywords: item.keywords,
+  icon: item.icon,
+  sosBookingFee: item.sosBookingFee,
+});
 
-/** Alphabetical, with the catch-all "Other" always last. */
-const byName = (a: Service, b: Service) =>
-  Number(a.name === 'Other') - Number(b.name === 'Other') || a.name.localeCompare(b.name);
-
-interface BackendCategory {
-  id: string; name: string; category: Service['category']; description: string | null;
-  bookingFee: number; emergencyVisitFee: number; isActive: boolean; createdAt: string;
-}
-function mapBackendCategory(cat: BackendCategory): Service {
-  return {
-    id: cat.id,
-    name: cat.name,
-    category: cat.category || 'Mechanical',
-    description: cat.description || `Professional ${cat.name?.toLowerCase() || 'repair'} services`,
-    visitFee: Number(cat.bookingFee),
-    emergencyVisitFee: Number(cat.emergencyVisitFee ?? 0),
-    isActive: cat.isActive !== false,
-    createdAt: cat.createdAt,
-  };
-}
+const payload = (input: ServiceInput) => ({
+  name: input.name.trim(),
+  categoryId: input.categoryId,
+  description: input.description.trim(),
+  bookingFee: Math.round(input.visitFee),
+  emergencyVisitFee: Math.round(input.emergencyVisitFee),
+  isActive: input.isActive,
+  keywords: input.keywords ?? '',
+  icon: input.icon ?? null,
+  sosBookingFee: input.sosBookingFee ?? null,
+});
 
 export const servicesApi = {
   async list(): Promise<Service[]> {
     if (!env.useMocks) {
-      const response = await unwrap<BackendCategory[]>(api.get('/catalog/admin/categories'));
-      return (response || []).map(mapBackendCategory).sort(byName);
+      const result = await unwrap<BackendService[]>(
+        api.get('/catalog/admin/services'),
+      );
+      return (result ?? []).map(mapService);
     }
+
     await delay();
-    return clone([...mockDb.services].sort(byName));
+    return clone(mockDb.services);
   },
 
   async create(input: ServiceInput): Promise<Service> {
     if (!env.useMocks) {
-      const payload = {
-        name: input.name.trim(),
-        bookingFee: Math.round(input.visitFee),
-        emergencyVisitFee: Math.round(input.emergencyVisitFee),
-        category: input.category,
-        description: input.description,
-        isActive: input.isActive,
-      };
-      const response = await unwrap<BackendCategory>(api.post('/catalog/categories', payload));
-      return mapBackendCategory(response);
+      const result = await unwrap<BackendService>(
+        api.post('/catalog/services', payload(input)),
+      );
+      return mapService(result);
     }
+
     await delay();
-    assertUniqueName(input.name);
     const service: Service = {
       ...input,
-      name: input.name.trim(),
       id: `svc_${Date.now()}`,
+      name: input.name.trim(),
       createdAt: new Date().toISOString(),
     };
     mockDb.services.push(service);
@@ -75,41 +82,26 @@ export const servicesApi = {
 
   async update(id: string, input: ServiceInput): Promise<Service> {
     if (!env.useMocks) {
-      const payload = {
-        name: input.name.trim(),
-        bookingFee: Math.round(input.visitFee),
-        emergencyVisitFee: Math.round(input.emergencyVisitFee),
-        category: input.category,
-        description: input.description,
-        isActive: input.isActive,
-      };
-      const response = await unwrap<BackendCategory>(api.patch(`/catalog/categories/${id}`, payload));
-      return mapBackendCategory(response);
+      const result = await unwrap<BackendService>(
+        api.patch(`/catalog/services/${id}`, payload(input)),
+      );
+      return mapService(result);
     }
+
     await delay();
-    assertUniqueName(input.name, id);
-    const service = findMock(id);
-    Object.assign(service, { ...input, name: input.name.trim() });
+    const service = mockDb.services.find((item) => item.id === id);
+    if (!service) throw new Error('Service not found.');
+    Object.assign(service, input, { name: input.name.trim() });
     return clone(service);
   },
 
-  /** A service with open jobs cannot be deleted; the admin should hide it instead. */
   async remove(id: string): Promise<void> {
     if (!env.useMocks) {
-      await unwrap(api.delete(`/catalog/categories/${id}`));
+      await unwrap(api.delete(`/catalog/services/${id}`));
       return;
     }
+
     await delay();
-    const service = findMock(id);
-    const openJobs = mockDb.jobs.filter(
-      (j) => j.service === service.name && j.status !== 'COMPLETED' && j.status !== 'CANCELLED',
-    ).length;
-    if (openJobs > 0) {
-      throw new ApiError(
-        `${service.name} has ${openJobs} open job${openJobs === 1 ? '' : 's'}. Hide it instead, or wait until they finish.`,
-        409,
-      );
-    }
-    mockDb.services = mockDb.services.filter((s) => s.id !== id);
+    mockDb.services = mockDb.services.filter((item) => item.id !== id);
   },
 };

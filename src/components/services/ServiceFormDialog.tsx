@@ -13,18 +13,21 @@ import {
 } from '@/components/ui';
 import { SERVICE_GROUPS, getServiceGroup } from '@/config/services';
 import type { ServiceGroup } from '@/config/services';
-import type { Service, ServiceInput } from '@/types/service';
+import type {
+  CatalogCategory,
+  Service,
+  ServiceInput,
+} from '@/types/service';
 import { useCreateService, useUpdateService } from '@/hooks/useServices';
 
 const MAX_ICON_SIZE = 2 * 1024 * 1024;
 
-type ServiceFormValues = Omit<ServiceInput, 'category'> & {
-  category: string;
-};
+type ServiceFormValues = ServiceInput;
 
 const EMPTY: ServiceFormValues = {
   name: '',
   category: '',
+  categoryId: '',
   description: '',
   visitFee: 75,
   emergencyVisitFee: 110,
@@ -35,7 +38,7 @@ type Errors = Partial<Record<keyof ServiceFormValues, string>>;
 
 function validate(
   input: ServiceFormValues,
-  categories: string[],
+  categories: CatalogCategory[],
 ): Errors {
   const errors: Errors = {};
 
@@ -43,8 +46,14 @@ function validate(
     errors.name = 'Enter a name of at least 2 characters.';
   }
 
-  if (!categories.includes(input.category)) {
-    errors.category = 'Choose a category.';
+  const selectedCategory = categories.find(
+    (category) => category.id === input.categoryId,
+  );
+
+  if (!selectedCategory) {
+    errors.categoryId = 'Choose a valid category.';
+  } else if (selectedCategory.name !== input.category) {
+    errors.categoryId = 'The selected category is invalid.';
   }
 
   if (input.description.trim().length < 5) {
@@ -55,10 +64,16 @@ function validate(
     errors.visitFee = 'Enter a whole booking fee of 0 or more.';
   }
 
+  if (
+    !Number.isInteger(input.emergencyVisitFee) ||
+    input.emergencyVisitFee < 0
+  ) {
+    errors.emergencyVisitFee = 'Enter a valid emergency booking fee.';
+  }
+
   return errors;
 }
 
-/** Add a new service or edit an existing service. */
 export function ServiceFormDialog({
   open,
   onClose,
@@ -71,13 +86,14 @@ export function ServiceFormDialog({
   open: boolean;
   onClose: () => void;
   service?: Service;
-  categories: string[];
+  categories: CatalogCategory[];
   initialCategory?: string;
   icon?: string;
   onIconChange: (serviceId: string, icon: string | null) => boolean;
 }) {
   const id = useId();
   const toast = useToast();
+
   const create = useCreateService();
   const update = useUpdateService();
 
@@ -87,18 +103,18 @@ export function ServiceFormDialog({
   const [touched, setTouched] = useState(false);
   const [iconError, setIconError] = useState('');
 
-  // Only show categories belonging to the selected service group.
   const filteredCategories = useMemo(
     () =>
       selectedGroup
         ? categories.filter(
-            (category) => getServiceGroup(category) === selectedGroup,
+            (category) =>
+              getServiceGroup(category.name) === selectedGroup &&
+              (category.isActive || category.id === input.categoryId),
           )
         : [],
-    [categories, selectedGroup],
+    [categories, selectedGroup, input.categoryId],
   );
 
-  // Initialize the form whenever it opens or the selected service changes.
   useEffect(() => {
     if (!open) return;
 
@@ -107,34 +123,47 @@ export function ServiceFormDialog({
     setIconData(icon ?? null);
 
     if (service) {
-      const group = getServiceGroup(service.category);
+      const category = categories.find(
+        (item) => item.id === service.categoryId,
+      ) ?? categories.find(
+        (item) => item.name === service.category,
+      );
 
-      setSelectedGroup(group);
+      const categoryName = category?.name ?? service.category;
+
+      setSelectedGroup(getServiceGroup(categoryName));
 
       setInput({
         name: service.name,
-        category: service.category,
+        category: categoryName,
+        categoryId: category?.id ?? service.categoryId ?? '',
         description: service.description,
         visitFee: service.visitFee,
         emergencyVisitFee: service.emergencyVisitFee,
         isActive: service.isActive,
+        keywords: service.keywords ?? '',
+        icon: service.icon ?? null,
+        sosBookingFee: service.sosBookingFee ?? null,
       });
     } else {
-      const group = initialCategory
-        ? getServiceGroup(initialCategory)
-        : '';
+      const category = categories.find(
+        (item) => item.name === initialCategory,
+      );
 
-      setSelectedGroup(group);
+      setSelectedGroup(
+        category ? getServiceGroup(category.name) : '',
+      );
 
       setInput({
         ...EMPTY,
-        category: initialCategory ?? '',
+        category: category?.name ?? '',
+        categoryId: category?.id ?? '',
       });
     }
-  }, [open, service, initialCategory, icon]);
+  }, [open, service, initialCategory, icon, categories]);
 
   const errors = touched
-    ? validate(input, filteredCategories)
+    ? validate(input, categories)
     : {};
 
   const saving = create.isPending || update.isPending;
@@ -152,14 +181,37 @@ export function ServiceFormDialog({
   const handleGroupChange = (group: ServiceGroup) => {
     setSelectedGroup(group);
 
-    // A category from the previous group must not remain selected.
+    setInput((current) => {
+      const currentCategory = categories.find(
+        (category) => category.id === current.categoryId,
+      );
+
+      if (
+        currentCategory &&
+        getServiceGroup(currentCategory.name) === group
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        category: '',
+        categoryId: '',
+      };
+    });
+
+    setTouched(false);
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    const category = categories.find(
+      (item) => item.id === categoryId,
+    );
+
     setInput((current) => ({
       ...current,
-      category:
-        current.category &&
-        getServiceGroup(current.category) === group
-          ? current.category
-          : '',
+      categoryId: category?.id ?? '',
+      category: category?.name ?? '',
     }));
 
     setTouched(false);
@@ -200,7 +252,7 @@ export function ServiceFormDialog({
   const save = () => {
     setTouched(true);
 
-    const validationErrors = validate(input, filteredCategories);
+    const validationErrors = validate(input, categories);
 
     if (
       !selectedGroup ||
@@ -214,6 +266,7 @@ export function ServiceFormDialog({
       ...input,
       name: input.name.trim(),
       category: input.category,
+      categoryId: input.categoryId,
       description: input.description.trim(),
     };
 
@@ -272,7 +325,7 @@ export function ServiceFormDialog({
           <Button
             onClick={save}
             loading={saving}
-            disabled={saving}
+            disabled={saving || categories.length === 0}
           >
             {service ? 'Save changes' : 'Add service'}
           </Button>
@@ -286,7 +339,6 @@ export function ServiceFormDialog({
           save();
         }}
       >
-        {/* Service group selection */}
         <Field label="Service group" htmlFor={`${id}-service-group`}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {SERVICE_GROUPS.map((group) => {
@@ -319,7 +371,6 @@ export function ServiceFormDialog({
           </div>
         </Field>
 
-        {/* Service name */}
         <Field
           label="Service name"
           htmlFor={`${id}-name`}
@@ -334,18 +385,17 @@ export function ServiceFormDialog({
           />
         </Field>
 
-        {/* Category filtered by selected group */}
         <Field
           label="Category"
           htmlFor={`${id}-category`}
-          error={errors.category}
+          error={errors.categoryId}
         >
           <Select
             id={`${id}-category`}
-            value={input.category}
-            onChange={(event) => set('category', event.target.value)}
+            value={input.categoryId}
+            onChange={(event) => handleCategoryChange(event.target.value)}
             disabled={!selectedGroup}
-            invalid={Boolean(errors.category)}
+            invalid={Boolean(errors.categoryId)}
           >
             <option value="">
               {selectedGroup
@@ -354,14 +404,14 @@ export function ServiceFormDialog({
             </option>
 
             {filteredCategories.map((category) => (
-              <option key={category} value={category}>
-                {category}
+              <option key={category.id} value={category.id}>
+                {category.name}
+                {!category.isActive ? ' (Inactive)' : ''}
               </option>
             ))}
           </Select>
         </Field>
 
-        {/* Description */}
         <Field
           label="Description"
           htmlFor={`${id}-description`}
@@ -376,7 +426,6 @@ export function ServiceFormDialog({
           />
         </Field>
 
-        {/* Booking fee */}
         <Field
           label="Booking Fee (RWF)"
           htmlFor={`${id}-fee`}
@@ -400,7 +449,29 @@ export function ServiceFormDialog({
           </p>
         </Field>
 
-        {/* Service icon */}
+        <Field
+          label="Emergency Booking Fee (RWF)"
+          htmlFor={`${id}-emergency-fee`}
+          error={errors.emergencyVisitFee}
+        >
+          <Input
+            id={`${id}-emergency-fee`}
+            type="number"
+            min={0}
+            step="1"
+            value={
+              Number.isNaN(input.emergencyVisitFee)
+                ? ''
+                : input.emergencyVisitFee
+            }
+            onChange={(event) =>
+              set('emergencyVisitFee', event.target.valueAsNumber)
+            }
+            placeholder="Enter emergency booking fee"
+            invalid={Boolean(errors.emergencyVisitFee)}
+          />
+        </Field>
+
         <Field
           label="Service icon"
           htmlFor={`${id}-icon`}
@@ -417,11 +488,11 @@ export function ServiceFormDialog({
         </Field>
 
         {iconData && (
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <div
               role="img"
               aria-label={`${input.name || 'Service'} icon preview`}
-              className="h-14 w-14 rounded-xl border border-slate-200 bg-cover bg-center bg-no-repeat"
+              className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 bg-cover bg-center bg-no-repeat"
               style={{
                 backgroundImage: `url("${iconData}")`,
               }}
@@ -438,7 +509,6 @@ export function ServiceFormDialog({
           </div>
         )}
 
-        {/* Availability */}
         <label className="flex items-start gap-3 rounded-lg border border-slate-200 p-3">
           <input
             type="checkbox"
