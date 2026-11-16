@@ -82,14 +82,21 @@ function validateJobLocationAndPayment(
     throw new ApiError('Please provide a valid longitude.', 400);
   }
 
-  if (!Number.isInteger(input.offeredAmount) || input.offeredAmount <= 0 || input.offeredAmount > 2_000_000_000) {
+  if (
+    !Number.isInteger(input.offeredAmount) ||
+    input.offeredAmount <= 0 ||
+    input.offeredAmount > 2_000_000_000
+  ) {
     throw new ApiError('Please enter a valid technician payment amount.', 400);
   }
 }
 
-async function getBackendCategoryId(serviceName: string): Promise<string> {
-  const response = await unwrap<Service[]>(
-    api.get('/catalog/categories'),
+/**
+ * Resolves a service name to its backend service ID.
+ */
+async function getBackendServiceId(serviceName: string): Promise<string> {
+  const response = await unwrap<Array<{ id: string; name: string }>>(
+    api.get('/catalog/admin/services'),
   );
 
   const selectedService = response.find(
@@ -98,17 +105,14 @@ async function getBackendCategoryId(serviceName: string): Promise<string> {
   );
 
   if (!selectedService) {
-    throw new ApiError(
-      `Service category "${serviceName}" was not found.`,
-      400,
-    );
+    throw new ApiError(`Service "${serviceName}" was not found.`, 400);
   }
 
   return selectedService.id;
 }
 
-function backendPriority(urgency: Urgency): 'NORMAL' | 'HIGH' | 'URGENT' {
-  return urgency === 'Emergency' ? 'URGENT' : urgency === 'Today' ? 'HIGH' : 'NORMAL';
+function backendPriority(urgency: Urgency): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' {
+  return urgency;
 }
 
 export const jobsApi = {
@@ -229,6 +233,7 @@ export const jobsApi = {
       const response = await unwrap(
         api.post(`/admin/jobs/${id}/cancel`, { reason }),
       );
+
       return mapBackendJob(response as Parameters<typeof mapBackendJob>[0]);
     }
 
@@ -250,6 +255,7 @@ export const jobsApi = {
           technicianId: technician.id,
         }),
       );
+
       return mapBackendJob(response as Parameters<typeof mapBackendJob>[0]);
     }
 
@@ -260,7 +266,7 @@ export const jobsApi = {
 
     return transition(
       job,
-      'MATCHING',
+       'OPEN',
       previous
         ? `Customer is negotiating with ${technician.name} instead of ${previous}.`
         : `Customer can now negotiate with ${technician.name}.`,
@@ -280,16 +286,20 @@ export const jobsApi = {
         );
       }
 
-      const categoryId = await getBackendCategoryId(jobInput.service);
+      const serviceId = await getBackendServiceId(jobInput.service);
 
       if (!jobInput.paymentId || !jobInput.phoneVerificationId) {
-        throw new ApiError('A valid booking payment and verified phone reference are required for this customer.', 400);
+        throw new ApiError(
+          'A valid booking payment and verified phone reference are required for this customer.',
+          400,
+        );
       }
+
       const payload = {
         customerId: jobInput.customerId,
         paymentId: jobInput.paymentId,
         phoneVerificationId: jobInput.phoneVerificationId,
-        serviceCategoryId: categoryId,
+        serviceCategoryId: serviceId,
         description: jobInput.problem.trim(),
         locationAddress: jobInput.location.trim(),
         latitude: jobInput.latitude,
@@ -331,31 +341,34 @@ export const jobsApi = {
       ) + 1;
 
     const job: Job = {
-      id: `job_${Date.now()}`,
-      reference: `FD-${number}`,
-      service: service.name,
-      problem: input.problem.trim(),
-      urgency: input.urgency,
-      location: input.location.trim(),
-      customer: {
-        id: account.id,
-        name: account.name,
-        phone: account.phone,
-      },
-      status: 'REQUESTED',
-      createdAt: now,
-      updatedAt: now,
-      visitFee: feeFor(service, input.urgency),
-      events: [
-        {
-          id: `evt_${Date.now()}_1`,
-          status: 'REQUESTED',
-          title: JOB_STATUS_LABEL.REQUESTED,
-          text: `Created by Fundi admin for ${account.name}: ${input.problem.trim()}`,
-          at: now,
-        },
-      ],
-    };
+  id: `job_${Date.now()}`,
+  reference: `FD-${number}`,
+  service: service.name,
+  problem: input.problem.trim(),
+  urgency: input.urgency,
+  location: input.location.trim(),
+  customer: {
+    id: account.id,
+    name: account.name,
+    phone: account.phone,
+  },
+  status: 'OPEN',
+  bookingPaymentStatus: 'PAID',
+  bookingFee: feeFor(service, input.urgency),
+  currency: 'RWF',
+  createdAt: now,
+  updatedAt: now,
+  visitFee: feeFor(service, input.urgency),
+  events: [
+    {
+      id: `evt_${Date.now()}_1`,
+      status: 'OPEN',
+      title: JOB_STATUS_LABEL.OPEN,
+      text: `Created by Fundi admin for ${account.name}: ${input.problem.trim()}`,
+      at: now,
+    },
+  ],
+};
 
     mockDb.jobs.unshift(job);
     return clone(job);
@@ -365,10 +378,10 @@ export const jobsApi = {
     if (!env.useMocks) {
       const edit = input as JobEditInput & Partial<JobLocationAndPayment>;
 
-      const categoryId = await getBackendCategoryId(edit.service);
+      const serviceId = await getBackendServiceId(edit.service);
 
       const payload = {
-        serviceCategoryId: categoryId,
+        serviceCategoryId: serviceId,
         description: edit.problem.trim(),
         locationAddress: edit.location.trim(),
         ...(edit.latitude !== undefined ? { latitude: edit.latitude } : {}),
@@ -420,9 +433,13 @@ export const jobsApi = {
 
   async rate(_jobId: string, _rating: Rating): Promise<Job> {
     if (!env.useMocks) {
-      const response = await unwrap(api.post(`/admin/jobs/${_jobId}/rating`, {
-        ..._rating, overall: Math.round(_rating.overall),
-      }));
+      const response = await unwrap(
+        api.post(`/admin/jobs/${_jobId}/rating`, {
+          ..._rating,
+          overall: Math.round(_rating.overall),
+        }),
+      );
+
       return mapBackendJob(response as Parameters<typeof mapBackendJob>[0]);
     }
 
@@ -494,6 +511,6 @@ function findService(name: string): Service {
 }
 
 const feeFor = (service: Service, urgency: Urgency) =>
-  urgency === 'Emergency'
+  urgency === 'URGENT'
     ? service.emergencyVisitFee
     : service.visitFee;

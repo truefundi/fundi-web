@@ -52,32 +52,29 @@ function Details({ rows }: { rows: [string, React.ReactNode][] }) {
 }
 
 function ExceptionBanner({ job }: { job: Job }) {
-  if (job.status === 'DISPUTED') {
-    const dispute = [...job.events].reverse().find((e) => e.status === 'DISPUTED');
+  if (job.dispute) {
     return (
       <div className="mb-6 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4" role="alert">
         <AlertTriangle className="h-5 w-5 shrink-0 text-red-600" aria-hidden />
         <div>
-          <p className="text-sm font-semibold text-red-800">This job is disputed</p>
-          {dispute && <p className="mt-0.5 text-sm text-red-700">{dispute.text}</p>}
-          <Link href={`/admin/disputes/${job.id}`} className="mt-1 inline-block text-sm font-semibold text-red-800 underline">
+          <p className="text-sm font-semibold text-red-800">
+            This job is disputed
+          </p>
+          <p className="mt-0.5 text-sm text-red-700">
+            {job.dispute.reason}
+          </p>
+          <Link href={`/admin/disputes/${job.id}`} className="mt-2 inline-block text-sm font-semibold text-red-700 underline">
             Review dispute
           </Link>
         </div>
       </div>
     );
   }
+
   if (job.status === 'CANCELLED') {
-    return (
-      <div className="mb-6 flex gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <Ban className="h-5 w-5 shrink-0 text-slate-500" aria-hidden />
-        <div>
-          <p className="text-sm font-semibold text-slate-800">This job was cancelled</p>
-          {job.cancellationReason && <p className="mt-0.5 text-sm text-slate-600">{job.cancellationReason}</p>}
-        </div>
-      </div>
-    );
+    // Keep your existing cancelled-job banner here.
   }
+
   return null;
 }
 
@@ -121,7 +118,7 @@ export function JobDetailView({ id }: { id: string }) {
   }
 
   const split = visitFeeSplit(job, commissionRatePercent / 100);
-  const visitPaid = job.events.some((e) => e.status === 'VISIT_PAID');
+  const visitPaid = Boolean(job.visitPaymentMethod);
 
   return (
     <>
@@ -202,7 +199,16 @@ export function JobDetailView({ id }: { id: string }) {
             <CardHeader title="People" />
             <CardBody>
               <Details
+
                 rows={[
+                      [
+      'Booking payment',
+      job.bookingPaymentStatus === 'PAID'
+        ? 'Paid'
+        : job.bookingPaymentStatus === 'PENDING'
+          ? 'Awaiting customer payment'
+          : 'Payment failed',
+    ],
                   ['Customer', job.customer.name],
                   ['Customer phone', formatPhone(job.customer.phone)],
                   [
@@ -219,6 +225,7 @@ export function JobDetailView({ id }: { id: string }) {
                     ? ([['Technician phone', formatPhone(job.technician.phone)]] as [string, React.ReactNode][])
                     : []),
                 ]}
+
               />
             </CardBody>
           </Card>

@@ -13,5 +13,11 @@ export function JobStatusBadge({ status }: { status: JobStatus }) {
 }
 
 export function UrgencyBadge({ urgency }: { urgency: Urgency }) {
-  return <Badge tone={urgency === 'Emergency' ? 'danger' : 'neutral'}>{urgency}</Badge>;
+  const isUrgent = urgency === 'URGENT';
+
+  return (
+    <Badge tone={isUrgent ? 'danger' : 'neutral'}>
+      {urgency}
+    </Badge>
+  );
 }

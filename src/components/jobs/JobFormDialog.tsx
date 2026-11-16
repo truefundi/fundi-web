@@ -41,7 +41,7 @@ const EMPTY: JobFormInput = {
   partyType: 'customer',
   service: '',
   problem: '',
-  urgency: 'Today',
+  urgency: 'NORMAL',
   location: '',
   latitude: 0,
   longitude: 0,
@@ -206,11 +206,7 @@ export function JobFormDialog({
     (service) => service.name === input.service,
   );
 
-  const fee =
-    selected &&
-    (input.urgency === 'Emergency'
-      ? selected.emergencyVisitFee
-      : selected.visitFee);
+ const fee = selected?.visitFee;
 
   const accountOptions = customers.data?.items;
 

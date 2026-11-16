@@ -86,15 +86,15 @@ export const disputesApi = {
       ...job.dispute!,
       resolution: { ...decision, note: decision.note.trim(), resolvedAt: at, resolvedBy: MOCK_REVIEWER },
     };
-    job.status = 'PAYMENT_PENDING';
-    job.updatedAt = at;
-    job.events.push({
-      id: `evt_${job.id}_${job.events.length + 1}`,
-      status: 'PAYMENT_PENDING',
-      title: JOB_STATUS_LABEL.PAYMENT_PENDING,
-      text: `Dispute resolved by Fundi admin (${DISPUTE_OUTCOME_LABEL[decision.outcome].toLowerCase()}): ${decision.note.trim()} The customer settles $${decision.amount}.`,
-      at,
-    });
+   job.bookingPaymentStatus = 'PENDING';
+job.updatedAt = at;
+job.events.push({
+  id: `evt_${job.id}_${job.events.length + 1}`,
+  status: job.status,
+  title: 'Payment pending',
+  text: `Dispute resolved by Fundi admin (${DISPUTE_OUTCOME_LABEL[decision.outcome].toLowerCase()}): ${decision.note.trim()} The customer must settle ${decision.amount} RWF.`,
+  at,
+});
     return clone(job);
   },
 };

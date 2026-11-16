@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, Menu, X } from 'lucide-react';
@@ -19,8 +19,28 @@ export function SiteHeader() {
   const [supportOpen, setSupportOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDraftSection, setActiveDraftSection] = useState('home');
+  const desktopSupportRef = useRef<HTMLDivElement>(null);
+  const mobileSupportRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isDraft = pathname === '/landing-draft';
+
+  useEffect(() => {
+    if (!supportOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        !desktopSupportRef.current?.contains(target) &&
+        !mobileSupportRef.current?.contains(target)
+      ) {
+        setSupportOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsideClick);
+    return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
+  }, [supportOpen]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -128,7 +148,7 @@ export function SiteHeader() {
 
           {!isDraft && (
             <>
-              <div className="relative">
+              <div ref={desktopSupportRef} className="relative">
                 <button
                   type="button"
                   aria-expanded={supportOpen}
@@ -253,46 +273,48 @@ export function SiteHeader() {
           </ul>
           {!isDraft && (
             <div className="mt-2 space-y-1">
-              <button
-                type="button"
-                aria-expanded={supportOpen}
-                onClick={() => setSupportOpen((isOpen) => !isOpen)}
-                className={cn(
-                  'flex w-full items-center justify-between border-b-2 px-3 py-3 text-base font-medium',
-                  supportIsActive
-                    ? 'border-transparent text-brand-400'
-                    : 'border-transparent text-slate-200',
+              <div ref={mobileSupportRef}>
+                <button
+                  type="button"
+                  aria-expanded={supportOpen}
+                  onClick={() => setSupportOpen((isOpen) => !isOpen)}
+                  className={cn(
+                    'flex w-full items-center justify-between border-b-2 px-3 py-3 text-base font-medium',
+                    supportIsActive
+                      ? 'border-transparent text-brand-400'
+                      : 'border-transparent text-slate-200',
+                  )}
+                >
+                  Support
+                  <ChevronDown className={cn('h-4 w-4 transition-transform', supportOpen && 'rotate-180')} aria-hidden />
+                </button>
+                {supportOpen && (
+                  <div className="space-y-1 pl-4">
+                    {[
+                      { label: 'FAQ', href: '/faq' },
+                      { label: 'Contact us', href: '/contact' },
+                    ].map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => {
+                          setOpen(false);
+                          setSupportOpen(false);
+                        }}
+                        aria-current={pathname === link.href ? 'page' : undefined}
+                        className={cn(
+                          'block border-b-2 px-3 py-3 text-base font-medium',
+                          pathname === link.href
+                            ? 'border-transparent text-brand-400'
+                            : 'border-transparent text-slate-200',
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              >
-                Support
-                <ChevronDown className={cn('h-4 w-4 transition-transform', supportOpen && 'rotate-180')} aria-hidden />
-              </button>
-              {supportOpen && (
-                <div className="space-y-1 pl-4">
-                  {[
-                    { label: 'FAQ', href: '/faq' },
-                    { label: 'Contact us', href: '/contact' },
-                  ].map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => {
-                        setOpen(false);
-                        setSupportOpen(false);
-                      }}
-                      aria-current={pathname === link.href ? 'page' : undefined}
-                      className={cn(
-                        'block border-b-2 px-3 py-3 text-base font-medium',
-                        pathname === link.href
-                          ? 'border-transparent text-brand-400'
-                          : 'border-transparent text-slate-200',
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
+              </div>
               <Link
                 href="/for-technicians"
                 onClick={() => setOpen(false)}

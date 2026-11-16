@@ -1,7 +1,17 @@
-import type { DisputeOutcome, Job, JobParty, JobStatus, Urgency, Rating } from '@/types/job';
+
+import type {
+  BookingPaymentStatus,
+  DisputeOutcome,
+  Job,
+  JobParty,
+  JobStatus,
+  Urgency,
+  Rating,
+} from '@/types/job';
 
 export type BackendJob = {
   id: string;
+  reference?: string;
   service?: string | null;
   description?: string | null;
   location?: {
@@ -11,7 +21,10 @@ export type BackendJob = {
   } | null;
   offeredAmount?: number | null;
   priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
-  status: 'OPEN' | 'ASSIGNED' | 'PAUSED' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  status: JobStatus;
+  bookingPaymentStatus?: BookingPaymentStatus;
+  bookingFee?: number | null;
+  currency?: string | null;
   createdAt: string;
   updatedAt: string;
   completedAt?: string | null;
@@ -42,24 +55,8 @@ export type BackendJob = {
   } | null;
 };
 
-const statusMap: Record<BackendJob['status'], JobStatus> = {
-  OPEN: 'REQUESTED',
-  ASSIGNED: 'ACCEPTED',
-  PAUSED: 'PAUSED',
-  COMPLETED: 'COMPLETED',
-  FAILED: 'FAILED',
-  CANCELLED: 'CANCELLED',
-};
-
 function mapUrgency(priority?: BackendJob['priority']): Urgency {
-  switch (priority) {
-    case 'URGENT':
-      return 'Emergency';
-    case 'HIGH':
-      return 'Today';
-    default:
-      return 'Schedule';
-  }
+  return priority ?? 'NORMAL';
 }
 
 function mapDisputeOutcome(outcome?: string): DisputeOutcome {
@@ -70,34 +67,58 @@ function mapDisputeOutcome(outcome?: string): DisputeOutcome {
 
 export function mapBackendJob(job: BackendJob): Job {
   const customer: JobParty = {
-    id: job.customer?.id ?? '', name: job.customer?.fullName ?? 'Unknown customer',
+    id: job.customer?.id ?? '',
+    name: job.customer?.fullName ?? 'Unknown customer',
     phone: job.customer?.phoneNumber ?? '',
   };
+
+  const bookingFee = job.bookingFee ?? job.bookingPayment?.amount ?? 0;
+
   return {
-    id: job.id, reference: job.id, service: job.service ?? 'Unspecified service',
-    problem: job.description ?? '', urgency: mapUrgency(job.priority),
-    location: job.location?.address ?? '', customer,
+    id: job.id,
+    reference: job.reference ?? job.id,
+    service: job.service ?? 'Unspecified service',
+    problem: job.description ?? '',
+    urgency: mapUrgency(job.priority),
+    location: job.location?.address ?? '',
+    customer,
     latitude: job.location?.latitude ?? undefined,
     longitude: job.location?.longitude ?? undefined,
     offeredAmount: job.offeredAmount ?? undefined,
-    technician: job.currentTechnician ? {
-      id: job.currentTechnician.id, name: job.currentTechnician.fullName, phone: '',
-    } : undefined,
-    status: statusMap[job.status], createdAt: job.createdAt, updatedAt: job.updatedAt,
-    visitFee: job.bookingPayment?.amount ?? 0,
+    technician: job.currentTechnician
+      ? {
+          id: job.currentTechnician.id,
+          name: job.currentTechnician.fullName,
+          phone: '',
+        }
+      : undefined,
+    status: job.status,
+    bookingPaymentStatus: job.bookingPaymentStatus ?? 'PAID',
+    bookingFee,
+    currency: job.currency ?? 'RWF',
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    visitFee: bookingFee,
     completedAt: job.completedAt ?? undefined,
     cancellationReason: job.cancellationReason ?? undefined,
     rating: job.rating ?? undefined,
-    dispute: job.dispute ? {
-      reason: job.dispute.reason,
-      openedBy: job.dispute.openedBy.toLowerCase() === 'technician' ? 'technician' : 'customer',
-      openedAt: job.dispute.openedAt,
-      resolution: job.dispute.resolution ? {
-        ...job.dispute.resolution,
-        outcome: mapDisputeOutcome(job.dispute.resolution.outcome),
-        resolvedBy: job.dispute.resolution.resolvedBy ?? 'Admin',
-      } : undefined,
-    } : undefined,
+    dispute: job.dispute
+      ? {
+          reason: job.dispute.reason,
+          openedBy:
+            job.dispute.openedBy.toLowerCase() === 'technician'
+              ? 'technician'
+              : 'customer',
+          openedAt: job.dispute.openedAt,
+          resolution: job.dispute.resolution
+            ? {
+                ...job.dispute.resolution,
+                outcome: mapDisputeOutcome(job.dispute.resolution.outcome),
+                resolvedBy: job.dispute.resolution.resolvedBy ?? 'Admin',
+              }
+            : undefined,
+        }
+      : undefined,
     events: [],
   };
 }
