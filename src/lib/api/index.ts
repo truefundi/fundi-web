@@ -12,3 +12,4 @@ export { techniciansApi } from './endpoints/technicians';
 export { technicianDocumentsApi } from './endpoints/technician-documents';
 export { usersApi } from './endpoints/users';
 export { paymentsApi } from './endpoints/payments';
+export { categoriesApi } from './endpoints/categories';

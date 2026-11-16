@@ -7,6 +7,8 @@ export type JobPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
 export const JOB_PRIORITIES: JobPriority[] = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
 
+export type BookingPaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
+
 export const JOB_PRIORITY_LABEL: Record<JobPriority, string> = {
   LOW: 'Low',
   NORMAL: 'Normal',
@@ -55,7 +57,13 @@ export const JOB_STATUS_TONE: Record<JobStatus, StatusTone> = {
 /** Groups for the admin's job list tabs. */
 export type JobGroup = 'matching' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
 
-export const JOB_GROUPS: JobGroup[] = ['matching', 'in_progress', 'completed', 'cancelled', 'disputed'];
+export const JOB_GROUPS: JobGroup[] = [
+  'matching',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'disputed',
+];
 
 export const JOB_GROUP_LABEL: Record<JobGroup, string> = {
   matching: 'Matching',
@@ -180,6 +188,12 @@ export interface Job {
   customer: JobParty;
   technician?: JobParty;
   status: JobStatus;
+
+  /** Booking payment is separate from the job lifecycle status. */
+  bookingPaymentStatus: BookingPaymentStatus;
+  bookingFee: number;
+  currency?: string;
+
   createdAt: string;
   /** When the job last changed status. */
   updatedAt: string;

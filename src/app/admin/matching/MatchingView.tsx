@@ -26,10 +26,10 @@ const QUEUE_QUERY = { group: 'matching', pageSize: 100 } as const;
 
 type QueueFilter = 'all' | 'waiting' | 'offered' | 'overdue' | 'emergencies';
 
-/** Emergencies first, then whoever has waited longest. */
+/** Urgent jobs first, then whoever has waited longest. */
 function byPriority(a: Job, b: Job): number {
   const urgent =
-    Number(b.urgency === 'Emergency') - Number(a.urgency === 'Emergency');
+    Number(b.urgency === 'URGENT') - Number(a.urgency === 'URGENT');
 
   return urgent || Date.parse(a.createdAt) - Date.parse(b.createdAt);
 }
@@ -40,36 +40,38 @@ export function MatchingView() {
 
   const [selectedFilter, setSelectedFilter] = useState<QueueFilter>('all');
 
+  // Only paid jobs are eligible for technician negotiation.
   const queue = useMemo(
-    () => [...(jobs.data?.items ?? [])].sort(byPriority),
+    () =>
+      [...(jobs.data?.items ?? [])]
+        .filter((job) => job.bookingPaymentStatus === 'PAID')
+        .sort(byPriority),
     [jobs.data]
   );
 
-  const waiting = queue.filter((j) => j.status === 'REQUESTED');
+  // OPEN jobs are waiting for negotiation.
+  const waiting = queue.filter((job) => job.status === 'OPEN');
 
-  const offered = queue.filter(
-    (j) => j.status === 'MATCHING' || j.status === 'OFFERED'
-  );
+  // ASSIGNED jobs have progressed beyond the initial waiting stage.
+  const offered = queue.filter((job) => job.status === 'ASSIGNED');
 
-  const overdue = queue.filter((j) => isOverdue(j));
+  const overdue = queue.filter((job) => isOverdue(job));
 
-  const emergencies = queue.filter((j) => j.urgency === 'Emergency');
+  const emergencies = queue.filter((job) => job.urgency === 'URGENT');
 
   const filteredQueue = useMemo(() => {
     switch (selectedFilter) {
       case 'waiting':
-        return queue.filter((job) => job.status === 'REQUESTED');
+        return queue.filter((job) => job.status === 'OPEN');
 
       case 'offered':
-        return queue.filter(
-          (job) => job.status === 'MATCHING' || job.status === 'OFFERED'
-        );
+        return queue.filter((job) => job.status === 'ASSIGNED');
 
       case 'overdue':
         return queue.filter((job) => isOverdue(job));
 
       case 'emergencies':
-        return queue.filter((job) => job.urgency === 'Emergency');
+        return queue.filter((job) => job.urgency === 'URGENT');
 
       default:
         return queue;
@@ -89,7 +91,6 @@ export function MatchingView() {
         description="The customer looks for a technician, negotiates the terms, and only then confirms the match. The system does not auto-assign a technician."
       />
 
-      {/* Summary cards */}
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <button
           type="button"
@@ -142,7 +143,7 @@ export function MatchingView() {
           <StatCard
             label="Waiting too long"
             value={overdue.length}
-            hint="Over 15 min (emergency) or 1 hour"
+            hint="Over 15 min (urgent) or 1 hour"
             icon={Clock}
             loading={loading}
           />
@@ -168,13 +169,12 @@ export function MatchingView() {
         </button>
       </div>
 
-      {/* Negotiation queue */}
       <Card className="mt-6 overflow-hidden">
         <CardHeader
           title="Negotiation queue"
           description={
             selectedFilter === 'all'
-              ? 'View all customer requests in the matching queue.'
+              ? 'View all paid customer requests in the matching queue.'
               : `Showing ${selectedFilter} jobs. Click the selected summary card again to clear the filter.`
           }
         />
@@ -188,7 +188,7 @@ export function MatchingView() {
           <EmptyState
             icon={Radar}
             title="No matching requests"
-            description="There are no jobs in this category right now."
+            description="There are no paid jobs in this category right now."
           />
         ) : (
           <Table>
@@ -219,7 +219,7 @@ export function MatchingView() {
                           <p className="font-medium text-slate-900">
                             {job.reference}
                           </p>
-                          {job.urgency === 'Emergency' && (
+                          {job.urgency === 'URGENT' && (
                             <UrgencyBadge urgency={job.urgency} />
                           )}
                         </div>

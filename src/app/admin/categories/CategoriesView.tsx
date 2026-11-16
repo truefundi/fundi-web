@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Car,
   ChevronDown,
@@ -10,12 +9,13 @@ import {
   Pencil,
   Plus,
   Trash2,
+  Wrench,
 } from 'lucide-react';
 
 import {
   SERVICE_GROUPS,
+  SERVICE_CATEGORIES,
   SERVICE_CATEGORY_STYLE,
-  DEFAULT_CATEGORY_STYLE,
   getServiceGroup,
   type ServiceCategory,
 } from '@/config/services';
@@ -24,7 +24,6 @@ import { CategoryFormDialog } from '@/components/services/CategoryFormDialog';
 import { ServiceFormDialog } from '@/components/services/ServiceFormDialog';
 
 import {
-  Badge,
   Button,
   ConfirmDialog,
   EmptyState,
@@ -67,6 +66,58 @@ const EMPTY_METADATA: CategoriesMetadata = {
   serviceIcons: {},
 };
 
+const DEFAULT_CATEGORY_STYLE = {
+  icon: Layers,
+  className: 'bg-slate-100 text-slate-600',
+};
+
+function resolveServiceGroup(
+  service: Service,
+): 'Home Services' | 'Car Services' | 'Other Services' {
+  const byCategory = getServiceGroup(service.category);
+  if (byCategory === 'Home Services' || byCategory === 'Car Services') {
+    return byCategory;
+  }
+
+  const byName = getServiceGroup(service.name);
+  if (byName === 'Home Services' || byName === 'Car Services') {
+    return byName;
+  }
+
+  const text = `${service.name} ${service.category ?? ''}`.toLowerCase();
+  if (
+    text.includes('car') ||
+    text.includes('garage') ||
+    text.includes('auto') ||
+    text.includes('vehicle') ||
+    text.includes('mechanic') ||
+    text.includes('tire') ||
+    text.includes('tyre') ||
+    text.includes('battery') ||
+    text.includes('towing')
+  ) {
+    return 'Car Services';
+  }
+
+  if (
+    text.includes('plumb') ||
+    text.includes('electric') ||
+    text.includes('appliance') ||
+    text.includes('carpent') ||
+    text.includes('clean') ||
+    text.includes('paint') ||
+    text.includes('hvac') ||
+    text.includes('ac ') ||
+    text.includes('roof') ||
+    text.includes('home') ||
+    text.includes('house')
+  ) {
+    return 'Home Services';
+  }
+
+  return 'Other Services';
+}
+
 function ServiceIcon({
   service,
   icon,
@@ -76,6 +127,7 @@ function ServiceIcon({
 }) {
   const style =
     SERVICE_CATEGORY_STYLE[service.category as ServiceCategory] ??
+    SERVICE_CATEGORY_STYLE[service.name as ServiceCategory] ??
     DEFAULT_CATEGORY_STYLE;
 
   const Icon = style.icon;
@@ -100,36 +152,6 @@ function ServiceIcon({
         <Icon className="h-5 w-5" aria-hidden />
       )}
     </span>
-  );
-}
-
-function SummaryCard({
-  title,
-  value,
-  icon: Icon,
-  color,
-}: {
-  title: string;
-  value: number;
-  icon: typeof Layers;
-  color: string;
-}) {
-  return (
-    <article className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex min-w-0 items-center justify-between gap-3">
-        <p className="truncate text-sm font-medium text-slate-500">
-          {title}
-        </p>
-
-        <span className={cn('shrink-0 rounded-lg p-2', color)}>
-          <Icon className="h-5 w-5" aria-hidden />
-        </span>
-      </div>
-
-      <p className="mt-3 text-2xl font-bold tabular-nums text-slate-900 sm:text-3xl">
-        {value}
-      </p>
-    </article>
   );
 }
 
@@ -166,19 +188,87 @@ export function CategoriesView() {
   const [editing, setEditing] = useState<Service>();
   const [deleting, setDeleting] = useState<Service | null>(null);
 
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(
-    null,
-  );
+  const [openManageId, setOpenManageId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const services = useMemo(
-    () => servicesData ?? [],
-    [servicesData],
-  );
+  const [activeTab, setActiveTab] = useState<string>('all');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] =
+    useState<string>('All Services');
 
-  const categories = useMemo(
-    () => categoriesData ?? [],
-    [categoriesData],
-  );
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenManageId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const services = useMemo(() => servicesData ?? [], [servicesData]);
+  const categories = useMemo(() => categoriesData ?? [], [categoriesData]);
+
+  const missingRequiredCategories = useMemo(() => {
+    const existing = new Set(
+      categories.map((c) => c.name.trim().toLowerCase()),
+    );
+    return SERVICE_CATEGORIES.filter(
+      (name) => !existing.has(name.toLowerCase()),
+    );
+  }, [categories]);
+
+  const seedRequiredCategories = async () => {
+    const descriptions: Record<ServiceCategory, string> = {
+      Electrical: 'Electrical wiring, sockets, lighting, and fault repairs.',
+      Plumbing: 'Pipe leaks, taps, toilets, water heaters, and drainage.',
+      HVAC: 'Air conditioning, ventilation, and refrigeration servicing.',
+      'Appliance Repair': 'Fridges, washing machines, cookers, and home appliances.',
+      'Home Repair': 'Carpentry, doors, locks, painting, and structural repairs.',
+      'General Maintenance': 'Routine property upkeep and general handyman tasks.',
+      'Car & Garage': 'Engine diagnostics, brakes, batteries, and car servicing.',
+      'Truck & Mechanical': 'Heavy truck repair, mechanical systems, and fleet maintenance.',
+    };
+
+    for (const name of missingRequiredCategories) {
+      await createCategory.mutateAsync({
+        name,
+        description: descriptions[name],
+      });
+    }
+    toast('Required Fundi categories added');
+    refetchCategories();
+  };
+
+  const formCategories = useMemo<CatalogCategory[]>(() => {
+    if (categories.length > 0) return categories;
+    const now = new Date().toISOString();
+    return [
+      {
+        id: 'default-home',
+        name: 'Home Services',
+        description: 'General home services',
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'default-car',
+        name: 'Car Services',
+        description: 'General car & garage services',
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 'default-other',
+        name: 'Other Services',
+        description: 'Other miscellaneous services',
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+  }, [categories]);
 
   const activeCategories = useMemo(
     () => categories.filter((category) => category.isActive),
@@ -187,30 +277,32 @@ export function CategoriesView() {
 
   const totalServices = services.length;
 
-  const homeServices = services.filter(
-    (service) =>
-      getServiceGroup(service.category) === 'Home Services',
-  ).length;
+  const homeServices = useMemo(
+    () =>
+      services.filter((s) => resolveServiceGroup(s) === 'Home Services').length,
+    [services],
+  );
 
-  const carServices = services.filter(
-    (service) =>
-      getServiceGroup(service.category) === 'Car Services',
-  ).length;
+  const carServices = useMemo(
+    () =>
+      services.filter((s) => resolveServiceGroup(s) === 'Car Services').length,
+    [services],
+  );
 
-  const otherServices = Math.max(
-    0,
-    totalServices - homeServices - carServices,
+  const otherServices = useMemo(
+    () =>
+      services.filter((s) => resolveServiceGroup(s) === 'Other Services')
+        .length,
+    [services],
   );
 
   useEffect(() => {
     try {
       const saved = readCatalogAdminMetadata();
-
       setMetadata({
         categories: [],
         serviceIcons: saved.serviceIcons ?? {},
       });
-
       setMetadataError('');
     } catch (cause) {
       setMetadataError(
@@ -223,41 +315,37 @@ export function CategoriesView() {
     }
   }, []);
 
-  const groupedCategories = useMemo(
-    () =>
-      SERVICE_GROUPS.map((group) => ({
-        name: group,
-        categories: activeCategories.filter(
-          (category) => getServiceGroup(category.name) === group,
-        ),
-      })),
-    [activeCategories],
-  );
+  const filteredServices = useMemo(() => {
+    return services.filter((service) => {
+      const group = resolveServiceGroup(service);
 
-  const categoriesWithOther = useMemo(() => {
-    const known = new Set(
-      SERVICE_GROUPS.flatMap((group) =>
-        activeCategories
-          .filter(
-            (category) => getServiceGroup(category.name) === group,
-          )
-          .map((category) => category.id),
-      ),
-    );
+      if (activeTab === 'Home Services' && group !== 'Home Services') {
+        return false;
+      }
+      if (activeTab === 'Car Services' && group !== 'Car Services') {
+        return false;
+      }
+      if (activeTab === 'Other Services' && group !== 'Other Services') {
+        return false;
+      }
 
-    return activeCategories.filter(
-      (category) => !known.has(category.id),
-    );
-  }, [activeCategories]);
+      if (
+        selectedCategoryFilter !== 'All Services' &&
+        service.category !== selectedCategoryFilter &&
+        group !== selectedCategoryFilter
+      ) {
+        return false;
+      }
 
-  const categoryServices = (category: CatalogCategory) =>
-    services.filter(
-      (service) => service.categoryId === category.id,
-    );
+      return true;
+    });
+  }, [services, activeTab, selectedCategoryFilter]);
 
   const openNewService = (category?: string) => {
     setEditing(undefined);
-    setServiceCategory(category);
+    const defaultCat =
+      category ?? (activeTab !== 'all' ? activeTab : activeCategories[0]?.name);
+    setServiceCategory(defaultCat);
     setServiceFormOpen(true);
   };
 
@@ -265,12 +353,7 @@ export function CategoriesView() {
     setEditing(service);
     setServiceCategory(undefined);
     setServiceFormOpen(true);
-  };
-
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategory((current) =>
-      current === categoryId ? null : categoryId,
-    );
+    setOpenManageId(null);
   };
 
   const saveCategory = (category: { name: string; description: string }) => {
@@ -278,6 +361,7 @@ export function CategoriesView() {
       onSuccess: () => {
         setCategoryFormOpen(false);
         toast(`${category.name} added successfully`);
+        refetchCategories();
       },
       onError: (error: Error) => {
         toast(error.message || 'Could not create category.', 'error');
@@ -285,10 +369,7 @@ export function CategoriesView() {
     });
   };
 
-  const saveServiceIcon = (
-    serviceId: string,
-    icon: string | null,
-  ) => {
+  const saveServiceIcon = (serviceId: string, icon: string | null) => {
     const serviceIcons = { ...metadata.serviceIcons };
 
     if (icon) {
@@ -313,7 +394,6 @@ export function CategoriesView() {
           : 'Could not save the service icon.',
         'error',
       );
-
       return false;
     }
   };
@@ -323,61 +403,125 @@ export function CategoriesView() {
     refetchCategories();
   };
 
-  const loading =
-    servicesLoading ||
-    categoriesLoading ||
-    !metadataLoaded;
-
-  const hasError =
-    servicesError ||
-    categoriesError ||
-    Boolean(metadataError);
+  const loading = servicesLoading || categoriesLoading || !metadataLoaded;
+  const hasError = servicesError || categoriesError || Boolean(metadataError);
 
   return (
     <>
       <PageHeader
-        title="Categories & Services"
-        description="Organize service offerings into categories and manage their booking fees."
+        title="Service Management"
+        description="Manage Home Services, Car Services, and other categories, their booking fees, and availability."
         actions={
-          <Button
-            onClick={() => setCategoryFormOpen(true)}
-            disabled={createCategory.isPending}
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            Add category
-          </Button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            {missingRequiredCategories.length > 0 && (
+              <Button
+                variant="secondary"
+                onClick={seedRequiredCategories}
+                disabled={createCategory.isPending}
+              >
+                Seed {missingRequiredCategories.length} default categories
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              onClick={() => setCategoryFormOpen(true)}
+              disabled={createCategory.isPending}
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add category
+            </Button>
+            <Button
+              onClick={() => openNewService()}
+              className="bg-orange-600 text-white hover:bg-orange-700"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add service
+            </Button>
+          </div>
         }
       />
 
       {!loading && !hasError && (
         <div className="mb-6 grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard
-            title="Total Services"
-            value={totalServices}
-            icon={Layers}
-            color="bg-blue-50 text-blue-600"
-          />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('all');
+              setSelectedCategoryFilter('All Services');
+            }}
+            className={cn(
+              'rounded-xl border bg-white p-5 text-left shadow-sm transition-all focus:outline-none',
+              activeTab === 'all'
+                ? 'border-slate-900 ring-2 ring-slate-900/10'
+                : 'border-slate-200 hover:border-slate-300',
+            )}
+          >
+            <p className="text-sm font-medium text-slate-500">All Services</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+              {totalServices}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">View all services</p>
+          </button>
 
-          <SummaryCard
-            title="Home Services"
-            value={homeServices}
-            icon={House}
-            color="bg-green-50 text-green-600"
-          />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('Home Services');
+              setSelectedCategoryFilter('All Services');
+            }}
+            className={cn(
+              'rounded-xl border bg-white p-5 text-left shadow-sm transition-all focus:outline-none',
+              activeTab === 'Home Services'
+                ? 'border-slate-900 ring-2 ring-slate-900/10'
+                : 'border-slate-200 hover:border-slate-300',
+            )}
+          >
+            <p className="text-sm font-medium text-slate-500">Home Services</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+              {homeServices}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">View category</p>
+          </button>
 
-          <SummaryCard
-            title="Car Services"
-            value={carServices}
-            icon={Car}
-            color="bg-orange-50 text-orange-600"
-          />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('Car Services');
+              setSelectedCategoryFilter('All Services');
+            }}
+            className={cn(
+              'rounded-xl border bg-white p-5 text-left shadow-sm transition-all focus:outline-none',
+              activeTab === 'Car Services'
+                ? 'border-slate-900 ring-2 ring-slate-900/10'
+                : 'border-slate-200 hover:border-slate-300',
+            )}
+          >
+            <p className="text-sm font-medium text-slate-500">Car Services</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+              {carServices}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">View category</p>
+          </button>
 
-          <SummaryCard
-            title="Other Services"
-            value={otherServices}
-            icon={Layers}
-            color="bg-purple-50 text-purple-600"
-          />
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('Other Services');
+              setSelectedCategoryFilter('All Services');
+            }}
+            className={cn(
+              'rounded-xl border bg-white p-5 text-left shadow-sm transition-all focus:outline-none',
+              activeTab === 'Other Services'
+                ? 'border-slate-900 ring-2 ring-slate-900/10'
+                : 'border-slate-200 hover:border-slate-300',
+            )}
+          >
+            <p className="text-sm font-medium text-slate-500">Other Categories</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+              {otherServices}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">View other categories</p>
+          </button>
         </div>
       )}
 
@@ -396,340 +540,191 @@ export function CategoriesView() {
         </div>
       ) : loading ? (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5">
-          <TableSkeleton columns={4} rows={5} />
-        </div>
-      ) : activeCategories.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <EmptyState
-            icon={Layers}
-            title="No categories yet"
-            description="Add a category to start organizing your services."
-            action={
-              <Button onClick={() => setCategoryFormOpen(true)}>
-                <Plus className="h-4 w-4" aria-hidden />
-                Add category
-              </Button>
-            }
-          />
+          <TableSkeleton columns={5} rows={5} />
         </div>
       ) : (
-        <div className="space-y-8">
-          {groupedCategories.map((group) => (
-            <section key={group.name} className="space-y-4">
-              <div className="border-b border-slate-200 pb-3">
-                <h2 className="text-xl font-bold text-slate-900">
-                  {group.name}
-                </h2>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                {activeTab === 'all'
+                  ? 'All Services'
+                  : activeTab === 'Other Services'
+                    ? 'Other Categories'
+                    : activeTab}
+              </h2>
+              <p className="text-sm text-slate-500">
+                {filteredServices.length} service
+                {filteredServices.length === 1 ? '' : 's'}
+              </p>
+            </div>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  {group.categories.length} categor
-                  {group.categories.length === 1 ? 'y' : 'ies'}
-                </p>
-              </div>
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="category-filter"
+                className="text-sm font-medium text-slate-700"
+              >
+                Category
+              </label>
+              <select
+                id="category-filter"
+                value={selectedCategoryFilter}
+                onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              >
+                <option value="All Services">All Services</option>
+                <option value="Home Services">Home Services</option>
+                <option value="Car Services">Car Services</option>
+                {activeCategories
+                  .filter(
+                    (cat) =>
+                      cat.name !== 'Home Services' &&
+                      cat.name !== 'Car Services',
+                  )
+                  .map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
 
-              {group.categories.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-500">
-                  No categories in this group yet.
-                </p>
-              ) : (
-                <div className="space-y-5">
-                  {group.categories.map((category) => {
-                    const items = categoryServices(category);
-                    const activeCount = items.filter(
-                      (service) => service.isActive,
-                    ).length;
-
-                    const isExpanded =
-                      expandedCategory === category.id;
-
-                    const servicesId =
-                      `category-services-${category.id}`;
-
-                    const headingId =
-                      `category-heading-${category.id}`;
+          {filteredServices.length === 0 ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
+              <EmptyState
+                icon={Layers}
+                title="No services found"
+                description="Get started by creating a category or adding a new service offering."
+                action={
+                  <div className="mt-4 flex justify-center gap-3">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setCategoryFormOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" aria-hidden />
+                      Add category
+                    </Button>
+                    <Button
+                      onClick={() => openNewService()}
+                      className="bg-orange-600 text-white hover:bg-orange-700"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden />
+                      Add service
+                    </Button>
+                  </div>
+                }
+              />
+            </div>
+          ) : (
+            <div className="overflow-visible rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <th className="py-3.5 pl-6 pr-4">Service</th>
+                    <th className="px-4 py-3.5">Category</th>
+                    <th className="px-4 py-3.5">Booking Fee</th>
+                    <th className="px-4 py-3.5">Status</th>
+                    <th className="py-3.5 pl-4 pr-6 text-right">Manage</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 bg-white text-sm">
+                  {filteredServices.map((service) => {
+                    const isMenuOpen = openManageId === service.id;
+                    const displayGroup = resolveServiceGroup(service);
 
                     return (
-                      <section
-                        key={category.id}
-                        aria-labelledby={headingId}
-                        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+                      <tr
+                        key={service.id}
+                        className="transition-colors hover:bg-slate-50/50"
                       >
-                        <header className="flex flex-col gap-3 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
-                          <button
-                            type="button"
-                            aria-expanded={isExpanded}
-                            aria-controls={servicesId}
-                            onClick={() => toggleCategory(category.id)}
-                            className="group flex w-full min-w-0 flex-1 items-center justify-between gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                          >
-                            <span className="flex min-w-0 items-center gap-3">
-                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-100 bg-brand-50 text-brand-600">
-                                <Layers className="h-5 w-5" aria-hidden />
-                              </span>
-
-                              <span className="min-w-0">
-                                <span className="flex flex-wrap items-center gap-2">
-                                  <span
-                                    id={headingId}
-                                    role="heading"
-                                    aria-level={3}
-                                    className="break-words text-base font-semibold text-slate-900"
-                                  >
-                                    {category.name}
-                                  </span>
-
-                                  <Badge
-                                    tone={
-                                      activeCount > 0
-                                        ? 'success'
-                                        : 'neutral'
-                                    }
-                                  >
-                                    {activeCount > 0
-                                      ? 'Active'
-                                      : 'No active services'}
-                                  </Badge>
-                                </span>
-
-                                <span className="mt-1 block text-sm text-slate-500">
-                                  {items.length} service
-                                  {items.length === 1 ? '' : 's'} in this category
-                                </span>
-                              </span>
-                            </span>
-
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors group-hover:border-brand-200 group-hover:text-brand-600">
-                              <ChevronDown
-                                className={cn(
-                                  'h-4 w-4 transition-transform duration-300',
-                                  isExpanded && 'rotate-180',
-                                )}
-                                aria-hidden
-                              />
-                            </span>
-                          </button>
-
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="w-full shrink-0 sm:w-auto"
-                            onClick={() => openNewService(category.name)}
-                          >
-                            <Plus className="h-4 w-4" aria-hidden />
-                            Add service
-                          </Button>
-                        </header>
-
-                        <div
-                          id={servicesId}
-                          role="region"
-                          aria-labelledby={headingId}
-                          aria-hidden={!isExpanded}
-                          inert={!isExpanded}
-                          className={cn(
-                            'grid transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none',
-                            isExpanded
-                              ? 'grid-rows-[1fr] opacity-100'
-                              : 'grid-rows-[0fr] opacity-0',
-                          )}
-                        >
-                          <div className="min-h-0 overflow-hidden">
-                            <div className="border-t border-slate-100">
-                              {items.length === 0 ? (
-                                <div className="px-5 py-8 text-center">
-                                  <p className="text-sm text-slate-500">
-                                    No services in this category yet.
-                                  </p>
-
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="mt-3"
-                                    onClick={() => openNewService(category.name)}
-                                  >
-                                    <Plus className="h-4 w-4" aria-hidden />
-                                    Add the first service
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="grid min-w-0 grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-3">
-                                  {items.map((service) => (
-                                    <article
-                                      key={service.id}
-                                      className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5"
-                                    >
-                                      <div className="flex min-w-0 items-start gap-3">
-                                        <ServiceIcon
-                                          service={service}
-                                          icon={metadata.serviceIcons[service.id]}
-                                        />
-
-                                        <div className="min-w-0 flex-1">
-                                          <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
-                                            <h3 className="min-w-0 break-words text-sm font-semibold text-slate-900">
-                                              {service.name}
-                                            </h3>
-
-                                            <span className="shrink-0 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-semibold tabular-nums text-emerald-700">
-                                              {formatMoney(service.visitFee)}
-                                            </span>
-                                          </div>
-
-                                          <p className="mt-1 line-clamp-2 min-h-9 text-xs leading-5 text-slate-500">
-                                            {service.description}
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-                                        <Badge
-                                          tone={
-                                            service.isActive
-                                              ? 'success'
-                                              : 'neutral'
-                                          }
-                                        >
-                                          {service.isActive ? 'Active' : 'Hidden'}
-                                        </Badge>
-
-                                        <div className="flex items-center gap-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => openEditService(service)}
-                                            aria-label={`Edit ${service.name}`}
-                                            className="rounded-md p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-                                          >
-                                            <Pencil className="h-4 w-4" aria-hidden />
-                                          </button>
-
-                                          <button
-                                            type="button"
-                                            onClick={() => setDeleting(service)}
-                                            aria-label={`Hide ${service.name}`}
-                                            className="rounded-md p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600"
-                                          >
-                                            <Trash2 className="h-4 w-4" aria-hidden />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </article>
-                                  ))}
-                                </div>
-                              )}
+                        <td className="py-4 pl-6 pr-4">
+                          <div className="flex items-center gap-3">
+                            <ServiceIcon
+                              service={service}
+                              icon={metadata.serviceIcons[service.id]}
+                            />
+                            <div className="min-w-0">
+                              <p className="font-semibold text-slate-900">
+                                {service.name}
+                              </p>
+                              <p className="max-w-xs truncate text-xs text-slate-500">
+                                {service.description}
+                              </p>
                             </div>
                           </div>
-                        </div>
-                      </section>
+                        </td>
+                        <td className="px-4 py-4 font-medium text-slate-600">
+                          {displayGroup}
+                        </td>
+                        <td className="px-4 py-4 font-semibold text-slate-900">
+                          {formatMoney(service.visitFee)}
+                        </td>
+                        <td className="px-4 py-4">
+                          {service.isActive ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                              Hidden
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 pl-4 pr-6 text-right">
+                          <div
+                            ref={isMenuOpen ? menuRef : null}
+                            className="relative inline-block text-left"
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenManageId(isMenuOpen ? null : service.id)
+                              }
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                            >
+                              Manage
+                              <ChevronDown
+                                className={cn(
+                                  'h-3.5 w-3.5 text-slate-500 transition-transform',
+                                  isMenuOpen && 'rotate-180',
+                                )}
+                              />
+                            </button>
+
+                            {isMenuOpen && (
+                              <div className="absolute right-0 z-20 mt-2 w-44 origin-top-right rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditService(service)}
+                                  className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                                >
+                                  <Pencil className="h-4 w-4 text-slate-400" />
+                                  Edit service
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenManageId(null);
+                                    setDeleting(service);
+                                  }}
+                                  className="flex w-full items-center gap-2.5 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                  Delete service
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     );
                   })}
-                </div>
-              )}
-            </section>
-          ))}
-
-          {categoriesWithOther.length > 0 && (
-            <section className="space-y-4">
-              <div className="border-b border-slate-200 pb-3">
-                <h2 className="text-xl font-bold text-slate-900">
-                  Other Services
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Categories that have not been assigned to a standard service group.
-                </p>
-              </div>
-
-              <div className="space-y-5">
-                {categoriesWithOther.map((category) => {
-                  const items = categoryServices(category);
-                  const isExpanded = expandedCategory === category.id;
-                  const headingId = `category-heading-${category.id}`;
-                  const servicesId = `category-services-${category.id}`;
-
-                  return (
-                    <section
-                      key={category.id}
-                      className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
-                    >
-                      <header className="flex flex-col gap-3 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-                        <button
-                          type="button"
-                          aria-expanded={isExpanded}
-                          aria-controls={servicesId}
-                          onClick={() => toggleCategory(category.id)}
-                          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
-                        >
-                          <span className="min-w-0">
-                            <span
-                              id={headingId}
-                              role="heading"
-                              aria-level={3}
-                              className="block break-words font-semibold text-slate-900"
-                            >
-                              {category.name}
-                            </span>
-                            <span className="mt-1 block text-sm text-slate-500">
-                              {items.length} service{items.length === 1 ? '' : 's'}
-                            </span>
-                          </span>
-                          <ChevronDown
-                            className={cn(
-                              'h-4 w-4 shrink-0 transition-transform',
-                              isExpanded && 'rotate-180',
-                            )}
-                          />
-                        </button>
-
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => openNewService(category.name)}
-                        >
-                          <Plus className="h-4 w-4" aria-hidden />
-                          Add service
-                        </Button>
-                      </header>
-
-                      {isExpanded && (
-                        <div
-                          id={servicesId}
-                          className="grid grid-cols-1 gap-3 border-t border-slate-100 p-3 sm:grid-cols-2 xl:grid-cols-3"
-                        >
-                          {items.map((service) => (
-                            <article
-                              key={service.id}
-                              className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-200 p-4"
-                            >
-                              <div className="flex min-w-0 items-center gap-3">
-                                <ServiceIcon
-                                  service={service}
-                                  icon={metadata.serviceIcons[service.id]}
-                                />
-                                <div className="min-w-0">
-                                  <p className="break-words text-sm font-semibold">
-                                    {service.name}
-                                  </p>
-                                  <p className="text-xs text-slate-500">
-                                    {formatMoney(service.visitFee)}
-                                  </p>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => openEditService(service)}
-                                aria-label={`Edit ${service.name}`}
-                                className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                            </article>
-                          ))}
-                        </div>
-                      )}
-                    </section>
-                  );
-                })}
-              </div>
-            </section>
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -749,13 +744,9 @@ export function CategoriesView() {
           setServiceCategory(undefined);
         }}
         service={editing}
-        categories={categories}
+        categories={formCategories}
         initialCategory={serviceCategory}
-        icon={
-          editing?.id
-            ? metadata.serviceIcons[editing.id]
-            : undefined
-        }
+        icon={editing?.id ? metadata.serviceIcons[editing.id] : undefined}
         onIconChange={saveServiceIcon}
       />
 

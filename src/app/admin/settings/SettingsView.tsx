@@ -17,7 +17,7 @@ export function SettingsView() {
   const toast = useToast();
   const { commissionRatePercent, isLoaded, storageError, setCommissionRatePercent } = useCommissionSettings();
   const { user, reloadUser } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { mode, setMode } = useTheme();
 
   const [value, setValue] = useState(String(DEFAULT_COMMISSION_RATE_PERCENT));
   const [error, setError] = useState('');
@@ -271,26 +271,26 @@ export function SettingsView() {
             description="Switch between light and dark mode for the admin dashboard."
             action={
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
-                {theme === 'dark' ? <Moon className="h-5 w-5" aria-hidden /> : <Sun className="h-5 w-5" aria-hidden />}
+                {mode === 'dark' ? <Moon className="h-5 w-5" aria-hidden /> : <Sun className="h-5 w-5" aria-hidden />}
               </span>
             }
           />
           <CardBody>
             <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant={theme === 'light' ? 'primary' : 'secondary'}
-                onClick={() => setTheme('light')}
-              >
-                Light mode
-              </Button>
-              <Button
-                type="button"
-                variant={theme === 'dark' ? 'primary' : 'secondary'}
-                onClick={() => setTheme('dark')}
-              >
-                Dark mode
-              </Button>
+<Button
+  type="button"
+  variant={mode === 'light' ? 'primary' : 'secondary'}
+  onClick={() => setMode('light')}
+>
+  Light mode
+</Button>
+<Button
+  type="button"
+  variant={mode === 'dark' ? 'primary' : 'secondary'}
+  onClick={() => setMode('dark')}
+>
+  Dark mode
+</Button>
             </div>
           </CardBody>
         </Card>
