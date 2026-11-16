@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { X } from 'lucide-react';
 import { navigation } from '@/config/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { hasPermission, type UserRole } from '@/types/user';
 import { cn } from '@/lib/utils';
 
 function isActive(pathname: string, href: string): boolean {
@@ -13,10 +15,21 @@ function isActive(pathname: string, href: string): boolean {
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const effectiveRole = ((user as { staffRole?: UserRole } | null)?.staffRole ?? user?.role) as UserRole | undefined;
+
+  const filteredNavigation = navigation
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) => !item.permission || hasPermission(effectiveRole, item.permission),
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
 
   return (
     <>
-      {/* Backdrop on small screens */}
       <div
         className={cn('fixed inset-0 z-30 bg-slate-900/40 lg:hidden', open ? 'block' : 'hidden')}
         onClick={onClose}
@@ -25,11 +38,11 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-800 bg-slate-950 text-white shadow-xl transition-transform lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex h-full max-h-screen w-64 flex-col border-r border-slate-800 bg-slate-950 text-white shadow-xl transition-transform lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
           <Link href="/admin" className="flex items-center" onClick={onClose}>
             <Image
               src="/images/logo11.png"
@@ -39,13 +52,17 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               className="h-8 w-auto"
             />
           </Link>
-          <button className="rounded-md p-1 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden" onClick={onClose} aria-label="Close menu">
+          <button
+            className="rounded-md p-1 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 py-4 lg:overflow-y-hidden">
-          {navigation.map((section, i) => (
+        <nav className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 py-4">
+          {filteredNavigation.map((section, i) => (
             <div key={section.title ?? i} className="space-y-1">
               {section.title && (
                 <p className="px-3 py-0.5 text-[11px] font-semibold tracking-wide text-slate-400">

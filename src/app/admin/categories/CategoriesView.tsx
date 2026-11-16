@@ -538,9 +538,13 @@ export function CategoriesView() {
             onRetry={refreshAll}
           />
         </div>
-      ) : loading ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5">
-          <TableSkeleton columns={5} rows={5} />
+) : loading ? (
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <table className="w-full border-collapse text-left">
+            <tbody>
+              <TableSkeleton columns={5} rows={5} />
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="space-y-6">

@@ -52,32 +52,19 @@ export function Tr({ children, onClick, label }: { children: React.ReactNode; on
   );
 }
 
-export function TableSkeleton({
-  rows = 6,
-  columns,
-}: {
-  rows?: number;
-  columns: number;
-}) {
+export function TableSkeleton({ columns, rows = 5 }: { columns: number; rows?: number }) {
   return (
-    <Table>
-      <tbody>
-        {Array.from({ length: rows }, (_, r) => (
-          <tr key={r}>
-            {Array.from({ length: columns }, (_, c) => (
-              <Td key={c}>
-                <span
-                  className={cn(
-                    'block h-4 animate-pulse rounded bg-slate-100',
-                    c === 0 ? 'w-40' : 'w-16',
-                  )}
-                />
-              </Td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+    <>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <tr key={rowIndex} className="animate-pulse border-b border-slate-100">
+          {Array.from({ length: columns }).map((_, colIndex) => (
+            <td key={colIndex} className="py-4 px-4">
+              <div className="h-4 bg-slate-200 rounded w-3/4" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
   );
 }
 export function Pagination({
