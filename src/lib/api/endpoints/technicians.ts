@@ -163,6 +163,8 @@ export const techniciansApi = {
         unwrap(
           api.patch<BackendTechnician>(`/admin/technicians/${id}/verification-status`, {
             verificationStatus: 'REJECTED',
+            // The technician sees this note in the app; the API requires it.
+            reason: reason.trim(),
           }),
         ),
       );
