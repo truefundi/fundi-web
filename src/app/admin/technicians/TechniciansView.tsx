@@ -8,7 +8,6 @@ import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDra
 import { VerificationBadge } from '@/components/technicians/VerificationBadge';
 import {
   ActionMenu,
-  Avatar,
   Button,
   Card,
   ChipGroup,
@@ -188,20 +187,14 @@ export function TechniciansView() {
                   data.items.map((t) => (
                     <Tr key={t.id} onClick={() => router.push(`/admin/technicians/${t.id}`)} label={`Open ${t.name}`}>
                       <Td>
-                        <div className="flex items-center gap-3">
-                          <span className="relative">
-                            <Avatar name={t.name} />
-                            {t.isAvailable && (
-                              <span
-                                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500"
-                                title="Online"
-                              />
-                            )}
-                          </span>
-                          <div className="min-w-0">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
                             <p className="truncate font-medium text-slate-900">{t.name}</p>
-                            <p className="truncate text-xs text-slate-500">{t.trades.join(' · ')}</p>
+                            {t.isAvailable && (
+                              <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="Online" />
+                            )}
                           </div>
+                          <p className="truncate text-xs text-slate-500">{t.trades.join(' · ')}</p>
                         </div>
                       </Td>
                       <Td>
@@ -270,7 +263,6 @@ export function TechniciansView() {
       <EditTechnicianDrawer open={addOpen} onClose={() => setAddOpen(false)} />
       {editing && <EditTechnicianDrawer technician={editing} open onClose={() => setEditing(null)} />}
 
-      {/* Same wording as on the technician profile (AccountStatus, VerificationPanel). */}
       {confirm?.action === 'status' &&
         (confirm.technician.status === 'suspended' ? (
           <ConfirmDialog

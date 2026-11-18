@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -8,16 +9,67 @@ import { navigation } from '@/config/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { hasPermission, type UserRole } from '@/types/user';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api'; // <-- Fixed to named import
 
 function isActive(pathname: string, href: string): boolean {
   return href === '/admin' ? pathname === '/admin' : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const routeCountKeyMap: Record<string, string> = {
+  '/admin/jobs': 'jobs',
+  '/admin/chats': 'chats',
+  '/admin/technicians': 'technicians',
+  '/admin/customers': 'customers',
+  '/admin/users': 'users',
+  '/admin/staff': 'staff',
+  '/admin/categories': 'categories',
+  '/admin/charts': 'charts',
+  '/admin/services': 'services',
+};
+
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [counts, setCounts] = useState<Record<string, number>>({});
 
   const effectiveRole = ((user as { staffRole?: UserRole } | null)?.staffRole ?? user?.role) as UserRole | undefined;
+
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        const [jobsRes, chatsRes, techsRes, customersRes, usersRes, staffRes, categoriesRes] =
+          await Promise.allSettled([
+            api.get('/jobs'),
+            api.get('/chats'),
+            api.get('/technicians'),
+            api.get('/customers'),
+            api.get('/users'),
+            api.get('/staff'),
+            api.get('/categories'),
+          ]);
+
+        const getLength = (res: PromiseSettledResult<any>) =>
+          res.status === 'fulfilled'
+            ? Array.isArray(res.value.data)
+              ? res.value.data.length
+              : res.value.data?.total ?? res.value.data?.data?.length ?? 0
+            : 0;
+
+        setCounts({
+          jobs: getLength(jobsRes),
+          chats: getLength(chatsRes),
+          technicians: getLength(techsRes),
+          customers: getLength(customersRes),
+          users: getLength(usersRes),
+          staff: getLength(staffRes),
+          categories: getLength(categoriesRes),
+        });
+      } catch (err) {
+        console.error('Failed to load sidebar counts:', err);
+      }
+    }
+    fetchCounts();
+  }, []);
 
   const filteredNavigation = navigation
     .map((section) => ({
@@ -72,6 +124,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               <ul className="space-y-0.5">
                 {section.items.map(({ label, href, icon: Icon }) => {
                   const active = isActive(pathname, href);
+                  const countKey = routeCountKeyMap[href];
+                  const badgeCount = countKey ? counts[countKey] : undefined;
+
                   return (
                     <li key={href}>
                       <Link
@@ -79,17 +134,32 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                         onClick={onClose}
                         aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                          'flex items-center justify-between rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                           active
-                            ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-950/20'
+                            ? 'bg-amber-400 text-slate-950 shadow-md shadow-amber-950/25 font-semibold'
                             : 'text-slate-300 hover:bg-white/10 hover:text-white',
                         )}
                       >
-                        <Icon
-                          className={cn('h-4 w-4 shrink-0', active ? 'text-slate-950' : 'text-slate-400')}
-                          aria-hidden
-                        />
-                        {label}
+                        <div className="flex items-center gap-2.5">
+                          <Icon
+                            className={cn('h-4 w-4 shrink-0', active ? 'text-slate-950' : 'text-slate-400')}
+                            aria-hidden
+                          />
+                          <span>{label}</span>
+                        </div>
+
+                        {badgeCount !== undefined && badgeCount > 0 && (
+                          <span
+                            className={cn(
+                              'ml-auto rounded-full px-2 py-0.5 text-xs font-semibold',
+                              active
+                                ? 'bg-slate-950/15 text-slate-950'
+                                : 'bg-slate-800 text-slate-300',
+                            )}
+                          >
+                            {badgeCount}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   );

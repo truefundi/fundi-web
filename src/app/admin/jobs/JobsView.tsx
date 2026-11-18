@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Briefcase, ChevronRight, Plus } from "lucide-react";
+import { Briefcase, CheckCircle2, ChevronRight, Clock, Plus, AlertCircle, XCircle, ShieldAlert } from "lucide-react";
 import { JobFormDialog } from "@/components/jobs/JobFormDialog";
 import { JobStatusBadge, UrgencyBadge } from "@/components/jobs/JobStatusBadge";
 import {
@@ -14,7 +14,6 @@ import {
   PageHeader,
   Pagination,
   SearchInput,
-  SegmentedTabs,
   Select,
   Table,
   TableSkeleton,
@@ -28,20 +27,18 @@ import { useDebouncedValue, useUrlFilters } from "@/hooks/useUrlFilters";
 import { DEFAULT_PAGE_SIZE } from "@/lib/api/mock-utils";
 import { cn, formatRelative } from "@/lib/utils";
 import {
-  JOB_GROUPS,
-  JOB_GROUP_LABEL,
   URGENCIES,
   type JobGroup,
   type Urgency,
 } from "@/types/job";
 
 const FILTER_KEYS = ["search", "group", "service", "urgency"] as const;
-type Tab = "all" | JobGroup;
 
 export function JobsView() {
   const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
   const { data: services } = useServices();
+  const { data: stats } = useJobStats();
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
   const [search, setSearch] = useState(values.search ?? "");
   const debouncedSearch = useDebouncedValue(search);
@@ -64,13 +61,35 @@ export function JobsView() {
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const tabs: { value: Tab; label: string }[] = [
-    { value: "all", label: "All" },
-    ...JOB_GROUPS.map((g) => ({
-      value: g,
-      label: JOB_GROUP_LABEL[g],
-    })),
+  const statsAny = stats as Record<string, number> | undefined;
+
+  // Robust count computations with fallbacks matching all backend status variations
+  const totalCount = statsAny?.total ?? data?.total ?? 0;
+  
+  const matchingCount = statsAny?.matching ?? statsAny?.pending ?? statsAny?.open ?? 
+    data?.items?.filter(j => ['matching', 'pending', 'open', 'assigned'].includes(j.status?.toLowerCase()) || !j.technician).length ?? 0;
+
+  const inProgressCount = statsAny?.in_progress ?? statsAny?.inProgress ?? 
+    data?.items?.filter(j => ['in_progress', 'ongoing'].includes(j.status?.toLowerCase())).length ?? 0;
+
+  const completedCount = statsAny?.completed ?? 
+    data?.items?.filter(j => j.status?.toLowerCase() === 'completed').length ?? 0;
+
+  const cancelledCount = statsAny?.cancelled ?? statsAny?.failed ?? 
+    data?.items?.filter(j => ['cancelled', 'failed'].includes(j.status?.toLowerCase())).length ?? 0;
+
+  const disputedCount = statsAny?.disputed ?? 
+    data?.items?.filter(j => j.status?.toLowerCase() === 'disputed').length ?? 0;
+
+  const summaryCards = [
+    { key: undefined, label: "All", count: totalCount, icon: Briefcase, color: "text-slate-900", bg: "bg-slate-50" },
+    { key: "matching", label: "Matching", count: matchingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
+    { key: "in_progress", label: "In progress", count: inProgressCount, icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-50" },
+    { key: "completed", label: "Completed", count: completedCount, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { key: "cancelled", label: "Cancelled", count: cancelledCount, icon: XCircle, color: "text-rose-600", bg: "bg-rose-50" },
+    { key: "disputed", label: "Disputed", count: disputedCount, icon: ShieldAlert, color: "text-purple-600", bg: "bg-purple-50" },
   ];
+
   const hasFilters = Boolean(values.search || group || service || urgency);
 
   return (
@@ -79,21 +98,46 @@ export function JobsView() {
         title="Jobs"
         description="Oversee every job from request to rating."
         actions={
-          <Button onClick={() => setFormOpen(true)}>
+          <Button onClick={() => setFormOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white font-medium">
             <Plus className="h-4 w-4" aria-hidden /> New job
           </Button>
         }
       />
 
+      {/* INTERACTIVE SUMMARY CARDS GRID */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        {summaryCards.map((card) => {
+          const isActive = group === card.key || (card.key === undefined && !group);
+          const Icon = card.icon;
+
+          return (
+            <Card
+              key={card.label}
+              onClick={() => setParams({ group: card.key })}
+              className={cn(
+                "p-4 flex flex-col justify-between border rounded-2xl shadow-sm cursor-pointer transition-all",
+                isActive
+                  ? "border-amber-400 bg-amber-50/30 ring-2 ring-amber-400/20"
+                  : "border-slate-200/80 bg-white hover:border-slate-300"
+              )}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  {card.label}
+                </span>
+                <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", card.bg, card.color)}>
+                  <Icon className="h-4 w-4" />
+                </div>
+              </div>
+              <p className={cn("text-2xl font-bold", card.color)}>
+                {card.count}
+              </p>
+            </Card>
+          );
+        })}
+      </div>
+
       <div className="mb-4 space-y-3">
-        <SegmentedTabs
-          label="Job stage"
-          tabs={tabs}
-          value={group ?? "all"}
-          onChange={(tab) =>
-            setParams({ group: tab === "all" ? undefined : tab })
-          }
-        />
         <div className="flex flex-col gap-3 md:flex-row">
           <SearchInput
             value={search}
@@ -171,8 +215,10 @@ export function JobsView() {
                         <p className="max-w-[24rem] truncate font-medium text-slate-900">
                           {job.problem || job.service}
                         </p>
-                        <p className="text-xs text-slate-500">
-                          {job.customer.name} - {job.reference}
+                        <p className="text-xs text-slate-500 flex items-center gap-2">
+                          <span className="font-semibold text-slate-700">{job.reference}</span>
+                          <span>·</span>
+                          <span>{job.customer.name}</span>
                         </p>
                       </Td>
                       <Td className="whitespace-nowrap text-slate-600">
@@ -187,7 +233,9 @@ export function JobsView() {
                             {job.technician.name}
                           </span>
                         ) : (
-                          <span className="text-slate-400">Not assigned</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                            Not assigned
+                          </span>
                         )}
                       </Td>
                       <Td>
