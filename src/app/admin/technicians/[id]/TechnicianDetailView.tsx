@@ -100,7 +100,7 @@ export function TechnicianDetailView({ id }: { id: string }) {
 
       {/* Orange profile hero, as on the mobile profile screen */}
       <section className="flex flex-col gap-4 rounded-xl bg-brand-500 p-6 text-white shadow-sm sm:flex-row sm:items-center">
-        <Avatar name={technician.name || 'Technician'} size="lg" inverse />
+        <Avatar name={technician.name || 'Technician'} src={technician.profilePictureUrl} size="lg" inverse />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-100">{tradesSummary}</p>
           <h1 className="mt-0.5 flex items-center gap-2 text-2xl font-bold tracking-tight">

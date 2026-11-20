@@ -12,7 +12,6 @@ import {
   useToast,
 } from '@/components/ui';
 import {
-  SERVICE_CATEGORIES,
   SERVICE_GROUPS,
   getServiceGroup,
 } from '@/config/services';
@@ -119,7 +118,7 @@ export function ServiceFormDialog({
     return [
       {
         id: '11111111-1111-1111-1111-111111111111',
-        name: 'Home Services',
+        name: 'Home',
         description: 'Home & building services',
         isActive: true,
         createdAt: now,
@@ -127,7 +126,7 @@ export function ServiceFormDialog({
       },
       {
         id: '22222222-2222-2222-2222-222222222222',
-        name: 'Car Services',
+        name: 'Car',
         description: 'Car & truck services',
         isActive: true,
         createdAt: now,
@@ -135,7 +134,7 @@ export function ServiceFormDialog({
       },
       {
         id: '33333333-3333-3333-3333-333333333333',
-        name: 'Other Services',
+        name: 'Other',
         description: 'Custom & other services',
         isActive: true,
         createdAt: now,
@@ -166,13 +165,17 @@ export function ServiceFormDialog({
       const matchedCategory =
         availableCategories.find((item) => item.id === service.categoryId) ??
         availableCategories.find(
-          (item) => item.name.toLowerCase() === (service.category ?? '').toLowerCase(),
+          (item) =>
+            item.name.toLowerCase() === (service.category ?? '').toLowerCase(),
         ) ??
         availableCategories.find(
-          (item) => item.name.toLowerCase() === (service.name ?? '').toLowerCase(),
+          (item) =>
+            item.name.toLowerCase() === (service.name ?? '').toLowerCase(),
         );
 
-      const group = getServiceGroup(matchedCategory?.name || service.category || service.name);
+      const group = getServiceGroup(
+        matchedCategory?.name || service.category || service.name,
+      );
       setSelectedGroup(group);
 
       // 2. Find valid category matching this group
@@ -197,8 +200,8 @@ export function ServiceFormDialog({
       const category = availableCategories.find(
         (item) => item.name === initialCategory,
       );
-      const group = initialCategory ? getServiceGroup(initialCategory) : 'Home Services';
-      setSelectedGroup(group);
+const group = initialCategory ? getServiceGroup(initialCategory) : 'Home Services';
+setSelectedGroup(group);
 
       const groupCategories = availableCategories.filter(
         (cat) => getServiceGroup(cat.name) === group,
@@ -283,24 +286,27 @@ export function ServiceFormDialog({
       return;
     }
 
-    // Find the real backend category matching the selected group name
-    const matchedCategory = categories.find(
-      (c) => c.name === selectedGroup || c.id === input.categoryId
+    const selectedCategory = availableCategories.find(
+      (c) => c.id === input.categoryId,
     );
 
     const serviceInput: ServiceInput = {
       ...input,
       name: input.name.trim(),
-      category: selectedGroup,
-      // Pass the real backend category ID (UUID) or fall back to input.categoryId
-      categoryId: matchedCategory?.id ?? input.categoryId,
+      category: selectedCategory?.name ?? selectedGroup,
+      categoryId: selectedCategory?.id ?? input.categoryId,
       description: input.description.trim(),
     };
 
     const done = {
       onSuccess: (saved: Service) => {
-        const iconSaved = iconData === (icon ?? null) || onIconChange(saved.id, iconData);
-        toast(`${input.name.trim()} updated successfully`, 'success');
+        onIconChange(saved.id, iconData);
+        toast(
+          service
+            ? `${input.name.trim()} updated successfully`
+            : `${input.name.trim()} added successfully`,
+          'success',
+        );
         onClose();
       },
       onError: (err: Error) => {
@@ -328,7 +334,7 @@ export function ServiceFormDialog({
     }));
   };
 
-  const groupMeta: Record<
+const groupMeta: Record<
     ServiceGroup,
     { label: string; desc: string; icon: typeof House }
   > = {
@@ -343,7 +349,7 @@ export function ServiceFormDialog({
       icon: Car,
     },
     'Other Services': {
-      label: 'Other',
+      label: 'Other Services',
       desc: 'Custom & other',
       icon: Layers,
     },
@@ -357,19 +363,11 @@ export function ServiceFormDialog({
       description="Choose Home, Car, or Other, select its category, and enter the service details and booking fee."
       footer={
         <>
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            disabled={saving}
-          >
+          <Button variant="secondary" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
 
-          <Button
-            onClick={save}
-            loading={saving}
-            disabled={saving}
-          >
+          <Button onClick={save} loading={saving} disabled={saving}>
             {service ? 'Save changes' : 'Add service'}
           </Button>
         </>
@@ -448,11 +446,7 @@ export function ServiceFormDialog({
           </Select>
         </Field>
 
-        <Field
-          label="Service name"
-          htmlFor={`${id}-name`}
-          error={errors.name}
-        >
+        <Field label="Service name" htmlFor={`${id}-name`} error={errors.name}>
           <Input
             id={`${id}-name`}
             value={input.name}
@@ -491,9 +485,7 @@ export function ServiceFormDialog({
             min={0}
             step="1"
             value={Number.isNaN(input.visitFee) ? '' : input.visitFee}
-            onChange={(event) =>
-              set('visitFee', event.target.valueAsNumber)
-            }
+            onChange={(event) => set('visitFee', event.target.valueAsNumber)}
             placeholder="Enter booking fee"
             invalid={Boolean(errors.visitFee)}
           />
@@ -567,9 +559,7 @@ export function ServiceFormDialog({
           <input
             type="checkbox"
             checked={input.isActive}
-            onChange={(event) =>
-              set('isActive', event.target.checked)
-            }
+            onChange={(event) => set('isActive', event.target.checked)}
             className="mt-0.5 h-4 w-4 accent-brand-500"
           />
 

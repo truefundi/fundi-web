@@ -1,27 +1,17 @@
-import { env } from '@/config/env';
-import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
 import { customersApi } from './customers';
 import { disputesApi } from './disputes';
 import { jobsApi } from './jobs';
 import { techniciansApi } from './technicians';
 import { api, ApiError, unwrap } from '../client';
-import {
-  canApproveRequest,
-  getActionPrivilege,
-  type ApprovalActor,
-  type ApprovalRequest,
-  type ApprovalStatus,
-  type CreateApprovalInput,
+import type {
+  ApprovalActor,
+  ApprovalRequest,
+  ApprovalStatus,
+  CreateApprovalInput,
 } from '@/types/approval';
 
 const COMMISSION_STORAGE_KEY = 'fundi.commission-rate-percent';
 const COMMISSION_EVENT = 'fundi-commission-rate';
-
-function findMock(id: string): ApprovalRequest {
-  const request = mockDb.approvalRequests.find((item) => item.id === id);
-  if (!request) throw new MockNotFoundError('Approval request', id);
-  return request;
-}
 
 function applyCommissionRate(rate: number) {
   if (typeof window === 'undefined') return;
@@ -31,10 +21,9 @@ function applyCommissionRate(rate: number) {
 
 async function applyApprovedAction(request: ApprovalRequest): Promise<void> {
   switch (request.actionType) {
-case 'VERIFY_USER':
-
-  await techniciansApi.approve(request.resourceId);
-  return;
+    case 'VERIFY_USER':
+      await techniciansApi.approve(request.resourceId);
+      return;
     case 'SUSPEND_ACCOUNT':
       if (request.resourceType === 'customer') {
         await customersApi.updateStatus(request.resourceId, 'suspended');
@@ -71,48 +60,15 @@ case 'VERIFY_USER':
 
 export const approvalsApi = {
   async list(status?: ApprovalStatus): Promise<ApprovalRequest[]> {
-    if (!env.useMocks) return unwrap(api.get('/admin/approvals', { query: { status } }));
-    await delay();
-    const items = status ? mockDb.approvalRequests.filter((item) => item.status === status) : mockDb.approvalRequests;
-    return clone([...items].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)));
+    return unwrap(api.get('/admin/approvals', { query: { status } }));
   },
 
   async get(id: string): Promise<ApprovalRequest> {
-    if (!env.useMocks) return unwrap(api.get(`/admin/approvals/${id}`));
-    await delay();
-    return clone(findMock(id));
+    return unwrap(api.get(`/admin/approvals/${id}`));
   },
 
   async create(input: CreateApprovalInput, requester: ApprovalActor): Promise<ApprovalRequest> {
-    if (!env.useMocks) return unwrap(api.post('/admin/approvals', { ...input, requester }));
-    await delay();
-    const duplicate = mockDb.approvalRequests.find(
-      (item) =>
-        item.status === 'PENDING' &&
-        item.actionType === input.actionType &&
-        item.resourceId === input.resourceId,
-    );
-    if (duplicate) {
-      throw new ApiError('An approval request for this action is already pending.', 409);
-    }
-    const privilege = getActionPrivilege(input.actionType);
-    const request: ApprovalRequest = {
-      id: `apr_${Date.now()}`,
-      actionType: input.actionType,
-      title: privilege.title,
-      category: privilege.category,
-      resourceType: input.resourceType,
-      resourceId: input.resourceId,
-      resourceName: input.resourceName,
-      summary: input.summary,
-      status: 'PENDING',
-      requester,
-      createdAt: new Date().toISOString(),
-      verificationChecklist: input.verificationChecklist,
-      metadata: input.metadata,
-    };
-    mockDb.approvalRequests.unshift(request);
-    return clone(request);
+    return unwrap(api.post('/admin/approvals', { ...input, requester }));
   },
 
   async review(
@@ -120,26 +76,12 @@ export const approvalsApi = {
     decision: { status: Exclude<ApprovalStatus, 'PENDING'>; notes?: string },
     reviewer: ApprovalActor,
   ): Promise<ApprovalRequest> {
-    if (!env.useMocks) return unwrap(api.post(`/admin/approvals/${id}/review`, { ...decision, reviewer }));
-    await delay();
-    const request = findMock(id);
-    if (request.status !== 'PENDING') throw new ApiError('This request has already been reviewed.', 409);
-    if (!canApproveRequest(reviewer.role, request.actionType)) {
-      throw new ApiError('Your role cannot approve this action. Ask a Super Admin or Operations Manager.', 403);
-    }
-if (request.requester.id === reviewer.id) {
-  throw new ApiError('Another administrator must review this request.', 403);
-}
+    const reviewed = await unwrap<ApprovalRequest>(
+      api.post(`/admin/approvals/${id}/review`, { ...decision, reviewer }),
+    );
     if (decision.status === 'APPROVED') {
-      await applyApprovedAction(request);
+      await applyApprovedAction(reviewed);
     }
-    request.status = decision.status;
-    request.reviewedAt = new Date().toISOString();
-    request.reviewedBy = reviewer;
-    request.reviewNotes = decision.notes?.trim() || undefined;
-    if (decision.status === 'REJECTED') {
-      request.rejectionReason = decision.notes?.trim() || 'Rejected';
-    }
-    return clone(request);
+    return reviewed;
   },
 };

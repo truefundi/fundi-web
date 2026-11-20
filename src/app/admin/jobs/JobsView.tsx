@@ -21,10 +21,10 @@ import {
   Th,
   Tr,
 } from "@/components/ui";
+import { DEFAULT_PAGE_SIZE } from "@/config/pagination";
 import { useJobs, useJobStats } from "@/hooks/useJobs";
 import { useServices } from "@/hooks/useServices";
 import { useDebouncedValue, useUrlFilters } from "@/hooks/useUrlFilters";
-import { DEFAULT_PAGE_SIZE } from "@/lib/api/mock-utils";
 import { cn, formatRelative } from "@/lib/utils";
 import {
   URGENCIES,
@@ -61,24 +61,26 @@ export function JobsView() {
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
+  const activePage = data?.page ?? page;
+  const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
+
   const statsAny = stats as Record<string, number> | undefined;
 
-  // Robust count computations with fallbacks matching all backend status variations
   const totalCount = statsAny?.total ?? data?.total ?? 0;
-  
-  const matchingCount = statsAny?.matching ?? statsAny?.pending ?? statsAny?.open ?? 
+
+  const matchingCount = statsAny?.matching ?? statsAny?.pending ?? statsAny?.open ??
     data?.items?.filter(j => ['matching', 'pending', 'open', 'assigned'].includes(j.status?.toLowerCase()) || !j.technician).length ?? 0;
 
-  const inProgressCount = statsAny?.in_progress ?? statsAny?.inProgress ?? 
+  const inProgressCount = statsAny?.in_progress ?? statsAny?.inProgress ??
     data?.items?.filter(j => ['in_progress', 'ongoing'].includes(j.status?.toLowerCase())).length ?? 0;
 
-  const completedCount = statsAny?.completed ?? 
+  const completedCount = statsAny?.completed ??
     data?.items?.filter(j => j.status?.toLowerCase() === 'completed').length ?? 0;
 
-  const cancelledCount = statsAny?.cancelled ?? statsAny?.failed ?? 
+  const cancelledCount = statsAny?.cancelled ?? statsAny?.failed ??
     data?.items?.filter(j => ['cancelled', 'failed'].includes(j.status?.toLowerCase())).length ?? 0;
 
-  const disputedCount = statsAny?.disputed ?? 
+  const disputedCount = statsAny?.disputed ??
     data?.items?.filter(j => j.status?.toLowerCase() === 'disputed').length ?? 0;
 
   const summaryCards = [
@@ -104,7 +106,6 @@ export function JobsView() {
         }
       />
 
-      {/* INTERACTIVE SUMMARY CARDS GRID */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {summaryCards.map((card) => {
           const isActive = group === card.key || (card.key === undefined && !group);
@@ -192,6 +193,7 @@ export function JobsView() {
             <Table>
               <thead>
                 <tr>
+                  <Th className="w-12">#</Th>
                   <Th>Job</Th>
                   <Th>Service</Th>
                   <Th>Customer</Th>
@@ -203,58 +205,65 @@ export function JobsView() {
               </thead>
               <tbody>
                 {isLoading || !data ? (
-                  <TableSkeleton columns={7} />
+                  <TableSkeleton columns={8} />
                 ) : (
-                  data.items.map((job) => (
-                    <Tr
-                      key={job.id}
-                      onClick={() => router.push(`/admin/jobs/${job.id}`)}
-                      label={`Open job ${job.reference}`}
-                    >
-                      <Td>
-                        <p className="max-w-[24rem] truncate font-medium text-slate-900">
-                          {job.problem || job.service}
-                        </p>
-                        <p className="text-xs text-slate-500 flex items-center gap-2">
-                          <span className="font-semibold text-slate-700">{job.reference}</span>
-                          <span>·</span>
-                          <span>{job.customer.name}</span>
-                        </p>
-                      </Td>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        {job.service}
-                      </Td>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        {job.customer.name}
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        {job.technician ? (
-                          <span className="text-slate-600">
-                            {job.technician.name}
+                  data.items.map((job, index) => {
+                    const rowNumber = (activePage - 1) * activePageSize + index + 1;
+
+                    return (
+                      <Tr
+                        key={job.id}
+                        onClick={() => router.push(`/admin/jobs/${job.id}`)}
+                        label={`Open job ${job.reference}`}
+                      >
+                        <Td className="whitespace-nowrap text-xs font-medium text-slate-400">
+                          {rowNumber}
+                        </Td>
+                        <Td>
+                          <p className="max-w-[24rem] truncate font-medium text-slate-900">
+                            {job.problem || job.service}
+                          </p>
+                          <p className="text-xs text-slate-500 flex items-center gap-2">
+                            <span className="font-semibold text-slate-700">{job.reference}</span>
+                            <span>·</span>
+                            <span>{job.customer.name}</span>
+                          </p>
+                        </Td>
+                        <Td className="whitespace-nowrap text-slate-600">
+                          {job.service}
+                        </Td>
+                        <Td className="whitespace-nowrap text-slate-600">
+                          {job.customer.name}
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          {job.technician ? (
+                            <span className="text-slate-600">
+                              {job.technician.name}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                              Not assigned
+                            </span>
+                          )}
+                        </Td>
+                        <Td>
+                          <JobStatusBadge status={job.status} />
+                        </Td>
+                        <Td>
+                          <UrgencyBadge urgency={job.urgency} />
+                        </Td>
+                        <Td className="whitespace-nowrap text-slate-600">
+                          <span className="inline-flex items-center gap-2">
+                            {formatRelative(job.createdAt)}
+                            <ChevronRight
+                              className="h-4 w-4 text-slate-400"
+                              aria-hidden
+                            />
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                            Not assigned
-                          </span>
-                        )}
-                      </Td>
-                      <Td>
-                        <JobStatusBadge status={job.status} />
-                      </Td>
-                      <Td>
-                        <UrgencyBadge urgency={job.urgency} />
-                      </Td>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        <span className="inline-flex items-center gap-2">
-                          {formatRelative(job.createdAt)}
-                          <ChevronRight
-                            className="h-4 w-4 text-slate-400"
-                            aria-hidden
-                          />
-                        </span>
-                      </Td>
-                    </Tr>
-                  ))
+                        </Td>
+                      </Tr>
+                    );
+                  })
                 )}
               </tbody>
             </Table>

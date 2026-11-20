@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -10,7 +9,6 @@ import {
   MessageCircle,
   Handshake,
   XCircle,
-  ListFilter,
 } from 'lucide-react';
 
 import { ConversationStatusBadge } from '@/components/chats/ConversationStatusBadge';
@@ -25,10 +23,7 @@ import {
 import { useChats } from '@/hooks/useChats';
 import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
 import { cn, formatRelative } from '@/lib/utils';
-import {
-  CONVERSATION_STATUS_LABEL,
-  type ConversationStatus,
-} from '@/types/chat';
+import type { Conversation, ConversationStatus } from '@/types/chat';
 
 const FILTER_KEYS = ['search', 'status'] as const;
 type Tab = 'all' | ConversationStatus;
@@ -46,7 +41,6 @@ export function ChatsView() {
 
   const status = values.status as ConversationStatus | undefined;
 
-  // Fetch all conversations without sending a status filter to the backend.
   const {
     data: allChats,
     isLoading,
@@ -56,24 +50,21 @@ export function ChatsView() {
     isFetching,
   } = useChats({});
 
-  // Calculate summary counts from the complete conversation list.
+  const chatsList: Conversation[] = allChats ?? [];
+
   const summary = useMemo(() => {
-    const chats = allChats ?? [];
-
     return {
-      all: chats.length,
-      negotiating: chats.filter((chat) => chat.status === 'negotiating').length,
-      agreed: chats.filter((chat) => chat.status === 'agreed').length,
-      declined: chats.filter((chat) => chat.status === 'declined').length,
+      all: chatsList.length,
+      negotiating: chatsList.filter((chat) => chat.status === 'negotiating').length,
+      agreed: chatsList.filter((chat) => chat.status === 'agreed').length,
+      declined: chatsList.filter((chat) => chat.status === 'declined').length,
     };
-  }, [allChats]);
+  }, [chatsList]);
 
-  // Apply search and status filters locally.
   const data = useMemo(() => {
-    const chats = allChats ?? [];
     const term = (values.search ?? '').trim().toLowerCase();
 
-    return chats.filter((chat) => {
+    return chatsList.filter((chat) => {
       const matchesStatus = !status || chat.status === status;
 
       const matchesSearch =
@@ -88,7 +79,7 @@ export function ChatsView() {
 
       return matchesStatus && matchesSearch;
     });
-  }, [allChats, status, values.search]);
+  }, [chatsList, status, values.search]);
 
   const filters: {
     value: Tab;
@@ -96,7 +87,6 @@ export function ChatsView() {
     count: number;
     icon: typeof MessagesSquare;
     color: string;
-    activeColor: string;
     barColor: string;
   }[] = [
     {
@@ -105,7 +95,6 @@ export function ChatsView() {
       count: summary.all,
       icon: MessagesSquare,
       color: 'text-slate-600',
-      activeColor: 'border-slate-900 bg-slate-900 text-white',
       barColor: 'bg-slate-500',
     },
     {
@@ -114,7 +103,6 @@ export function ChatsView() {
       count: summary.negotiating,
       icon: MessageCircle,
       color: 'text-blue-600',
-      activeColor: 'border-blue-600 bg-blue-50 text-blue-800',
       barColor: 'bg-blue-500',
     },
     {
@@ -123,7 +111,6 @@ export function ChatsView() {
       count: summary.agreed,
       icon: Handshake,
       color: 'text-green-600',
-      activeColor: 'border-green-600 bg-green-50 text-green-800',
       barColor: 'bg-green-500',
     },
     {
@@ -132,7 +119,6 @@ export function ChatsView() {
       count: summary.declined,
       icon: XCircle,
       color: 'text-rose-600',
-      activeColor: 'border-rose-600 bg-rose-50 text-rose-800',
       barColor: 'bg-rose-500',
     },
   ];
@@ -144,9 +130,7 @@ export function ChatsView() {
         description="Conversations where customers and technicians agree on a job before it starts."
       />
 
-      {/* Chart summary and quick filters */}
       <section className="mb-6 space-y-3" aria-label="Conversation summary">
-
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {filters.map((filter) => {
             const Icon = filter.icon;
@@ -174,12 +158,12 @@ export function ChatsView() {
                 }
                 aria-pressed={active}
                 className={cn(
-  'rounded-lg border bg-white p-3 text-left text-slate-900 shadow-sm transition-all',
-  'hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500',
-  active
-    ? 'border-blue-600 ring-2 ring-blue-100 shadow-md'
-    : 'border-slate-200',
-)}
+                  'rounded-lg border bg-white p-3 text-left text-slate-900 shadow-sm transition-all',
+                  'hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                  active
+                    ? 'border-blue-600 ring-2 ring-blue-100 shadow-md'
+                    : 'border-slate-200',
+                )}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span
@@ -199,12 +183,12 @@ export function ChatsView() {
                 </div>
 
                 <p className="mt-2 text-xl font-bold tabular-nums text-slate-900">
-  {filter.count}
-</p>
+                  {filter.count}
+                </p>
 
-<p className="mt-0.5 text-xs font-medium text-slate-700">
-  {filter.label}
-</p>
+                <p className="mt-0.5 text-xs font-medium text-slate-700">
+                  {filter.label}
+                </p>
 
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-100">
                   <div
@@ -290,9 +274,7 @@ export function ChatsView() {
                       </div>
 
                       <p className="mt-0.5 truncate text-sm text-slate-500">
-                        {chat.adminHasJoined
-                          ? last?.text
-                          : 'Join to view conversation'}
+                        {last?.text ?? 'No messages yet'}
                       </p>
                     </div>
 

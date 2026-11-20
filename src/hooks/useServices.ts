@@ -2,12 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { servicesApi } from '@/lib/api';
-import type { ServiceInput } from '@/types/service';
+import type { Service, ServiceInput } from '@/types/service';
 
 export const serviceKeys = { all: ['services'] as const };
 
 export function useServices() {
-  return useQuery({ queryKey: serviceKeys.all, queryFn: servicesApi.list });
+  return useQuery<Service[]>({
+    queryKey: serviceKeys.all,
+    queryFn: servicesApi.list,
+  });
 }
 
 function useServiceMutation<TVars, TResult>(mutationFn: (vars: TVars) => Promise<TResult>) {

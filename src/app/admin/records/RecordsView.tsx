@@ -19,10 +19,10 @@ import {
   Th,
   Tr,
 } from '@/components/ui';
+import { DEFAULT_PAGE_SIZE } from '@/config/pagination';
 import { useJobs } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
 import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
-import { DEFAULT_PAGE_SIZE } from '@/lib/api/mock-utils';
 import { formatDate } from '@/lib/utils';
 import type { JobGroup } from '@/types/job';
 
@@ -47,6 +47,9 @@ export function RecordsView() {
     pageSize: DEFAULT_PAGE_SIZE,
   });
   const hasFilters = Boolean(values.search || values.service);
+
+  const activePage = data?.page ?? page;
+  const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
 
   return (
     <>
@@ -95,6 +98,7 @@ export function RecordsView() {
             <Table>
               <thead>
                 <tr>
+                  <Th className="w-12">#</Th>
                   <Th>Job</Th>
                   <Th>Service</Th>
                   <Th>Customer</Th>
@@ -106,43 +110,50 @@ export function RecordsView() {
               </thead>
               <tbody>
                 {isLoading || !data ? (
-                  <TableSkeleton columns={7} />
+                  <TableSkeleton columns={8} />
                 ) : (
-                  data.items.map((job) => (
-                    <Tr
-                      key={job.id}
-                      onClick={() => router.push(`/admin/jobs/${job.id}`)}
-                      label={`Open service record ${job.reference}`}
-                    >
-                      <Td>
-                        <p className="font-medium text-slate-900">{job.reference}</p>
-                        <p className="max-w-[16rem] truncate text-xs text-slate-500">{job.problem}</p>
-                      </Td>
-                      <Td className="whitespace-nowrap text-slate-600">{job.service}</Td>
-                      <Td className="whitespace-nowrap text-slate-600">{job.customer.name}</Td>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        {job.technician?.name ?? <span className="text-slate-400">Not assigned</span>}
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        {job.rating ? (
-                          <Badge tone="warning">
-                            <span className="inline-flex items-center gap-1">
-                              <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
-                              {job.rating.overall}/5
-                            </span>
-                          </Badge>
-                        ) : (
-                          <span className="text-slate-400">Not rated</span>
-                        )}
-                      </Td>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        {formatDate(job.completedAt ?? job.updatedAt)}
-                      </Td>
-                      <Td>
-                        <JobStatusBadge status={job.status} />
-                      </Td>
-                    </Tr>
-                  ))
+                  data.items.map((job, index) => {
+                    const rowNumber = (activePage - 1) * activePageSize + index + 1;
+
+                    return (
+                      <Tr
+                        key={job.id}
+                        onClick={() => router.push(`/admin/jobs/${job.id}`)}
+                        label={`Open service record ${job.reference}`}
+                      >
+                        <Td className="whitespace-nowrap text-xs font-medium text-slate-400">
+                          {rowNumber}
+                        </Td>
+                        <Td>
+                          <p className="font-medium text-slate-900">{job.reference}</p>
+                          <p className="max-w-[16rem] truncate text-xs text-slate-500">{job.problem}</p>
+                        </Td>
+                        <Td className="whitespace-nowrap text-slate-600">{job.service}</Td>
+                        <Td className="whitespace-nowrap text-slate-600">{job.customer.name}</Td>
+                        <Td className="whitespace-nowrap text-slate-600">
+                          {job.technician?.name ?? <span className="text-slate-400">Not assigned</span>}
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          {job.rating ? (
+                            <Badge tone="warning">
+                              <span className="inline-flex items-center gap-1">
+                                <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
+                                {job.rating.overall}/5
+                              </span>
+                            </Badge>
+                          ) : (
+                            <span className="text-slate-400">Not rated</span>
+                          )}
+                        </Td>
+                        <Td className="whitespace-nowrap text-slate-600">
+                          {formatDate(job.completedAt ?? job.updatedAt)}
+                        </Td>
+                        <Td>
+                          <JobStatusBadge status={job.status} />
+                        </Td>
+                      </Tr>
+                    );
+                  })
                 )}
               </tbody>
             </Table>

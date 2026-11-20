@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useId, useState } from 'react';
@@ -14,11 +13,11 @@ import {
 } from '@/components/ui';
 import { useCreateJob, useUpdateJob } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
-import { env } from '@/config/env';
 import { useCustomers } from '@/hooks/useCustomers';
 import {
   getServiceGroup,
   SERVICE_GROUPS,
+  type ServiceGroup,
 } from '@/config/services';
 import { formatMoney } from '@/lib/jobs';
 import {
@@ -57,10 +56,15 @@ function validate(input: JobFormInput, isNew: boolean): Errors {
     errors.customerId = 'Choose a customer.';
   }
 
-  if (isNew && !env.useMocks) {
-    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuid.test(input.paymentId ?? '')) errors.paymentId = 'Enter a valid booking payment ID.';
-    if (!uuid.test(input.phoneVerificationId ?? '')) errors.phoneVerificationId = 'Enter a verified phone reference ID.';
+  if (isNew) {
+    const uuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuid.test(input.paymentId ?? '')) {
+      errors.paymentId = 'Enter a valid booking payment ID.';
+    }
+    if (!uuid.test(input.phoneVerificationId ?? '')) {
+      errors.phoneVerificationId = 'Enter a verified phone reference ID.';
+    }
   }
 
   if (!input.service) {
@@ -77,7 +81,8 @@ function validate(input: JobFormInput, isNew: boolean): Errors {
 
   if (
     !Number.isInteger(input.offeredAmount) ||
-    input.offeredAmount <= 0 || input.offeredAmount > 2_000_000_000
+    input.offeredAmount <= 0 ||
+    input.offeredAmount > 2_000_000_000
   ) {
     errors.offeredAmount = 'Enter a valid amount for the technician.';
   }
@@ -127,7 +132,9 @@ export function JobFormDialog({
   const services = useServices();
 
   const [input, setInput] = useState<JobFormInput>(EMPTY);
-  const [serviceCategory, setServiceCategory] = useState('');
+  const [serviceCategory, setServiceCategory] = useState<ServiceGroup | ''>(
+    '',
+  );
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
@@ -164,7 +171,7 @@ export function JobFormDialog({
 
     if (jobService) {
       setServiceCategory(
-        jobService.category ?? getServiceGroup(jobService.name),
+        getServiceGroup(jobService.category ?? jobService.name),
       );
     }
   }, [open, job, services.data]);
@@ -187,33 +194,25 @@ export function JobFormDialog({
     (service) => service.isActive || service.name === job?.service,
   );
 
-  const serviceCategories = [
-    ...new Set([
-      ...SERVICE_GROUPS,
-      ...serviceOptions.map(
-        (service) => service.category || getServiceGroup(service.name),
-      ),
-    ]),
-  ].sort((a, b) => a.localeCompare(b));
+  const serviceCategories: readonly ServiceGroup[] = SERVICE_GROUPS;
 
-  const categoryServiceOptions = serviceOptions.filter(
-    (service) =>
-      (service.category ?? getServiceGroup(service.name)) ===
-      serviceCategory,
-  );
+  const categoryServiceOptions = serviceCategory
+    ? serviceOptions.filter(
+        (service) =>
+          getServiceGroup(service.category ?? service.name) === serviceCategory,
+      )
+    : [];
 
   const selected = serviceOptions.find(
     (service) => service.name === input.service,
   );
 
- const fee = selected?.visitFee;
+  const fee = selected?.visitFee;
 
   const accountOptions = customers.data?.items;
 
   const chooseAccount = (accountId: string) => {
-    const account = accountOptions?.find(
-      (item) => item.id === accountId,
-    );
+    const account = accountOptions?.find((item) => item.id === accountId);
 
     setInput((current) => ({
       ...current,
@@ -230,8 +229,15 @@ export function JobFormDialog({
     }
 
     if (job) {
-      const { service, problem, urgency, location, offeredAmount, latitude, longitude } =
-        input;
+      const {
+        service,
+        problem,
+        urgency,
+        location,
+        offeredAmount,
+        latitude,
+        longitude,
+      } = input;
 
       update.mutate(
         {
@@ -282,11 +288,7 @@ export function JobFormDialog({
       }
       footer={
         <>
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            disabled={saving}
-          >
+          <Button variant="secondary" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
 
@@ -318,9 +320,7 @@ export function JobFormDialog({
               invalid={Boolean(errors.customerId)}
             >
               {job ? (
-                <option value={job.customer.id}>
-                  {job.customer.name}
-                </option>
+                <option value={job.customer.id}>{job.customer.name}</option>
               ) : (
                 <>
                   <option value="">
@@ -341,15 +341,12 @@ export function JobFormDialog({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label="Category"
-            htmlFor={`${id}-service-category`}
-          >
+          <Field label="Category" htmlFor={`${id}-service-category`}>
             <Select
               id={`${id}-service-category`}
               value={serviceCategory}
               onChange={(event) => {
-                setServiceCategory(event.target.value);
+                setServiceCategory(event.target.value as ServiceGroup | '');
                 set('service', '');
               }}
               disabled={services.isLoading}
@@ -408,9 +405,7 @@ export function JobFormDialog({
             <Select
               id={`${id}-urgency`}
               value={input.urgency}
-              onChange={(event) =>
-                set('urgency', event.target.value as Urgency)
-              }
+              onChange={(event) => set('urgency', event.target.value as Urgency)}
             >
               {URGENCIES.map((urgency) => (
                 <option key={urgency} value={urgency}>
@@ -421,17 +416,36 @@ export function JobFormDialog({
           </Field>
         </div>
 
-        {isNew && !env.useMocks && (
+        {isNew && (
           <>
             <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
-              This customer must first pay the booking fee and verify their phone in the Fundi app.
-              Use their unused payment and phone verification references to create the job.
+              This customer must first pay the booking fee and verify their
+              phone in the Fundi app. Use their unused payment and phone
+              verification references to create the job.
             </p>
-            <Field label="Booking payment ID" htmlFor={`${id}-payment`} error={errors.paymentId}>
-              <Input id={`${id}-payment`} value={input.paymentId ?? ''} onChange={(event) => set('paymentId', event.target.value.trim())} />
+            <Field
+              label="Booking payment ID"
+              htmlFor={`${id}-payment`}
+              error={errors.paymentId}
+            >
+              <Input
+                id={`${id}-payment`}
+                value={input.paymentId ?? ''}
+                onChange={(event) => set('paymentId', event.target.value.trim())}
+              />
             </Field>
-            <Field label="Verified phone reference ID" htmlFor={`${id}-verification`} error={errors.phoneVerificationId}>
-              <Input id={`${id}-verification`} value={input.phoneVerificationId ?? ''} onChange={(event) => set('phoneVerificationId', event.target.value.trim())} />
+            <Field
+              label="Verified phone reference ID"
+              htmlFor={`${id}-verification`}
+              error={errors.phoneVerificationId}
+            >
+              <Input
+                id={`${id}-verification`}
+                value={input.phoneVerificationId ?? ''}
+                onChange={(event) =>
+                  set('phoneVerificationId', event.target.value.trim())
+                }
+              />
             </Field>
           </>
         )}

@@ -2,22 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Car,
   ChevronDown,
-  House,
   Layers,
   Pencil,
   Plus,
   Trash2,
-  Wrench,
 } from 'lucide-react';
 
 import {
-  SERVICE_GROUPS,
   SERVICE_CATEGORIES,
   SERVICE_CATEGORY_STYLE,
   getServiceGroup,
   type ServiceCategory,
+  type ServiceGroup,
 } from '@/config/services';
 
 import { CategoryFormDialog } from '@/components/services/CategoryFormDialog';
@@ -71,9 +68,7 @@ const DEFAULT_CATEGORY_STYLE = {
   className: 'bg-slate-100 text-slate-600',
 };
 
-function resolveServiceGroup(
-  service: Service,
-): 'Home Services' | 'Car Services' | 'Other Services' {
+function resolveServiceGroup(service: Service): ServiceGroup {
   const byCategory = getServiceGroup(service.category);
   if (byCategory === 'Home Services' || byCategory === 'Car Services') {
     return byCategory;
@@ -86,7 +81,7 @@ function resolveServiceGroup(
 
   const text = `${service.name} ${service.category ?? ''}`.toLowerCase();
   if (
-    text.includes('car') ||
+    text.includes('Car Services') ||
     text.includes('garage') ||
     text.includes('auto') ||
     text.includes('vehicle') ||
@@ -109,7 +104,7 @@ function resolveServiceGroup(
     text.includes('hvac') ||
     text.includes('ac ') ||
     text.includes('roof') ||
-    text.includes('home') ||
+    text.includes('Home Services') ||
     text.includes('house')
   ) {
     return 'Home Services';
@@ -191,7 +186,7 @@ export function CategoriesView() {
   const [openManageId, setOpenManageId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'all' | ServiceGroup>('all');
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
     useState<string>('All Services');
 
@@ -245,7 +240,7 @@ export function CategoriesView() {
     return [
       {
         id: 'default-home',
-        name: 'Home Services',
+        name: 'Home',
         description: 'General home services',
         isActive: true,
         createdAt: now,
@@ -253,7 +248,7 @@ export function CategoriesView() {
       },
       {
         id: 'default-car',
-        name: 'Car Services',
+        name: 'Car',
         description: 'General car & garage services',
         isActive: true,
         createdAt: now,
@@ -261,7 +256,7 @@ export function CategoriesView() {
       },
       {
         id: 'default-other',
-        name: 'Other Services',
+        name: 'Other',
         description: 'Other miscellaneous services',
         isActive: true,
         createdAt: now,
@@ -278,21 +273,17 @@ export function CategoriesView() {
   const totalServices = services.length;
 
   const homeServices = useMemo(
-    () =>
-      services.filter((s) => resolveServiceGroup(s) === 'Home Services').length,
+    () => services.filter((s) => resolveServiceGroup(s) === 'Home Services').length,
     [services],
   );
 
   const carServices = useMemo(
-    () =>
-      services.filter((s) => resolveServiceGroup(s) === 'Car Services').length,
+    () => services.filter((s) => resolveServiceGroup(s) === 'Car Services').length,
     [services],
   );
 
   const otherServices = useMemo(
-    () =>
-      services.filter((s) => resolveServiceGroup(s) === 'Other Services')
-        .length,
+    () => services.filter((s) => resolveServiceGroup(s) === 'Other Services').length,
     [services],
   );
 
@@ -410,7 +401,7 @@ export function CategoriesView() {
     <>
       <PageHeader
         title="Service Management"
-        description="Manage Home Services, Car Services, and other categories, their booking fees, and availability."
+        description="Manage Home, Car, and Other categories, their booking fees, and availability."
         actions={
           <div className="flex flex-wrap items-center gap-2.5">
             {missingRequiredCategories.length > 0 && (
@@ -476,7 +467,7 @@ export function CategoriesView() {
                 : 'border-slate-200 hover:border-slate-300',
             )}
           >
-            <p className="text-sm font-medium text-slate-500">Home Services</p>
+            <p className="text-sm font-medium text-slate-500">Home</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
               {homeServices}
             </p>
@@ -496,7 +487,7 @@ export function CategoriesView() {
                 : 'border-slate-200 hover:border-slate-300',
             )}
           >
-            <p className="text-sm font-medium text-slate-500">Car Services</p>
+            <p className="text-sm font-medium text-slate-500">Car</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
               {carServices}
             </p>
@@ -516,7 +507,7 @@ export function CategoriesView() {
                 : 'border-slate-200 hover:border-slate-300',
             )}
           >
-            <p className="text-sm font-medium text-slate-500">Other Categories</p>
+            <p className="text-sm font-medium text-slate-500">Other</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
               {otherServices}
             </p>
@@ -538,7 +529,7 @@ export function CategoriesView() {
             onRetry={refreshAll}
           />
         </div>
-) : loading ? (
+      ) : loading ? (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <table className="w-full border-collapse text-left">
             <tbody>
@@ -577,13 +568,15 @@ export function CategoriesView() {
                 className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
               >
                 <option value="All Services">All Services</option>
-                <option value="Home Services">Home Services</option>
-                <option value="Car Services">Car Services</option>
+                <option value="Home">Home</option>
+                <option value="Car">Car</option>
+                <option value="Other">Other</option>
                 {activeCategories
                   .filter(
                     (cat) =>
                       cat.name !== 'Home Services' &&
-                      cat.name !== 'Car Services',
+                      cat.name !== 'Car Services' &&
+                      cat.name !== 'Other Services',
                   )
                   .map((cat) => (
                     <option key={cat.id} value={cat.name}>

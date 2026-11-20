@@ -19,18 +19,14 @@ import {
   PageHeader,
   Textarea,
 } from '@/components/ui';
-import { env } from '@/config/env';
 import {
   useBroadcastPreview,
   useBroadcasts,
   useSendBroadcast,
 } from '@/hooks/useBroadcasts';
-import {
-  MOCK_BROADCASTS,
-  type MockBroadcast,
-} from '@/mocks/broadcasts';
 import type {
   BroadcastChannel,
+  BroadcastRecord,
   BroadcastRole,
 } from '@/types/broadcast';
 
@@ -84,14 +80,8 @@ export function BroadcastsView() {
   const history = useBroadcasts();
   const send = useSendBroadcast();
 
-
-  const historyData = history.data as MockBroadcast[] | undefined;
-  const historyRecords: MockBroadcast[] =
-    historyData ?? (env.useMocks ? MOCK_BROADCASTS : []);
-
-  const broadcasts: MockBroadcast[] = [
-    ...historyRecords,
-  ].sort(
+  const historyData = history.data as BroadcastRecord[] | undefined;
+  const broadcasts: BroadcastRecord[] = [...(historyData ?? [])].sort(
     (a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
@@ -172,9 +162,7 @@ export function BroadcastsView() {
       });
 
       setSuccess(
-        env.useMocks
-          ? `Simulation saved for ${result.userCount} active users. No messages were delivered.`
-          : `Broadcast ${result.status?.toLowerCase() ?? 'sent'} for ${result.userCount} active users.${result.error ? ` ${result.error}` : ''}`,
+        `Broadcast ${result.status?.toLowerCase() ?? 'sent'} for ${result.userCount} active users.${result.error ? ` ${result.error}` : ''}`,
       );
 
       setTitle('');
@@ -183,7 +171,7 @@ export function BroadcastsView() {
       setShowCompose(false);
     } catch (cause) {
       setError(
-        cause instanceof Error ? cause.message : 'Could not simulate the broadcast.',
+        cause instanceof Error ? cause.message : 'Could not send the broadcast.',
       );
     }
   }
@@ -201,7 +189,6 @@ export function BroadcastsView() {
         }
       />
 
-      {/* Success feedback alert */}
       {success && (
         <div
           role="status"
@@ -211,7 +198,6 @@ export function BroadcastsView() {
         </div>
       )}
 
-      {/* Modal Dialog for Composing Notification */}
       <Modal
         open={showCompose}
         onClose={closeCompose}
@@ -367,7 +353,6 @@ export function BroadcastsView() {
         </form>
       </Modal>
 
-      {/* Notification history section */}
       <section aria-labelledby="broadcast-history-heading" className="space-y-4">
         <div className="flex items-center gap-2">
           <MessageSquareText className="h-5 w-5 text-slate-500" aria-hidden />
@@ -394,9 +379,11 @@ export function BroadcastsView() {
                       <h3 className="font-semibold text-slate-900">
                         {broadcast.title}
                       </h3>
-                      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                        Simulated
-                      </span>
+                      {broadcast.status && (
+                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                          {broadcast.status}
+                        </span>
+                      )}
                     </div>
 
                     <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">

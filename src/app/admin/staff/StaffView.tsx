@@ -30,9 +30,9 @@ import {
   Th,
   Tr,
 } from "@/components/ui";
+import { DEFAULT_PAGE_SIZE } from "@/config/pagination";
 import { useUpdateUserStatus, useUsers } from "@/hooks/useUsers";
 import { useDebouncedValue, useUrlFilters } from "@/hooks/useUrlFilters";
-import { DEFAULT_PAGE_SIZE } from "@/lib/api/mock-utils";
 import { cn, formatDate, formatPhone } from "@/lib/utils";
 import {
   ACCOUNT_STATUSES,
@@ -72,6 +72,9 @@ export function StaffView() {
   const staffItems =
     data?.items.filter((u) => STAFF_ROLES.includes(u.role as UserRole)) ?? [];
 
+  const activePage = data?.page ?? page;
+  const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
+
   return (
     <>
       <PageHeader
@@ -85,7 +88,6 @@ export function StaffView() {
         }
       />
 
-      {/* Responsive 4-Card Summary Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card className="p-4 flex items-center justify-between">
           <div>
@@ -197,6 +199,7 @@ export function StaffView() {
           <Table>
             <thead>
               <tr>
+                <Th className="w-12">#</Th>
                 <Th>Staff Member</Th>
                 <Th>Contact</Th>
                 <Th>Role</Th>
@@ -207,53 +210,60 @@ export function StaffView() {
             </thead>
             <tbody>
               {isLoading || !data ? (
-                <TableSkeleton columns={6} />
+                <TableSkeleton columns={7} />
               ) : (
-                staffItems.map((user) => (
-                  <Tr key={`${user.role}-${user.id}`}>
-                    <Td>
-                      <div className="flex items-center gap-3">
-                        <Avatar name={user.name} />
-                        <p className="truncate font-medium text-slate-900">
-                          {user.name}
+                staffItems.map((user, index) => {
+                  const rowNumber = (activePage - 1) * activePageSize + index + 1;
+
+                  return (
+                    <Tr key={`${user.role}-${user.id}`}>
+                      <Td className="whitespace-nowrap text-xs font-medium text-slate-400">
+                        {rowNumber}
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-3">
+                          <Avatar name={user.name} />
+                          <p className="truncate font-medium text-slate-900">
+                            {user.name}
+                          </p>
+                        </div>
+                      </Td>
+                      <Td>
+                        <p className="whitespace-nowrap text-slate-900">
+                          {formatPhone(user.phone) || "No phone"}
                         </p>
-                      </div>
-                    </Td>
-                    <Td>
-                      <p className="whitespace-nowrap text-slate-900">
-                        {formatPhone(user.phone) || "No phone"}
-                      </p>
-                      <p className="whitespace-nowrap text-xs text-slate-500">
-                        {user.email ?? "No email"}
-                      </p>
-                    </Td>
-                    <Td className="text-slate-600 font-medium">
-                      {USER_ROLE_LABELS[
-                        user.role as keyof typeof USER_ROLE_LABELS
-                      ] ?? user.role}
-                    </Td>
-                    <Td>
-                      <AccountStatusBadge status={user.status} />
-                    </Td>
-                    <Td className="whitespace-nowrap text-slate-600">
-                      {formatDate(user.createdAt)}
-                    </Td>
-                    <Td className="text-right">
-                      <AccountStatusAction
-                        name={user.name}
-                        status={user.status}
-                        loading={updateStatus.isPending}
-                        onChange={(next) =>
-                          updateStatus.mutateAsync({
-                            id: user.id,
-                            role: user.role,
-                            status: next,
-                          })
-                        }
-                      />
-                    </Td>
-                  </Tr>
-                ))
+                        <p className="whitespace-nowrap text-xs text-slate-500">
+                          {user.email ?? "No email"}
+                        </p>
+                      </Td>
+                      <Td className="text-slate-600 font-medium">
+                        {USER_ROLE_LABELS[
+                          user.role as keyof typeof USER_ROLE_LABELS
+                        ] ?? user.role}
+                      </Td>
+                      <Td>
+                        <AccountStatusBadge status={user.status} />
+                      </Td>
+                      <Td className="whitespace-nowrap text-slate-600">
+                        {formatDate(user.createdAt)}
+                      </Td>
+                      <Td className="text-right">
+                        <AccountStatusAction
+                          name={user.name}
+                          status={user.status}
+                          loading={updateStatus.isPending}
+                          onChange={(next) =>
+                            updateStatus.mutateAsync({
+                              id: user.id,
+                              role: user.role,
+                              status: next,
+                            })
+                          }
+                        />
+                      </Td>
+                    </Tr>
+                  );
+                })
               )}
             </tbody>
           </Table>

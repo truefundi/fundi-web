@@ -1,13 +1,8 @@
-import { env } from '@/config/env';
-import { clone, delay, mockDb, MockNotFoundError } from '@/mocks/mock-db';
 import { mapBackendConversation, type BackendConversation } from '@/lib/api/adapters/chats';
 import { mapBackendJob, type BackendJob } from '@/lib/api/adapters/jobs';
 import type { Conversation } from '@/types/chat';
-import { DISPUTE_OUTCOME_LABEL, JOB_STATUS_LABEL, type DisputeOutcome, type Job } from '@/types/job';
-import { api, ApiError, unwrap } from '../client';
-
-/** Reviewer recorded on mock decisions; the real API takes it from the admin session. */
-const MOCK_REVIEWER = 'Fundi Admin';
+import type { DisputeOutcome, Job } from '@/types/job';
+import { api, unwrap } from '../client';
 
 export type DisputeState = 'open' | 'resolved';
 
@@ -30,71 +25,30 @@ const OUTCOME_TO_API: Record<DisputeOutcome, 'CUSTOMER' | 'TECHNICIAN' | 'PARTIA
   partial: 'PARTIAL',
 };
 
-const isOpen = (job: Job) => Boolean(job.dispute && !job.dispute.resolution);
-
-function findDisputed(jobId: string): Job {
-  const job = mockDb.jobs.find((j) => j.id === jobId && j.dispute);
-  if (!job) throw new MockNotFoundError('Dispute', jobId);
-  return job;
-}
-
 export const disputesApi = {
   async list(state: DisputeState): Promise<Job[]> {
-    if (!env.useMocks) {
-      const response = await unwrap<BackendJob[]>(api.get('/admin/disputes', { query: { state } }));
-      return (response || []).map(mapBackendJob);
-    }
-    await delay();
-    return clone(
-      mockDb.jobs
-        .filter((j) => j.dispute && (state === 'open' ? isOpen(j) : !isOpen(j)))
-        .sort((a, b) => Date.parse(b.dispute!.openedAt) - Date.parse(a.dispute!.openedAt)),
-    );
+    const response = await unwrap<BackendJob[]>(api.get('/admin/disputes', { query: { state } }));
+    return (response || []).map(mapBackendJob);
   },
 
   async get(jobId: string): Promise<DisputeCase> {
-    if (!env.useMocks) {
-      const response = await unwrap<{ job: BackendJob; chat?: BackendConversation | null }>(api.get(`/admin/disputes/${jobId}`));
-      return {
-        job: mapBackendJob(response.job),
-        chat: response.chat ? mapBackendConversation(response.chat) : undefined,
-      };
-    }
-    await delay();
-    const job = findDisputed(jobId);
-    const chat = mockDb.chats.find((c) => c.jobId === jobId);
-    return clone({ job, chat });
+    const response = await unwrap<{ job: BackendJob; chat?: BackendConversation | null }>(
+      api.get(`/admin/disputes/${jobId}`),
+    );
+    return {
+      job: mapBackendJob(response.job),
+      chat: response.chat ? mapBackendConversation(response.chat) : undefined,
+    };
   },
 
   /** Records the decision; the job then moves on to settling the decided amount. */
   async resolve(jobId: string, decision: DisputeDecision): Promise<Job> {
-    if (!env.useMocks) {
-      const payload = {
-        outcome: OUTCOME_TO_API[decision.outcome] ?? (decision.outcome.toUpperCase() as 'CUSTOMER' | 'TECHNICIAN' | 'PARTIAL'),
-        amount: Math.max(0, Math.round(decision.amount)),
-        note: decision.note.trim(),
-      };
-      const response = await unwrap<BackendJob>(api.post(`/admin/disputes/${jobId}/resolve`, payload));
-      return mapBackendJob(response);
-    }
-    await delay();
-    const job = findDisputed(jobId);
-    if (!isOpen(job)) throw new ApiError('This dispute has already been resolved.', 409);
-
-    const at = new Date().toISOString();
-    job.dispute = {
-      ...job.dispute!,
-      resolution: { ...decision, note: decision.note.trim(), resolvedAt: at, resolvedBy: MOCK_REVIEWER },
+    const payload = {
+      outcome: OUTCOME_TO_API[decision.outcome] ?? (decision.outcome.toUpperCase() as 'CUSTOMER' | 'TECHNICIAN' | 'PARTIAL'),
+      amount: Math.max(0, Math.round(decision.amount)),
+      note: decision.note.trim(),
     };
-   job.bookingPaymentStatus = 'PENDING';
-job.updatedAt = at;
-job.events.push({
-  id: `evt_${job.id}_${job.events.length + 1}`,
-  status: job.status,
-  title: 'Payment pending',
-  text: `Dispute resolved by Fundi admin (${DISPUTE_OUTCOME_LABEL[decision.outcome].toLowerCase()}): ${decision.note.trim()} The customer must settle ${decision.amount} RWF.`,
-  at,
-});
-    return clone(job);
+    const response = await unwrap<BackendJob>(api.post(`/admin/disputes/${jobId}/resolve`, payload));
+    return mapBackendJob(response);
   },
 };

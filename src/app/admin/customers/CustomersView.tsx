@@ -18,9 +18,9 @@ import {
   Th,
   Tr,
 } from '@/components/ui';
+import { DEFAULT_PAGE_SIZE } from '@/config/pagination';
 import { useCustomers, useUpdateCustomerStatus } from '@/hooks/useCustomers';
 import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
-import { DEFAULT_PAGE_SIZE } from '@/lib/api/mock-utils';
 import { cn, formatDate, formatPhone } from '@/lib/utils';
 import { ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL, type AccountStatus } from '@/types/customer';
 
@@ -43,6 +43,9 @@ export function CustomersView() {
     pageSize: DEFAULT_PAGE_SIZE,
   });
   const updateStatus = useUpdateCustomerStatus();
+
+  const activePage = data?.page ?? page;
+  const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
 
   return (
     <>
@@ -78,6 +81,7 @@ export function CustomersView() {
             <Table>
               <thead>
                 <tr>
+                  <Th className="w-12">#</Th>
                   <Th>Customer</Th>
                   <Th>Contact</Th>
                   <Th>Jobs requested</Th>
@@ -88,38 +92,45 @@ export function CustomersView() {
               </thead>
               <tbody>
                 {isLoading || !data ? (
-                  <TableSkeleton columns={6} />
+                  <TableSkeleton columns={7} />
                 ) : (
-                  data.items.map((customer) => (
-                    <Tr key={customer.id}>
-                      <Td>
-                        <div className="flex items-center gap-3">
-                          <Avatar name={customer.name} />
-                          <div className="min-w-0">
-                            <p className="truncate font-medium text-slate-900">{customer.name}</p>
-                            <p className="truncate text-xs text-slate-500">{customer.email ?? 'No email'}</p>
+                  data.items.map((customer, index) => {
+                    const rowNumber = (activePage - 1) * activePageSize + index + 1;
+
+                    return (
+                      <Tr key={customer.id}>
+                        <Td className="whitespace-nowrap text-xs font-medium text-slate-400">
+                          {rowNumber}
+                        </Td>
+                        <Td>
+                          <div className="flex items-center gap-3">
+                            <Avatar name={customer.name} />
+                            <div className="min-w-0">
+                              <p className="truncate font-medium text-slate-900">{customer.name}</p>
+                              <p className="truncate text-xs text-slate-500">{customer.email ?? 'No email'}</p>
+                            </div>
                           </div>
-                        </div>
-                      </Td>
-                      <Td>
-                        <p className="whitespace-nowrap text-slate-900">{formatPhone(customer.phone)}</p>
-                        <p className="whitespace-nowrap text-xs text-slate-500">{customer.location}</p>
-                      </Td>
-                      <Td className="text-slate-600">{customer.jobsRequested}</Td>
-                      <Td>
-                        <AccountStatusBadge status={customer.status} />
-                      </Td>
-                      <Td className="whitespace-nowrap text-slate-600">{formatDate(customer.createdAt)}</Td>
-                      <Td className="text-right">
-                        <AccountStatusAction
-                          name={customer.name}
-                          status={customer.status}
-                          loading={updateStatus.isPending}
-                          onChange={(next) => updateStatus.mutateAsync({ id: customer.id, status: next })}
-                        />
-                      </Td>
-                    </Tr>
-                  ))
+                        </Td>
+                        <Td>
+                          <p className="whitespace-nowrap text-slate-900">{formatPhone(customer.phone)}</p>
+                          <p className="whitespace-nowrap text-xs text-slate-500">{customer.location}</p>
+                        </Td>
+                        <Td className="text-slate-600">{customer.jobsRequested}</Td>
+                        <Td>
+                          <AccountStatusBadge status={customer.status} />
+                        </Td>
+                        <Td className="whitespace-nowrap text-slate-600">{formatDate(customer.createdAt)}</Td>
+                        <Td className="text-right">
+                          <AccountStatusAction
+                            name={customer.name}
+                            status={customer.status}
+                            loading={updateStatus.isPending}
+                            onChange={(next) => updateStatus.mutateAsync({ id: customer.id, status: next })}
+                          />
+                        </Td>
+                      </Tr>
+                    );
+                  })
                 )}
               </tbody>
             </Table>
