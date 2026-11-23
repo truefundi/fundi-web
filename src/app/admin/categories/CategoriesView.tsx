@@ -81,7 +81,7 @@ function resolveServiceGroup(service: Service): ServiceGroup {
 
   const text = `${service.name} ${service.category ?? ''}`.toLowerCase();
   if (
-    text.includes('Car Services') ||
+    text.includes('car services') ||
     text.includes('garage') ||
     text.includes('auto') ||
     text.includes('vehicle') ||
@@ -104,7 +104,7 @@ function resolveServiceGroup(service: Service): ServiceGroup {
     text.includes('hvac') ||
     text.includes('ac ') ||
     text.includes('roof') ||
-    text.includes('Home Services') ||
+    text.includes('home services') ||
     text.includes('house')
   ) {
     return 'Home Services';
@@ -234,36 +234,7 @@ export function CategoriesView() {
     refetchCategories();
   };
 
-  const formCategories = useMemo<CatalogCategory[]>(() => {
-    if (categories.length > 0) return categories;
-    const now = new Date().toISOString();
-    return [
-      {
-        id: 'default-home',
-        name: 'Home',
-        description: 'General home services',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: 'default-car',
-        name: 'Car',
-        description: 'General car & garage services',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: 'default-other',
-        name: 'Other',
-        description: 'Other miscellaneous services',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
-  }, [categories]);
+  const formCategories = useMemo<CatalogCategory[]>(() => categories, [categories]);
 
   const activeCategories = useMemo(
     () => categories.filter((category) => category.isActive),
@@ -568,9 +539,9 @@ export function CategoriesView() {
                 className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
               >
                 <option value="All Services">All Services</option>
-                <option value="Home">Home</option>
-                <option value="Car">Car</option>
-                <option value="Other">Other</option>
+                <option value="Home Services">Home</option>
+                <option value="Car Services">Car</option>
+                <option value="Other Services">Other</option>
                 {activeCategories
                   .filter(
                     (cat) =>
