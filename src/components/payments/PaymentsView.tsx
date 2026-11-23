@@ -91,6 +91,13 @@ const CLAIM_STATUS_LABELS: Record<PaymentClaimStatus, string> = {
   REJECTED: 'Rejected',
 };
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  PAY_CODE: 'Pay Code',
+  MOBILE_MONEY: 'Mobile Money',
+  MTN: 'MTN MoMo',
+  AIRTEL: 'Airtel Money',
+};
+
 function toDateInputValue(isoOrDate: string): string {
   const parsed = new Date(isoOrDate);
   if (Number.isNaN(parsed.getTime())) return '';
@@ -317,6 +324,9 @@ export function PaymentsView() {
     decision: 'APPROVED' | 'REJECTED',
   ) => {
     const trimmedNote = reviewNotes[claim.id]?.trim();
+    const methodLabel =
+      PAYMENT_METHOD_LABELS[claim.paymentMethod] ?? claim.paymentMethod;
+
     reviewClaim.mutate(
       {
         claimId: claim.id,
@@ -333,13 +343,13 @@ export function PaymentsView() {
               decision === 'APPROVED'
                 ? 'APPROVED_PAYMENT_CLAIM'
                 : 'REJECTED_PAYMENT_CLAIM',
-            target: `Claim ${claim.id.slice(0, 8)} (${claim.paymentNumber})`,
-            details: `${decision} claim of ${formatMoney(claim.amount)}${trimmedNote ? ` — Note: ${trimmedNote}` : ''}`,
+            target: `Claim ${claim.id.slice(0, 8)} (${methodLabel}: ${claim.paymentNumber})`,
+            details: `${decision} claim of ${formatMoney(claim.amount)}${claim.transactionRef ? ` [Ref: ${claim.transactionRef}]` : ''}${trimmedNote ? ` — Note: ${trimmedNote}` : ''}`,
           });
           toast(
             decision === 'APPROVED'
-              ? 'Payment claim approved and booking payment issued'
-              : 'Payment claim rejected',
+              ? 'Manual payment approved and booking payment issued'
+              : 'Manual payment claim rejected',
             'success',
           );
         },
@@ -511,7 +521,7 @@ export function PaymentsView() {
     <RoleGuard requiredPermission="manage:finance">
       <PageHeader
         title="Payments & Finance"
-        description="Manage booking fees, payment claims, technician payouts, and internal staff payroll."
+        description="Manage booking fees, manual pay code & mobile money claims, technician payouts, and staff payroll."
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -790,11 +800,7 @@ export function PaymentsView() {
             payments.length > 0 &&
             filteredPayments.length === 0 && (
               <div className="mt-3 flex justify-center">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={clearFilters}
-                >
+                <Button variant="secondary" size="sm" onClick={clearFilters}>
                   Clear filters
                 </Button>
               </div>
@@ -806,7 +812,8 @@ export function PaymentsView() {
         <Card className="overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-600">
-              Review customer mobile money claims and issue valid booking payments.
+              Review manual Pay Code and Mobile Money payment claims and issue
+              valid booking payments.
             </p>
             <Select
               value={claimFilter}
@@ -832,14 +839,14 @@ export function PaymentsView() {
             <EmptyState
               icon={FileCheck2}
               title="No payment claims found"
-              description="Submitted customer payment claims will appear here for review."
+              description="Submitted Pay Code and Mobile Money claims will appear here for review."
             />
           ) : (
             <Table>
               <thead>
                 <tr>
                   <Th>Submitted</Th>
-                  <Th>Customer & Method</Th>
+                  <Th>Customer & Channel</Th>
                   <Th>Service</Th>
                   <Th className="text-right">Amount</Th>
                   <Th>Status</Th>
@@ -853,6 +860,9 @@ export function PaymentsView() {
                 ) : (
                   claims.map((claim) => {
                     const isPending = claim.status === 'PENDING';
+                    const methodLabel =
+                      PAYMENT_METHOD_LABELS[claim.paymentMethod] ??
+                      claim.paymentMethod;
                     return (
                       <Tr key={claim.id}>
                         <Td className="whitespace-nowrap text-slate-600">
@@ -864,7 +874,10 @@ export function PaymentsView() {
                               `Customer ${claim.customerId.slice(0, 8)}`}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {claim.paymentMethod} • {claim.paymentNumber}
+                            {methodLabel} • {claim.paymentNumber}
+                            {claim.transactionRef
+                              ? ` (Ref: ${claim.transactionRef})`
+                              : ''}
                           </p>
                         </Td>
                         <Td className="text-slate-700">
@@ -963,297 +976,217 @@ export function PaymentsView() {
             {showCreateCompleted && (
               <form
                 onSubmit={handleCreateCompleted}
-                className="mt-4 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-5"
+                className="mt-4 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2 lg:grid-cols-5"
               >
-                <input
-                  type="text"
-                  value={newJobId}
-                  onChange={(e) => setNewJobId(e.target.value)}
-                  placeholder="Completed Job UUID"
-                  aria-label="Completed Job UUID"
-                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-amber-400 focus:outline-none"
-                />
-                <input
-                  type="text"
-                  value={newExternalPaymentId}
-                  onChange={(e) => setNewExternalPaymentId(e.target.value)}
-                  placeholder="External Payment Ref"
-                  aria-label="External Payment Ref"
-                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-amber-400 focus:outline-none"
-                />
-                <input
-                  type="text"
-                  value={newPhoneNumber}
-                  onChange={(e) => setNewPhoneNumber(e.target.value)}
-                  placeholder="+250788123456"
-                  aria-label="Phone Number"
-                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-amber-400 focus:outline-none"
-                />
-                <input
-                  type="date"
-                  value={newPaidAt}
-                  onChange={(e) => setNewPaidAt(e.target.value)}
-                  aria-label="Paid Date"
-                  className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 focus:border-amber-400 focus:outline-none"
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={createCompletedPayment.isPending}
-                >
-                  Save Completed
-                </Button>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                    Job ID
+                  </label>
+                  <input
+                    type="text"
+                    value={newJobId}
+                    onChange={(e) => setNewJobId(e.target.value)}
+                    placeholder="UUID of completed job"
+                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                    Transaction Ref / Code
+                  </label>
+                  <input
+                    type="text"
+                    value={newExternalPaymentId}
+                    onChange={(e) => setNewExternalPaymentId(e.target.value)}
+                    placeholder="e.g. MOMO-123456"
+                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                    Phone Number (+2507...)
+                  </label>
+                  <input
+                    type="text"
+                    value={newPhoneNumber}
+                    onChange={(e) => setNewPhoneNumber(e.target.value)}
+                    placeholder="+2507..."
+                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-700">
+                    Paid Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newPaidAt}
+                    onChange={(e) => setNewPaidAt(e.target.value)}
+                    className="h-9 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={createCompletedPayment.isPending}
+                    className="h-9 w-full"
+                  >
+                    Save Payment
+                  </Button>
+                </div>
               </form>
             )}
           </div>
 
-          {completedJobPayments.length === 0 ? (
+          {isError ? (
+            <ErrorState
+              message={error?.message ?? 'Could not load completed payments.'}
+              onRetry={() => refetch()}
+            />
+          ) : !isLoading && completedJobPayments.length === 0 ? (
             <EmptyState
               icon={Wallet}
-              title="No completed jobs awaiting payout"
-              description="Completed service jobs ready for technician payout disbursement will appear here."
+              title="No completed job payments yet"
+              description="Completed job payments eligible for technician payout will appear here."
             />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Completed Date</Th>
-                  <Th>Transaction / Job</Th>
+                  <Th>Date</Th>
+                  <Th>Reference / Phone</Th>
                   <Th>Technician</Th>
-                  <Th>Service Category</Th>
+                  <Th>Service</Th>
                   <Th className="text-right">Amount</Th>
-                  <Th>Payout Status</Th>
-                  <Th className="text-right">Action</Th>
+                  <Th className="text-right">Payout & Actions</Th>
                 </tr>
               </thead>
               <tbody>
-                {completedJobPayments.map((payment) => {
-                  const isPaid = Boolean(paidJobIds[payment.id]);
-                  const technicianName = getAssignedTechnicianName(payment);
-                  const isEditing = editingPaymentId === payment.id;
-
-                  return (
-                    <Tr key={payment.id}>
-                      <Td className="whitespace-nowrap text-slate-600">
-                        {isEditing ? (
-                          <input
-                            type="date"
-                            value={editDraft.paidAt}
-                            onChange={(e) =>
-                              setEditDraft((prev) => ({
-                                ...prev,
-                                paidAt: e.target.value,
-                              }))
-                            }
-                            aria-label="Edit paid date"
-                            className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-900"
-                          />
-                        ) : (
-                          formatDate(
-                            payment.job?.completedAt ?? payment.paidAt,
-                          )
-                        )}
-                      </Td>
-                      <Td>
-                        {isEditing ? (
-                          <div className="space-y-1">
-                            <input
-                              type="text"
-                              value={editDraft.externalPaymentId}
-                              onChange={(e) =>
-                                setEditDraft((prev) => ({
-                                  ...prev,
-                                  externalPaymentId: e.target.value,
-                                }))
-                              }
-                              aria-label="Edit external payment ID"
-                              className="w-36 rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-900"
-                            />
-                            <input
-                              type="text"
-                              value={editDraft.phoneNumber}
-                              onChange={(e) =>
-                                setEditDraft((prev) => ({
-                                  ...prev,
-                                  phoneNumber: e.target.value,
-                                }))
-                              }
-                              aria-label="Edit phone number"
-                              className="block w-36 rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-900"
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <p className="font-medium text-slate-900">
-                              {payment.externalPaymentId}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {payment.phoneNumber}
-                            </p>
-                            {payment.job && (
-                              <p className="text-xs text-slate-400">
-                                Job #{payment.job.id.slice(0, 8)}
-                              </p>
-                            )}
-                          </>
-                        )}
-                      </Td>
-                      <Td className="font-medium text-slate-900">
-                        {technicianName}
-                      </Td>
-                      <Td className="text-slate-700">
-                        {payment.serviceCategory.name}
-                      </Td>
-                      <Td className="whitespace-nowrap text-right font-semibold text-slate-900">
-                        {formatMoney(payment.amount)}
-                      </Td>
-                      <Td>
-                        <Badge tone={isPaid ? 'success' : 'warning'}>
-                          {isPaid ? 'Disbursed' : 'Pending Payout'}
-                        </Badge>
-                      </Td>
-                      <Td className="whitespace-nowrap text-right">
-                        <div className="inline-flex items-center justify-end gap-1.5">
-                          {isEditing ? (
-                            <>
-                              <Button
-                                size="sm"
-                                disabled={updateCompletedPayment.isPending}
-                                onClick={() =>
-                                  handleSaveCompletedEdit(payment)
-                                }
-                              >
-                                <Check className="mr-1 h-3.5 w-3.5" />
-                                Save
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={cancelEditingCompleted}
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              {!isPaid ? (
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleDisbursePayout(payment)}
-                                >
-                                  <Send className="mr-1.5 h-3.5 w-3.5" />
-                                  Disburse
-                                </Button>
-                              ) : (
-                                <span className="inline-flex items-center px-1.5 text-xs font-medium text-emerald-600">
-                                  <CheckCircle2 className="mr-1 h-4 w-4" />
-                                  Paid
-                                </span>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                aria-label={`Edit ${payment.externalPaymentId}`}
-                                onClick={() => startEditingCompleted(payment)}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                aria-label={`Delete ${payment.externalPaymentId}`}
-                                disabled={deleteCompletedPayment.isPending}
-                                onClick={() => handleDeleteCompleted(payment)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5 text-rose-600" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </Td>
-                    </Tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          )}
-        </Card>
-      )}
-
-      {activeTab === 'staff-payroll' && (
-        <Card className="overflow-hidden">
-          {!isStaffLoading && (staffData?.items.length ?? 0) === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="No staff members found"
-              description="Add administrative staff under Staff Management to process payroll."
-            />
-          ) : (
-            <Table>
-              <thead>
-                <tr>
-                  <Th>Staff Member</Th>
-                  <Th>Role</Th>
-                  <Th>Contact</Th>
-                  <Th>Payroll Status</Th>
-                  <Th className="text-right">Action</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {isStaffLoading ? (
-                  <TableSkeleton columns={5} />
+                {isLoading ? (
+                  <TableSkeleton columns={6} />
                 ) : (
-                  (staffData?.items ?? []).map((staff) => {
-                    const effectiveStaffRole = ((staff as { staffRole?: UserRole })
-                      .staffRole ?? staff.role) as UserRole;
-                    const roleLabel =
-                      USER_ROLE_LABELS[effectiveStaffRole] ?? effectiveStaffRole;
-                    const staffDisplayName =
-                      staff.name ??
-                      (staff as { fullName?: string }).fullName ??
-                      'Staff Member';
-                    const paidDate = paidStaffIds[staff.id];
+                  completedJobPayments.map((payment) => {
+                    const isEditing = editingPaymentId === payment.id;
+                    const isDisbursed = Boolean(paidJobIds[payment.id]);
+                    const techName = getAssignedTechnicianName(payment);
 
                     return (
-                      <Tr key={staff.id}>
-                        <Td>
-                          <div className="flex items-center gap-3">
-                            <Avatar name={staffDisplayName} />
-                            <p className="font-medium text-slate-900">
-                              {staffDisplayName}
-                            </p>
-                          </div>
-                        </Td>
-                        <Td className="font-medium text-slate-600">
-                          {roleLabel}
-                        </Td>
-                        <Td className="text-slate-600">
-                          {staff.email ?? staff.phone ?? '—'}
-                        </Td>
-                        <Td>
-                          <Badge tone={paidDate ? 'success' : 'neutral'}>
-                            {paidDate
-                              ? `Paid (${formatDate(paidDate)})`
-                              : 'Pending Cycle'}
-                          </Badge>
-                        </Td>
-                        <Td className="text-right">
-                          {!paidDate ? (
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                handlePayStaff(staff.id, staffDisplayName, roleLabel)
+                      <Tr key={payment.id}>
+                        <Td className="whitespace-nowrap text-slate-600">
+                          {isEditing ? (
+                            <input
+                              type="date"
+                              value={editDraft.paidAt}
+                              onChange={(e) =>
+                                setEditDraft((prev) => ({
+                                  ...prev,
+                                  paidAt: e.target.value,
+                                }))
                               }
-                            >
-                              <Banknote className="mr-1.5 h-3.5 w-3.5" />
-                              Record Salary Payment
-                            </Button>
+                              className="h-8 rounded border border-slate-300 px-2 text-xs"
+                            />
                           ) : (
-                            <span className="inline-flex items-center text-xs font-medium text-emerald-600">
-                              <CheckCircle2 className="mr-1 h-4 w-4" />
-                              Paid
-                            </span>
+                            formatDate(payment.paidAt)
                           )}
+                        </Td>
+                        <Td>
+                          {isEditing ? (
+                            <div className="space-y-1">
+                              <input
+                                type="text"
+                                value={editDraft.externalPaymentId}
+                                onChange={(e) =>
+                                  setEditDraft((prev) => ({
+                                    ...prev,
+                                    externalPaymentId: e.target.value,
+                                  }))
+                                }
+                                className="h-8 w-full rounded border border-slate-300 px-2 text-xs"
+                              />
+                              <input
+                                type="text"
+                                value={editDraft.phoneNumber}
+                                onChange={(e) =>
+                                  setEditDraft((prev) => ({
+                                    ...prev,
+                                    phoneNumber: e.target.value,
+                                  }))
+                                }
+                                className="h-8 w-full rounded border border-slate-300 px-2 text-xs"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <p className="font-medium text-slate-900">
+                                {payment.externalPaymentId}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {payment.phoneNumber}
+                              </p>
+                            </>
+                          )}
+                        </Td>
+                        <Td className="font-medium text-slate-800">{techName}</Td>
+                        <Td className="text-slate-600">
+                          {payment.serviceCategory.name}
+                        </Td>
+                        <Td className="whitespace-nowrap text-right font-semibold text-slate-900">
+                          {formatMoney(payment.amount)}
+                        </Td>
+                        <Td className="whitespace-nowrap text-right">
+                          <div className="inline-flex items-center justify-end gap-1.5">
+                            {isEditing ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  disabled={updateCompletedPayment.isPending}
+                                  onClick={() => handleSaveCompletedEdit(payment)}
+                                >
+                                  <Check className="mr-1 h-3.5 w-3.5" />
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={cancelEditingCompleted}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                {isDisbursed ? (
+                                  <Badge tone="success">Disbursed</Badge>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleDisbursePayout(payment)}
+                                  >
+                                    <Send className="mr-1 h-3.5 w-3.5" />
+                                    Disburse
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => startEditingCompleted(payment)}
+                                  aria-label="Edit completed payment"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  disabled={deleteCompletedPayment.isPending}
+                                  onClick={() => handleDeleteCompleted(payment)}
+                                  aria-label="Delete completed payment"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </Td>
                       </Tr>
                     );
@@ -1265,11 +1198,105 @@ export function PaymentsView() {
         </Card>
       )}
 
-      <p className="mt-3 text-xs text-slate-500">
-        Amounts show booking fees recorded by the backend in Rwandan francs
-        (RWF). All financial disbursements and staff payments are logged for
-        Super Admin review.
-      </p>
+      {activeTab === 'staff-payroll' && (
+        <Card className="overflow-hidden">
+          <div className="border-b border-slate-100 p-4">
+            <p className="text-sm text-slate-600">
+              Review administrative staff and record monthly salary disbursements.
+            </p>
+          </div>
+
+          {!isStaffLoading && (staffData?.items.length ?? 0) === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No staff members found"
+              description="Administrative staff accounts will appear here for payroll."
+            />
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Staff Member</Th>
+                  <Th>Role</Th>
+                  <Th>Contact</Th>
+                  <Th className="text-right">Payroll Status</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {isStaffLoading ? (
+                  <TableSkeleton columns={4} />
+                ) : (
+                  (staffData?.items ?? []).map((member) => {
+                    const staffRecord = member as {
+                      id: string;
+                      fullName?: string;
+                      name?: string;
+                      email?: string;
+                      phoneNumber?: string;
+                      phone?: string;
+                      staffRole?: UserRole;
+                      role?: UserRole;
+                    };
+                    const displayName =
+                      staffRecord.fullName?.trim() ||
+                      staffRecord.name?.trim() ||
+                      staffRecord.email?.trim() ||
+                      'Staff Member';
+                    const roleKey = (staffRecord.staffRole ??
+                      staffRecord.role ??
+                      'ADMIN') as UserRole;
+                    const roleLabel = USER_ROLE_LABELS[roleKey] ?? roleKey;
+                    const contact =
+                      staffRecord.phoneNumber ||
+                      staffRecord.phone ||
+                      staffRecord.email ||
+                      '—';
+                    const paidAt = paidStaffIds[staffRecord.id];
+
+                    return (
+                      <Tr key={staffRecord.id}>
+                        <Td>
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={displayName} size="sm" />
+                            <span className="font-medium text-slate-900">
+                              {displayName}
+                            </span>
+                          </div>
+                        </Td>
+                        <Td>
+                          <Badge tone="info">{roleLabel}</Badge>
+                        </Td>
+                        <Td className="text-xs text-slate-600">{contact}</Td>
+                        <Td className="whitespace-nowrap text-right">
+                          {paidAt ? (
+                            <Badge tone="success">
+                              Paid {formatDate(paidAt)}
+                            </Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handlePayStaff(
+                                  staffRecord.id,
+                                  displayName,
+                                  roleLabel,
+                                )
+                              }
+                            >
+                              <Banknote className="mr-1 h-3.5 w-3.5" />
+                              Record Salary
+                            </Button>
+                          )}
+                        </Td>
+                      </Tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </Table>
+          )}
+        </Card>
+      )}
     </RoleGuard>
   );
 }

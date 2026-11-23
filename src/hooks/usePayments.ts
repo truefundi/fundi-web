@@ -14,7 +14,7 @@ export const paymentKeys = {
   all: ['payments'] as const,
   list: ['payments', 'list'] as const,
   completed: ['payments', 'completed'] as const,
-  claims: (status?: PaymentClaimStatus) =>
+  claims: (status?: PaymentClaimStatus | 'ALL') =>
     ['payments', 'claims', status ?? 'ALL'] as const,
 };
 
@@ -34,8 +34,22 @@ export function useCompletedPayments() {
 
 export function usePaymentClaims(status?: PaymentClaimStatus) {
   return useQuery({
-    queryKey: paymentKeys.claims(status),
+    queryKey: paymentKeys.claims(status ?? 'ALL'),
     queryFn: () => paymentsApi.listClaims(status),
+  });
+}
+
+export function useReviewPaymentClaim() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      claimId,
+      ...body
+    }: { claimId: string } & ReviewPaymentClaimInput) =>
+      paymentsApi.reviewClaim(claimId, body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+    },
   });
 }
 
@@ -82,20 +96,6 @@ export function useDeleteCompletedPayment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (paymentId: string) => paymentsApi.deleteCompleted(paymentId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
-    },
-  });
-}
-
-export function useReviewPaymentClaim() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      claimId,
-      ...body
-    }: { claimId: string } & ReviewPaymentClaimInput) =>
-      paymentsApi.reviewClaim(claimId, body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
     },

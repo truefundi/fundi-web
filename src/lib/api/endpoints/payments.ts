@@ -7,8 +7,15 @@ export type BookingPaymentStatus =
   | 'RESUMED'
   | 'COMPLETED';
 
+export type JobRequestType = 'NORMAL' | 'SOS';
+
 export type PaymentClaimStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type PaymentClaimMethod = 'MTN' | 'AIRTEL' | string;
+
+export type PaymentClaimMethod =
+  | 'MOBILE_MONEY'
+  | 'PAY_CODE'
+  | 'MTN'
+  | 'AIRTEL';
 
 export interface BookingPayment {
   id: string;
@@ -18,6 +25,7 @@ export interface BookingPayment {
   externalPaymentId: string;
   phoneNumber: string;
   amount: number;
+  requestType?: JobRequestType | null;
   status: BookingPaymentStatus;
   paidAt: string;
   validUntil: string;
@@ -60,31 +68,39 @@ export interface PaymentClaim {
   id: string;
   customerId: string;
   serviceCategoryId: string;
-  requestType?: string | null;
+  requestType?: JobRequestType | null;
   amount: number;
-  paymentMethod: PaymentClaimMethod;
+  paymentMethod: PaymentClaimMethod | string;
   paymentNumber: string;
+  transactionRef?: string | null;
   status: PaymentClaimStatus;
-  reviewNote: string | null;
-  reviewedById: string | null;
-  reviewedAt: string | null;
-  bookingPaymentId: string | null;
+  reviewNote?: string | null;
+  reviewedAt?: string | null;
+  bookingPaymentId?: string | null;
   createdAt: string;
   updatedAt: string;
+
   customer?: {
     id: string;
     fullName: string;
     phoneNumber: string;
   };
+
   serviceCategory?: {
     id: string;
     name: string;
     slug: string;
   };
+
   bookingPayment?: {
     id: string;
-    status: BookingPaymentStatus | string;
+    status: BookingPaymentStatus;
   } | null;
+}
+
+export interface ReviewPaymentClaimInput {
+  status: 'APPROVED' | 'REJECTED';
+  reviewNote?: string;
 }
 
 export interface ExtendPaymentInput {
@@ -104,11 +120,6 @@ export interface UpdateCompletedPaymentInput {
   paidAt?: string;
 }
 
-export interface ReviewPaymentClaimInput {
-  status: Extract<PaymentClaimStatus, 'APPROVED' | 'REJECTED'>;
-  reviewNote?: string;
-}
-
 export const paymentsApi = {
   list(): Promise<BookingPayment[]> {
     return unwrap(api.get<BookingPayment[]>('/admin/payments'));
@@ -122,6 +133,12 @@ export const paymentsApi = {
 
   listCompleted(): Promise<BookingPayment[]> {
     return unwrap(api.get<BookingPayment[]>('/admin/payments/completed'));
+  },
+
+  getCompleted(paymentId: string): Promise<BookingPayment> {
+    return unwrap(
+      api.get<BookingPayment>(`/admin/payments/completed/${paymentId}`),
+    );
   },
 
   createCompleted(
@@ -155,9 +172,7 @@ export const paymentsApi = {
   },
 
 listClaims(status?: PaymentClaimStatus): Promise<PaymentClaim[]> {
-    const query = status
-      ? `?${new URLSearchParams({ status }).toString()}`
-      : '';
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
     return unwrap(api.get<PaymentClaim[]>(`/admin/payment-claims${query}`));
   },
 
@@ -166,18 +181,7 @@ listClaims(status?: PaymentClaimStatus): Promise<PaymentClaim[]> {
     body: ReviewPaymentClaimInput,
   ): Promise<PaymentClaim> {
     return unwrap(
-      api.patch<PaymentClaim>(
-        `/admin/payment-claims/${claimId}/review`,
-        body,
-      ),
-    );
-  },
-
-  deleteClaim(claimId: string): Promise<{ id: string; deleted?: boolean }> {
-    return unwrap(
-      api.delete<{ id: string; deleted?: boolean }>(
-        `/admin/payment-claims/${claimId}`,
-      ),
+      api.patch<PaymentClaim>(`/admin/payment-claims/${claimId}/review`, body),
     );
   },
 };
