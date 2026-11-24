@@ -465,7 +465,7 @@ export function CategoriesView() {
                 : 'border-slate-200 hover:border-slate-300',
             )}
           >
-            <p className="text-sm font-medium text-slate-500">Home</p>
+            <p className="text-sm font-medium text-slate-500">Home Services</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
               {homeServices}
             </p>
@@ -485,7 +485,7 @@ export function CategoriesView() {
                 : 'border-slate-200 hover:border-slate-300',
             )}
           >
-            <p className="text-sm font-medium text-slate-500">Car</p>
+            <p className="text-sm font-medium text-slate-500">Car Services</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
               {carServices}
             </p>
@@ -505,7 +505,7 @@ export function CategoriesView() {
                 : 'border-slate-200 hover:border-slate-300',
             )}
           >
-            <p className="text-sm font-medium text-slate-500">Other</p>
+            <p className="text-sm font-medium text-slate-500">Other Services</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
               {otherServices}
             </p>
