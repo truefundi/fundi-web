@@ -13,6 +13,7 @@ import {
   SERVICE_CATEGORIES,
   SERVICE_CATEGORY_STYLE,
   getServiceGroup,
+  isServiceGroupName,
   type ServiceCategory,
   type ServiceGroup,
 } from '@/config/services';
@@ -55,11 +56,13 @@ import type {
 
 type CategoriesMetadata = {
   categories: [];
+  categoryGroups: Record<string, ServiceGroup>;
   serviceIcons: Record<string, string>;
 };
 
 const EMPTY_METADATA: CategoriesMetadata = {
   categories: [],
+  categoryGroups: {},
   serviceIcons: {},
 };
 
@@ -68,7 +71,20 @@ const DEFAULT_CATEGORY_STYLE = {
   className: 'bg-slate-100 text-slate-600',
 };
 
-function resolveServiceGroup(service: Service): ServiceGroup {
+function resolveServiceGroup(
+  service: Service,
+  categoryGroups: Record<string, ServiceGroup> = {},
+): ServiceGroup {
+  const catKey = (service.category ?? '').trim().toLowerCase();
+  if (catKey && categoryGroups[catKey]) {
+    return categoryGroups[catKey];
+  }
+
+  const nameKey = (service.name ?? '').trim().toLowerCase();
+  if (nameKey && categoryGroups[nameKey]) {
+    return categoryGroups[nameKey];
+  }
+
   const byCategory = getServiceGroup(service.category);
   if (byCategory === 'Home Services' || byCategory === 'Car Services') {
     return byCategory;
@@ -77,37 +93,6 @@ function resolveServiceGroup(service: Service): ServiceGroup {
   const byName = getServiceGroup(service.name);
   if (byName === 'Home Services' || byName === 'Car Services') {
     return byName;
-  }
-
-  const text = `${service.name} ${service.category ?? ''}`.toLowerCase();
-  if (
-    text.includes('car services') ||
-    text.includes('garage') ||
-    text.includes('auto') ||
-    text.includes('vehicle') ||
-    text.includes('mechanic') ||
-    text.includes('tire') ||
-    text.includes('tyre') ||
-    text.includes('battery') ||
-    text.includes('towing')
-  ) {
-    return 'Car Services';
-  }
-
-  if (
-    text.includes('plumb') ||
-    text.includes('electric') ||
-    text.includes('appliance') ||
-    text.includes('carpent') ||
-    text.includes('clean') ||
-    text.includes('paint') ||
-    text.includes('hvac') ||
-    text.includes('ac ') ||
-    text.includes('roof') ||
-    text.includes('home services') ||
-    text.includes('house')
-  ) {
-    return 'Home Services';
   }
 
   return 'Other Services';
@@ -172,7 +157,7 @@ export function CategoriesView() {
   const remove = useDeleteService();
   const createCategory = useCreateCategory();
 
-  const [metadata, setMetadata] = useState(EMPTY_METADATA);
+  const [metadata, setMetadata] = useState<CategoriesMetadata>(EMPTY_METADATA);
   const [metadataError, setMetadataError] = useState('');
   const [metadataLoaded, setMetadataLoaded] = useState(false);
 
@@ -201,7 +186,11 @@ export function CategoriesView() {
   }, []);
 
   const services = useMemo(() => servicesData ?? [], [servicesData]);
-  const categories = useMemo(() => categoriesData ?? [], [categoriesData]);
+
+  const categories = useMemo(
+    () => (categoriesData ?? []).filter((c) => !isServiceGroupName(c.name)),
+    [categoriesData],
+  );
 
   const missingRequiredCategories = useMemo(() => {
     const existing = new Set(
@@ -244,18 +233,27 @@ export function CategoriesView() {
   const totalServices = services.length;
 
   const homeServices = useMemo(
-    () => services.filter((s) => resolveServiceGroup(s) === 'Home Services').length,
-    [services],
+    () =>
+      services.filter(
+        (s) => resolveServiceGroup(s, metadata.categoryGroups) === 'Home Services',
+      ).length,
+    [services, metadata.categoryGroups],
   );
 
   const carServices = useMemo(
-    () => services.filter((s) => resolveServiceGroup(s) === 'Car Services').length,
-    [services],
+    () =>
+      services.filter(
+        (s) => resolveServiceGroup(s, metadata.categoryGroups) === 'Car Services',
+      ).length,
+    [services, metadata.categoryGroups],
   );
 
   const otherServices = useMemo(
-    () => services.filter((s) => resolveServiceGroup(s) === 'Other Services').length,
-    [services],
+    () =>
+      services.filter(
+        (s) => resolveServiceGroup(s, metadata.categoryGroups) === 'Other Services',
+      ).length,
+    [services, metadata.categoryGroups],
   );
 
   useEffect(() => {
@@ -263,6 +261,7 @@ export function CategoriesView() {
       const saved = readCatalogAdminMetadata();
       setMetadata({
         categories: [],
+        categoryGroups: saved.categoryGroups ?? {},
         serviceIcons: saved.serviceIcons ?? {},
       });
       setMetadataError('');
@@ -270,7 +269,7 @@ export function CategoriesView() {
       setMetadataError(
         cause instanceof Error
           ? cause.message
-          : 'Could not load saved service icons.',
+          : 'Could not load saved category metadata.',
       );
     } finally {
       setMetadataLoaded(true);
@@ -279,7 +278,7 @@ export function CategoriesView() {
 
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
-      const group = resolveServiceGroup(service);
+      const group = resolveServiceGroup(service, metadata.categoryGroups);
 
       if (activeTab === 'Home Services' && group !== 'Home Services') {
         return false;
@@ -301,7 +300,7 @@ export function CategoriesView() {
 
       return true;
     });
-  }, [services, activeTab, selectedCategoryFilter]);
+  }, [services, activeTab, selectedCategoryFilter, metadata.categoryGroups]);
 
   const openNewService = (category?: string) => {
     setEditing(undefined);
@@ -318,17 +317,44 @@ export function CategoriesView() {
     setOpenManageId(null);
   };
 
-  const saveCategory = (category: { name: string; description: string }) => {
-    createCategory.mutate(category, {
-      onSuccess: () => {
-        setCategoryFormOpen(false);
-        toast(`${category.name} added successfully`);
-        refetchCategories();
+  const saveCategory = (category: {
+    name: string;
+    description: string;
+    group?: ServiceGroup;
+  }) => {
+    const trimmedName = category.name.trim();
+    const chosenGroup = category.group ?? getServiceGroup(trimmedName);
+
+    createCategory.mutate(
+      { name: trimmedName, description: category.description.trim() },
+      {
+        onSuccess: () => {
+          const nextGroups = {
+            ...metadata.categoryGroups,
+            [trimmedName.toLowerCase()]: chosenGroup,
+          };
+          const nextMetadata: CategoriesMetadata = {
+            categories: [],
+            categoryGroups: nextGroups,
+            serviceIcons: metadata.serviceIcons,
+          };
+
+          try {
+            writeCatalogAdminMetadata(nextMetadata);
+            setMetadata(nextMetadata);
+          } catch {
+            // Non-blocking if localStorage is unavailable
+          }
+
+          setCategoryFormOpen(false);
+          toast(`${trimmedName} added under ${chosenGroup}`);
+          refetchCategories();
+        },
+        onError: (error: Error) => {
+          toast(error.message || 'Could not create category.', 'error');
+        },
       },
-      onError: (error: Error) => {
-        toast(error.message || 'Could not create category.', 'error');
-      },
-    });
+    );
   };
 
   const saveServiceIcon = (serviceId: string, icon: string | null) => {
@@ -340,8 +366,9 @@ export function CategoriesView() {
       delete serviceIcons[serviceId];
     }
 
-    const nextMetadata = {
-      ...metadata,
+    const nextMetadata: CategoriesMetadata = {
+      categories: [],
+      categoryGroups: metadata.categoryGroups,
       serviceIcons,
     };
 
@@ -539,21 +566,11 @@ export function CategoriesView() {
                 className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
               >
                 <option value="All Services">All Services</option>
-                <option value="Home Services">Home</option>
-                <option value="Car Services">Car</option>
-                <option value="Other Services">Other</option>
-                {activeCategories
-                  .filter(
-                    (cat) =>
-                      cat.name !== 'Home Services' &&
-                      cat.name !== 'Car Services' &&
-                      cat.name !== 'Other Services',
-                  )
-                  .map((cat) => (
-                    <option key={cat.id} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
+                {activeCategories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -599,7 +616,11 @@ export function CategoriesView() {
                 <tbody className="divide-y divide-slate-200 bg-white text-sm">
                   {filteredServices.map((service) => {
                     const isMenuOpen = openManageId === service.id;
-                    const displayGroup = resolveServiceGroup(service);
+                    const displayGroup = resolveServiceGroup(
+                      service,
+                      metadata.categoryGroups,
+                    );
+                    const categoryLabel = service.category || displayGroup;
 
                     return (
                       <tr
@@ -622,8 +643,13 @@ export function CategoriesView() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-4 font-medium text-slate-600">
-                          {displayGroup}
+                        <td className="px-4 py-4">
+                          <p className="font-medium text-slate-900">
+                            {categoryLabel}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {displayGroup}
+                          </p>
                         </td>
                         <td className="px-4 py-4 font-semibold text-slate-900">
                           {formatMoney(service.visitFee)}
@@ -716,6 +742,7 @@ export function CategoriesView() {
         initialCategory={serviceCategory}
         icon={editing?.id ? metadata.serviceIcons[editing.id] : undefined}
         onIconChange={saveServiceIcon}
+        categoryGroups={metadata.categoryGroups}
       />
 
       <ConfirmDialog

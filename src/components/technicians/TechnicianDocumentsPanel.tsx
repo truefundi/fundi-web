@@ -60,13 +60,13 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
     setPreview(null);
   }
 
-  function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus {
-    if (statuses[doc.id]) return statuses[doc.id];
-    if (doc.status === 'ACCEPTED' || doc.status === 'DENIED' || doc.status === 'REVIEWING') {
-      return doc.status;
-    }
-    return 'REVIEWING';
+function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus {
+  if (statuses[doc.id]) return statuses[doc.id];
+  if (doc.status === 'ACCEPTED' || doc.status === 'DENIED' || doc.status === 'REVIEWING') {
+    return doc.status;
   }
+  return 'REVIEWING';
+}
 
   const docList = documents.data ?? [];
   const allDocumentsApproved =
@@ -140,12 +140,25 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
     });
   }
 
+  function restoreStatus(docId: string, previousStatus: DocumentReviewStatus | undefined) {
+    setStatuses((current) => {
+      const next = { ...current };
+      if (previousStatus === undefined) {
+        delete next[docId];
+      } else {
+        next[docId] = previousStatus;
+      }
+      return next;
+    });
+  }
+
   function applyDocumentDecision(
     doc: TechnicianDocumentRecord,
     nextStatus: DocumentReviewStatus,
     overrideNote?: string,
   ) {
-    if (nextStatus === 'ACCEPTED' && (doc.status === 'ACCEPTED' || statuses[doc.id] === 'ACCEPTED')) {
+    const currentEffective = getEffectiveStatus(doc);
+    if (nextStatus === 'ACCEPTED' && (doc.status === 'ACCEPTED' || currentEffective === 'ACCEPTED')) {
       toast(`${doc.title} is already approved`);
       return;
     }
@@ -156,15 +169,18 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
       return;
     }
 
+    const previousOverride = statuses[doc.id];
     setStatuses((current) => ({ ...current, [doc.id]: nextStatus }));
     review.mutate(
       { documentId: doc.id, status: nextStatus, reviewNote },
       {
-        onSuccess: () => {
+        onSuccess: (updatedDoc) => {
+          restoreStatus(doc.id, undefined);
+          const persistedStatus = updatedDoc?.status ?? nextStatus;
           toast(
-            nextStatus === 'ACCEPTED'
+            persistedStatus === 'ACCEPTED'
               ? `${doc.title} approved`
-              : nextStatus === 'DENIED'
+              : persistedStatus === 'DENIED'
                 ? `${doc.title} rejected`
                 : 'Document review saved',
           );
@@ -172,13 +188,16 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
             current?.kind === 'document' && current.id === doc.id
               ? {
                   ...current,
-                  subtitle: `${technicianName} · ${doc.originalFileName} · ${statusLabel(nextStatus)}`,
-                  document: { ...doc, status: nextStatus, reviewNote: reviewNote ?? null },
+                  subtitle: `${technicianName} · ${doc.originalFileName} · ${statusLabel(persistedStatus)}`,
+                  document: updatedDoc ?? { ...doc, status: nextStatus, reviewNote: reviewNote ?? null },
                 }
               : current,
           );
         },
-        onError: (error) => toast(error.message || 'Could not save the document review', 'error'),
+        onError: (error) => {
+          restoreStatus(doc.id, previousOverride);
+          toast(error.message || 'Could not save the document review', 'error');
+        },
       },
     );
   }
@@ -488,9 +507,9 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
       <ConfirmDialog
         open={dialog === 'reject'}
         onClose={() => setDialog(null)}
-        onConfirm={(reason) =>
+        onConfirm={() =>
           runVerification(
-            () => reject.mutateAsync({ id: technician.id, reason }),
+            () => reject.mutateAsync({ id: technician.id }),
             `Verification ${revoking ? 'revoked' : 'rejected'} for ${technicianName}`,
           )
         }
@@ -499,7 +518,6 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
         title={revoking ? `Revoke verification for ${technicianName}?` : `Reject ${technicianName}?`}
         description="The technician will not receive jobs until they resubmit and are approved."
         confirmLabel={revoking ? 'Revoke' : 'Reject'}
-        reasonLabel="Reason"
       />
     </Card>
   );

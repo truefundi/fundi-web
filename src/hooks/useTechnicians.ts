@@ -53,7 +53,9 @@ export const useUpdateTechnicianStatus = () =>
 export const useApproveVerification = () => useTechnicianMutation((id: string) => techniciansApi.approve(id));
 
 export const useRejectVerification = () =>
-  useTechnicianMutation(({ id, reason }: { id: string; reason: string }) => techniciansApi.reject(id, reason));
+  useTechnicianMutation(({ id, reason }: { id: string; reason?: string }) =>
+    techniciansApi.reject(id, reason ?? ''),
+  );
 
 export function useCreateTechnician() {
   const queryClient = useQueryClient();
@@ -72,7 +74,7 @@ export function useDeleteTechnician() {
   return useMutation({
     mutationFn: (id: string) => techniciansApi.remove(id),
     onSuccess: (_, id) => {
-     queryClient.removeQueries({ queryKey: technicianKeys.detail(id) });
+      queryClient.removeQueries({ queryKey: technicianKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: technicianKeys.all });
       queryClient.invalidateQueries({ queryKey: statsKey });
       queryClient.invalidateQueries({ queryKey: dashboardKeys.peopleGrowth });

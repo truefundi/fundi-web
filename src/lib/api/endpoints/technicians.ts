@@ -105,12 +105,11 @@ export const techniciansApi = {
     );
   },
 
-  async reject(id: string, reason: string): Promise<Technician> {
+  async reject(id: string, _reason?: string): Promise<Technician> {
     return readLive(
       unwrap(
         api.patch<BackendTechnician>(`/admin/technicians/${id}/verification-status`, {
           verificationStatus: 'REJECTED',
-          ...(reason.trim() ? { reason: reason.trim() } : {}),
         }),
       ),
     );

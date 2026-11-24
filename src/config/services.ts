@@ -138,3 +138,17 @@ export const DEFAULT_CATEGORY_STYLE = {
   icon: Layers,
   className: 'bg-slate-100 text-slate-600',
 };
+
+/** Returns true when a label is one of the 3 top-level groups rather than a specific category. */
+export function isServiceGroupName(value?: string): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return [
+    'home',
+    'home services',
+    'car',
+    'car services',
+    'other',
+    'other services',
+  ].includes(normalized);
+}

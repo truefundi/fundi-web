@@ -29,6 +29,37 @@ export interface VerificationChecklistResponse {
   items: VerificationChecklistItem[];
 }
 
+async function fetchDocumentBlob(documentId: string, retried = false): Promise<Blob> {
+  const baseUrl = env.apiUrl.replace(/\/$/, '');
+  const response = await fetch(`${baseUrl}/admin/technician-documents/${documentId}/download`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      Accept: '*/*',
+      'ngrok-skip-browser-warning': 'true',
+    },
+  });
+
+  if (response.status === 401 && !retried) {
+    const refreshed = await fetch(`${baseUrl}/auth/admin/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then((res) => res.ok)
+      .catch(() => false);
+
+    if (refreshed) {
+      return fetchDocumentBlob(documentId, true);
+    }
+  }
+
+  if (!response.ok) {
+    throw new ApiError(`Could not open the document (${response.status}).`, response.status);
+  }
+
+  return response.blob();
+}
+
 export const technicianDocumentsApi = {
   async uploadProfilePicture(technicianId: string, file: File): Promise<void> {
     const form = new FormData();
@@ -36,7 +67,13 @@ export const technicianDocumentsApi = {
     await unwrap(api.put(`/admin/technicians/${technicianId}/picture`, form));
   },
 
-  async uploadDocument(technicianId: string, file: File, type: 'NATIONAL_ID' | 'CERTIFICATE', title: string, options?: { certificateType?: string; customCategoryName?: string }): Promise<TechnicianDocumentRecord> {
+  async uploadDocument(
+    technicianId: string,
+    file: File,
+    type: 'NATIONAL_ID' | 'CERTIFICATE',
+    title: string,
+    options?: { certificateType?: string; customCategoryName?: string },
+  ): Promise<TechnicianDocumentRecord> {
     const form = new FormData();
     form.append('file', file);
     form.append('type', type);
@@ -68,13 +105,6 @@ export const technicianDocumentsApi = {
   },
 
   async download(documentId: string): Promise<Blob> {
-    const response = await fetch(`${env.apiUrl}/admin/technician-documents/${documentId}/download`, {
-      credentials: 'include',
-      headers: { 'ngrok-skip-browser-warning': 'true' },
-    });
-    if (!response.ok) {
-      throw new ApiError(`Could not open the document (${response.status}).`, response.status);
-    }
-    return response.blob();
+    return fetchDocumentBlob(documentId);
   },
 };

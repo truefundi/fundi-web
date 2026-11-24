@@ -7,13 +7,13 @@ import {
   Field,
   Input,
   Modal,
-  Select,
   Textarea,
   useToast,
 } from '@/components/ui';
 import {
   SERVICE_GROUPS,
   getServiceGroup,
+  isServiceGroupName,
 } from '@/config/services';
 import type { ServiceGroup } from '@/config/services';
 import type {
@@ -54,9 +54,7 @@ function validate(
   );
 
   if (!selectedCategory) {
-    errors.categoryId = 'Choose a valid category.';
-  } else if (selectedCategory.name !== input.category) {
-    errors.categoryId = 'The selected category is invalid.';
+    errors.categoryId = 'No active catalog category is available for this group.';
   }
 
   if (input.description.trim().length < 5) {
@@ -85,6 +83,7 @@ export function ServiceFormDialog({
   initialCategory,
   icon,
   onIconChange,
+  categoryGroups = {},
 }: {
   open: boolean;
   onClose: () => void;
@@ -93,6 +92,7 @@ export function ServiceFormDialog({
   initialCategory?: string;
   icon?: string;
   onIconChange: (serviceId: string, icon: string | null) => boolean;
+  categoryGroups?: Record<string, ServiceGroup>;
 }) {
   const id = useId();
   const toast = useToast();
@@ -101,57 +101,50 @@ export function ServiceFormDialog({
   const update = useUpdateService();
 
   const [input, setInput] = useState<ServiceFormValues>(EMPTY);
-  const [selectedGroup, setSelectedGroup] = useState<ServiceGroup | ''>('');
+  const [selectedGroup, setSelectedGroup] = useState<ServiceGroup>('Home Services');
   const [iconData, setIconData] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [iconError, setIconError] = useState('');
 
-  // Strictly enforce the 3 main groups as the available categories
   const availableCategories = useMemo<CatalogCategory[]>(() => {
-    // Use the real categories fetched from your backend integration
-    if (categories && categories.length > 0) {
-      return categories;
-    }
-
-    // Fallback only if categories haven't loaded yet
-    const now = new Date().toISOString();
-    return [
-      {
-        id: '11111111-1111-1111-1111-111111111111',
-        name: 'Home',
-        description: 'Home & building services',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: '22222222-2222-2222-2222-222222222222',
-        name: 'Car',
-        description: 'Car & truck services',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: '33333333-3333-3333-3333-333333333333',
-        name: 'Other',
-        description: 'Custom & other services',
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
+    return (categories ?? []).filter((cat) => !isServiceGroupName(cat.name));
   }, [categories]);
 
-  // Filtered categories for the active selected group
-  const filteredCategories = useMemo(() => {
-    if (!selectedGroup) return [];
-    return availableCategories.filter(
-      (category: CatalogCategory) =>
-        getServiceGroup(category.name) === selectedGroup &&
-        (category.isActive || category.id === input.categoryId),
+  const resolveCategoryGroup = (
+    categoryName?: string,
+    fallbackName?: string,
+  ): ServiceGroup => {
+    const key = (categoryName ?? '').trim().toLowerCase();
+    if (key && categoryGroups[key]) {
+      return categoryGroups[key];
+    }
+    return getServiceGroup(categoryName || fallbackName);
+  };
+
+  const pickCategoryForGroup = (
+    group: ServiceGroup,
+    preferredId?: string,
+    preferredName?: string,
+  ): CatalogCategory | undefined => {
+    const groupCats = availableCategories.filter(
+      (cat) =>
+        resolveCategoryGroup(cat.name) === group &&
+        (cat.isActive || cat.id === preferredId),
     );
-  }, [availableCategories, selectedGroup, input.categoryId]);
+    const pool = groupCats.length > 0 ? groupCats : availableCategories;
+
+    if (preferredId) {
+      const byId = pool.find((c) => c.id === preferredId);
+      if (byId) return byId;
+    }
+    if (preferredName) {
+      const byName = pool.find(
+        (c) => c.name.toLowerCase() === preferredName.toLowerCase(),
+      );
+      if (byName) return byName;
+    }
+    return pool[0];
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -161,33 +154,29 @@ export function ServiceFormDialog({
     setIconData(icon ?? null);
 
     if (service) {
-      // 1. Find matching category from available categories by ID or name
-      const matchedCategory =
+      const matched =
         availableCategories.find((item) => item.id === service.categoryId) ??
         availableCategories.find(
           (item) =>
             item.name.toLowerCase() === (service.category ?? '').toLowerCase(),
-        ) ??
-        availableCategories.find(
-          (item) =>
-            item.name.toLowerCase() === (service.name ?? '').toLowerCase(),
         );
 
-      const group = getServiceGroup(
-        matchedCategory?.name || service.category || service.name,
+      const group = resolveCategoryGroup(
+        matched?.name || service.category,
+        service.name,
       );
       setSelectedGroup(group);
 
-      // 2. Find valid category matching this group
-      const groupCategories = availableCategories.filter(
-        (cat) => getServiceGroup(cat.name) === group,
+      const target = pickCategoryForGroup(
+        group,
+        matched?.id ?? service.categoryId,
+        matched?.name ?? service.category,
       );
-      const targetCategory = matchedCategory ?? groupCategories[0];
 
       setInput({
         name: service.name,
-        category: targetCategory?.name ?? service.category ?? '',
-        categoryId: targetCategory?.id ?? service.categoryId ?? '',
+        category: target?.name ?? service.category ?? '',
+        categoryId: target?.id ?? service.categoryId ?? '',
         description: service.description,
         visitFee: service.visitFee,
         emergencyVisitFee: service.emergencyVisitFee,
@@ -197,50 +186,29 @@ export function ServiceFormDialog({
         sosBookingFee: service.sosBookingFee ?? null,
       });
     } else {
-      const category = availableCategories.find(
-        (item) => item.name === initialCategory,
-      );
-const group = initialCategory ? getServiceGroup(initialCategory) : 'Home Services';
-setSelectedGroup(group);
+      const group: ServiceGroup = initialCategory
+        ? resolveCategoryGroup(initialCategory)
+        : 'Home Services';
+      setSelectedGroup(group);
 
-      const groupCategories = availableCategories.filter(
-        (cat) => getServiceGroup(cat.name) === group,
-      );
-      const defaultCat = category ?? groupCategories[0];
+      const defaultCat = pickCategoryForGroup(group, undefined, initialCategory);
 
       setInput({
         ...EMPTY,
-        category: defaultCat?.name ?? initialCategory ?? '',
+        category: defaultCat?.name ?? '',
         categoryId: defaultCat?.id ?? '',
       });
     }
-  }, [open, service, initialCategory, icon, availableCategories]);
+  }, [open, service, initialCategory, icon, availableCategories, categoryGroups]);
 
   const handleGroupChange = (group: ServiceGroup) => {
     setSelectedGroup(group);
-
-    const groupCategories = availableCategories.filter(
-      (cat) => getServiceGroup(cat.name) === group,
-    );
+    const nextCat = pickCategoryForGroup(group);
 
     setInput((current) => ({
       ...current,
-      category: groupCategories[0]?.name ?? '',
-      categoryId: groupCategories[0]?.id ?? '',
-    }));
-
-    setTouched(false);
-  };
-
-  const handleCategoryChange = (categoryId: string) => {
-    const category = availableCategories.find(
-      (item) => item.id === categoryId,
-    );
-
-    setInput((current) => ({
-      ...current,
-      categoryId: category?.id ?? '',
-      category: category?.name ?? '',
+      category: nextCat?.name ?? '',
+      categoryId: nextCat?.id ?? '',
     }));
 
     setTouched(false);
@@ -280,22 +248,28 @@ setSelectedGroup(group);
 
   const save = () => {
     setTouched(true);
-    const validationErrors = validate(input, availableCategories);
+    const resolvedCat =
+      availableCategories.find((c) => c.id === input.categoryId) ??
+      pickCategoryForGroup(selectedGroup);
 
-    if (!selectedGroup || Object.keys(validationErrors).length > 0 || iconError) {
+    const candidateInput: ServiceFormValues = {
+      ...input,
+      category: resolvedCat?.name ?? input.category,
+      categoryId: resolvedCat?.id ?? input.categoryId,
+    };
+
+    const validationErrors = validate(candidateInput, availableCategories);
+
+    if (Object.keys(validationErrors).length > 0 || iconError) {
       return;
     }
 
-    const selectedCategory = availableCategories.find(
-      (c) => c.id === input.categoryId,
-    );
-
     const serviceInput: ServiceInput = {
-      ...input,
-      name: input.name.trim(),
-      category: selectedCategory?.name ?? selectedGroup,
-      categoryId: selectedCategory?.id ?? input.categoryId,
-      description: input.description.trim(),
+      ...candidateInput,
+      name: candidateInput.name.trim(),
+      category: resolvedCat!.name,
+      categoryId: resolvedCat!.id,
+      description: candidateInput.description.trim(),
     };
 
     const done = {
@@ -303,8 +277,8 @@ setSelectedGroup(group);
         onIconChange(saved.id, iconData);
         toast(
           service
-            ? `${input.name.trim()} updated successfully`
-            : `${input.name.trim()} added successfully`,
+            ? `${serviceInput.name} updated successfully`
+            : `${serviceInput.name} added successfully`,
           'success',
         );
         onClose();
@@ -334,7 +308,7 @@ setSelectedGroup(group);
     }));
   };
 
-const groupMeta: Record<
+  const groupMeta: Record<
     ServiceGroup,
     { label: string; desc: string; icon: typeof House }
   > = {
@@ -360,7 +334,7 @@ const groupMeta: Record<
       open={open}
       onClose={onClose}
       title={service ? `Edit ${service.name}` : 'Add a service'}
-      description="Choose Home, Car, or Other, select its category, and enter the service details and booking fee."
+      description="Choose Home, Car, or Other, and enter the service details and booking fee."
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={saving}>
@@ -380,7 +354,7 @@ const groupMeta: Record<
           save();
         }}
       >
-        <Field label="Service group" htmlFor={`${id}-service-group`}>
+        <Field label="Service group" htmlFor={`${id}-service-group`} error={errors.categoryId}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {SERVICE_GROUPS.map((group) => {
               const selected = selectedGroup === group;
@@ -417,33 +391,6 @@ const groupMeta: Record<
               );
             })}
           </div>
-        </Field>
-
-        <Field
-          label="Category"
-          htmlFor={`${id}-category`}
-          error={errors.categoryId}
-        >
-          <Select
-            id={`${id}-category`}
-            value={input.categoryId}
-            onChange={(event) => handleCategoryChange(event.target.value)}
-            disabled={!selectedGroup}
-            invalid={Boolean(errors.categoryId)}
-          >
-            <option value="">
-              {selectedGroup
-                ? `Choose a ${groupMeta[selectedGroup].label.toLowerCase()} category`
-                : 'Select Home, Car, or Other first'}
-            </option>
-
-            {filteredCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-                {!category.isActive ? ' (Inactive)' : ''}
-              </option>
-            ))}
-          </Select>
         </Field>
 
         <Field label="Service name" htmlFor={`${id}-name`} error={errors.name}>
