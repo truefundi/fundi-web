@@ -5,6 +5,8 @@
  */
 export type JobPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
+export type JobRequestType = 'NORMAL' | 'SOS';
+
 export const JOB_PRIORITIES: JobPriority[] = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
 
 export type BookingPaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
@@ -143,7 +145,9 @@ export interface JobInput {
   longitude?: number;
   offeredAmount?: number;
   partyType?: JobRequestParty;
+  requestType?: JobRequestType;
   service: string;
+  otherServiceName?: string;
   problem: string;
   urgency: Urgency;
   location: string;

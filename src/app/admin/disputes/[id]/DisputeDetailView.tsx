@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, CheckCircle2, MessagesSquare, Quote, Scale, Star } from 'lucide-react';
 import { CustomerRatingForm } from '@/components/disputes/CustomerRatingForm';
+import { DisputeDecisionForm } from '@/components/disputes/DisputeDecisionForm';
 import { JobTimeline } from '@/components/jobs/JobTimeline';
 import { QuoteDetails } from '@/components/jobs/QuoteDetails';
 import { Badge, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner } from '@/components/ui';

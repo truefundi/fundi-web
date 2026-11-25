@@ -40,11 +40,14 @@ export const ROLE_PERMISSIONS: Record<StaffRole, Permission[]> = {
     "manage:finance",
   ],
   ADMIN: [
+    "manage:staff",
+    "view:audit_logs",
     "manage:requests",
     "manage:customers",
     "manage:technicians",
     "view:jobs",
     "manage:categories",
+    "manage:finance",
   ],
   ACCOUNTANT: [
     "manage:finance",

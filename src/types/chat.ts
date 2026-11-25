@@ -1,13 +1,27 @@
 import type { JobParty } from './job';
 
 /**
- * Customers choose a technician in the mobile app and chat to agree on the visit.
- * Admins can join a conversation to message both parties, then leave without
- * affecting the customer-technician conversation.
+- Customers choose a technician in the mobile app and chat to agree on the visit.
+- Admins can join a conversation to message both parties, then leave without
+- affecting the customer-technician conversation.
+- Conversations close once the job is completed between customer and technician.
  */
-export type ConversationStatus = 'pending' | 'negotiating' | 'agreed' | 'declined' | 'expired';
+export type ConversationStatus =
+  | 'pending'
+  | 'negotiating'
+  | 'agreed'
+  | 'declined'
+  | 'expired'
+  | 'closed';
 
-export const CONVERSATION_STATUSES: ConversationStatus[] = ['pending', 'negotiating', 'agreed', 'declined', 'expired'];
+export const CONVERSATION_STATUSES: ConversationStatus[] = [
+  'pending',
+  'negotiating',
+  'agreed',
+  'declined',
+  'expired',
+  'closed',
+];
 
 export const CONVERSATION_STATUS_LABEL: Record<ConversationStatus, string> = {
   pending: 'Awaiting technician',
@@ -15,6 +29,7 @@ export const CONVERSATION_STATUS_LABEL: Record<ConversationStatus, string> = {
   negotiating: 'Negotiating',
   agreed: 'Agreed',
   declined: 'Declined',
+  closed: 'Closed (Job done)',
 };
 
 export interface ChatMessage {

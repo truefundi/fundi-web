@@ -1,8 +1,14 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { authService } from "@/lib/auth-service";
 
@@ -15,6 +21,8 @@ export default function ForgotPasswordPage() {
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -97,7 +105,7 @@ export default function ForgotPasswordPage() {
       !/[^A-Za-z0-9]/.test(newPassword)
     ) {
       setError(
-        "Use 8–72 characters with at least one uppercase letter, one number, and one symbol.",
+        "Use 8-72 characters with at least one uppercase letter, one number, and one symbol.",
       );
       return;
     }
@@ -116,6 +124,8 @@ export default function ForgotPasswordPage() {
     setOtp("");
     setNewPassword("");
     setConfirmPassword("");
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
     setStep("done");
   }
 
@@ -144,9 +154,9 @@ export default function ForgotPasswordPage() {
           </h1>
           <p className="mt-2 text-center text-sm text-slate-600">
             {step === "request"
-              ? "We’ll send a verification code to the phone registered to your admin account."
+              ? "We'll send a verification code to the phone registered to your admin account."
               : step === "verify"
-                ? "Enter the code sent to your registered phone. You’ll choose a new password after it is verified."
+                ? "Enter the code sent to your registered phone. You'll choose a new password after it is verified."
                 : "Your verification code is confirmed. Choose a new password for your admin account."}
           </p>
 
@@ -268,17 +278,34 @@ export default function ForgotPasswordPage() {
                 >
                   New password
                 </label>
-                <input
-                  id="new-password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={8}
-                  maxLength={72}
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-slate-200 px-3.5 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
-                />
+                <div className="relative">
+                  <input
+                    id="new-password"
+                    type={showNewPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    maxLength={72}
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    className="h-11 w-full rounded-xl border border-slate-200 px-3.5 pr-11 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    aria-label={
+                      showNewPassword ? "Hide new password" : "Show new password"
+                    }
+                    aria-pressed={showNewPassword}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showNewPassword ? (
+                      <EyeOff className="h-5 w-5" aria-hidden />
+                    ) : (
+                      <Eye className="h-5 w-5" aria-hidden />
+                    )}
+                  </button>
+                </div>
                 <p className="mt-1 text-xs text-slate-500">
                   At least 8 characters, including an uppercase letter, a
                   number, and a symbol.
@@ -291,15 +318,34 @@ export default function ForgotPasswordPage() {
                 >
                   Confirm new password
                 </label>
-                <input
-                  id="confirm-password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-slate-200 px-3.5 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
-                />
+                <div className="relative">
+                  <input
+                    id="confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="h-11 w-full rounded-xl border border-slate-200 px-3.5 pr-11 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={
+                      showConfirmPassword
+                        ? "Hide confirm password"
+                        : "Show confirm password"
+                    }
+                    aria-pressed={showConfirmPassword}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" aria-hidden />
+                    ) : (
+                      <Eye className="h-5 w-5" aria-hidden />
+                    )}
+                  </button>
+                </div>
               </div>
               {error && (
                 <p

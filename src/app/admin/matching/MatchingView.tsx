@@ -1,5 +1,4 @@
-
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -194,6 +193,7 @@ export function MatchingView() {
           <Table>
             <thead>
               <tr>
+                <Th className="w-12">#</Th>
                 <Th>Request</Th>
                 <Th>Service</Th>
                 <Th>Status</Th>
@@ -203,9 +203,9 @@ export function MatchingView() {
 
             <tbody>
               {loading ? (
-                <TableSkeleton columns={4} rows={4} />
+                <TableSkeleton columns={5} rows={4} />
               ) : (
-                filteredQueue.map((job) => {
+                filteredQueue.map((job, index) => {
                   const late = isOverdue(job);
 
                   return (
@@ -214,6 +214,10 @@ export function MatchingView() {
                       onClick={() => router.push(`/admin/jobs/${job.id}`)}
                       label={`Open job ${job.reference}`}
                     >
+                      <Td className="w-12 font-medium tabular-nums text-slate-500">
+                        {index + 1}
+                      </Td>
+
                       <Td>
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-slate-900">

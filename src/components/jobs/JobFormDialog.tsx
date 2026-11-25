@@ -24,6 +24,7 @@ import {
   URGENCIES,
   type Job,
   type JobInput,
+  type JobRequestType,
   type Urgency,
 } from '@/types/job';
 
@@ -31,14 +32,21 @@ type JobFormInput = JobInput & {
   latitude: number;
   longitude: number;
   offeredAmount: number;
+  requestType: JobRequestType;
 };
+
+const CUSTOM_SERVICE_VALUE = '__OTHER__';
+const UUID_V4_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const EMPTY: JobFormInput = {
   customerId: '',
   paymentId: '',
   phoneVerificationId: '',
   partyType: 'customer',
+  requestType: 'NORMAL',
   service: '',
+  otherServiceName: '',
   problem: '',
   urgency: 'NORMAL',
   location: '',
@@ -57,22 +65,28 @@ function validate(input: JobFormInput, isNew: boolean): Errors {
   }
 
   if (isNew) {
-    const uuid =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuid.test(input.paymentId ?? '')) {
+    if (!UUID_V4_REGEX.test(input.paymentId ?? '')) {
       errors.paymentId = 'Enter a valid booking payment ID.';
     }
-    if (!uuid.test(input.phoneVerificationId ?? '')) {
-      errors.phoneVerificationId = 'Enter a verified phone reference ID.';
+    const phoneRef = (input.phoneVerificationId ?? '').trim();
+    if (phoneRef && !UUID_V4_REGEX.test(phoneRef)) {
+      errors.phoneVerificationId =
+        'Enter a valid UUID or leave blank if the customer phone is already verified.';
     }
   }
 
-  if (!input.service) {
+  const isCustomService = input.service === CUSTOM_SERVICE_VALUE;
+  if (isCustomService) {
+    const customName = (input.otherServiceName ?? '').trim();
+    if (customName.length < 2 || customName.length > 80) {
+      errors.otherServiceName = 'Enter a custom service name (2-80 characters).';
+    }
+  } else if (!input.service) {
     errors.service = 'Choose a service.';
   }
 
   if (input.problem.trim().length < 10 || input.problem.trim().length > 5000) {
-    errors.problem = 'Describe the problem in 10–5000 characters.';
+    errors.problem = 'Describe the problem in 10-5000 characters.';
   }
 
   if (input.location.trim().length < 3) {
@@ -148,7 +162,9 @@ export function JobFormDialog({
             ...EMPTY,
             customerId: job.customer.id,
             partyType: 'customer',
+            requestType: job.urgency === 'URGENT' ? 'SOS' : 'NORMAL',
             service: job.service,
+            otherServiceName: '',
             problem: job.problem,
             urgency: job.urgency,
             location: job.location,
@@ -190,6 +206,14 @@ export function JobFormDialog({
     }));
   };
 
+  const handleRequestTypeChange = (nextType: JobRequestType) => {
+    setInput((current) => ({
+      ...current,
+      requestType: nextType,
+      urgency: nextType === 'SOS' ? 'URGENT' : current.urgency === 'URGENT' ? 'NORMAL' : current.urgency,
+    }));
+  };
+
   const serviceOptions = (services.data ?? []).filter(
     (service) => service.isActive || service.name === job?.service,
   );
@@ -228,24 +252,36 @@ export function JobFormDialog({
       return;
     }
 
+    const isCustomService = input.service === CUSTOM_SERVICE_VALUE;
+    const normalizedInput: JobInput = {
+      ...input,
+      service: isCustomService ? (input.otherServiceName ?? '').trim() : input.service,
+      otherServiceName: isCustomService ? (input.otherServiceName ?? '').trim() : undefined,
+      phoneVerificationId: (input.phoneVerificationId ?? '').trim() || undefined,
+    };
+
     if (job) {
       const {
         service,
+        otherServiceName,
         problem,
         urgency,
+        requestType,
         location,
         offeredAmount,
         latitude,
         longitude,
-      } = input;
+      } = normalizedInput;
 
       update.mutate(
         {
           id: job.id,
           input: {
             service,
+            otherServiceName,
             problem,
             urgency,
+            requestType,
             location,
             offeredAmount,
             latitude,
@@ -265,7 +301,7 @@ export function JobFormDialog({
       return;
     }
 
-    create.mutate(input, {
+    create.mutate(normalizedInput, {
       onSuccess: (created) => {
         toast(`Job ${created.reference} created`);
         onClose();
@@ -284,7 +320,7 @@ export function JobFormDialog({
       description={
         job
           ? 'Details can change until the visit fee is paid.'
-          : 'Create a request on behalf of a customer.'
+          : 'Create a request on behalf of a customer, matching the mobile request flow.'
       }
       footer={
         <>
@@ -338,6 +374,27 @@ export function JobFormDialog({
               )}
             </Select>
           </Field>
+
+          <Field
+            label="Request type"
+            htmlFor={`${id}-request-type`}
+            hint={
+              input.requestType === 'SOS'
+                ? 'Emergency dispatch rotates through matching technicians.'
+                : 'Standard request flow.'
+            }
+          >
+            <Select
+              id={`${id}-request-type`}
+              value={input.requestType}
+              onChange={(event) =>
+                handleRequestTypeChange(event.target.value as JobRequestType)
+              }
+            >
+              <option value="NORMAL">Normal (Standard)</option>
+              <option value="SOS">SOS (Emergency)</option>
+            </Select>
+          </Field>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -348,6 +405,7 @@ export function JobFormDialog({
               onChange={(event) => {
                 setServiceCategory(event.target.value as ServiceGroup | '');
                 set('service', '');
+                set('otherServiceName', '');
               }}
               disabled={services.isLoading}
             >
@@ -373,7 +431,13 @@ export function JobFormDialog({
             <Select
               id={`${id}-service`}
               value={input.service}
-              onChange={(event) => set('service', event.target.value)}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                set('service', nextValue);
+                if (nextValue !== CUSTOM_SERVICE_VALUE) {
+                  set('otherServiceName', '');
+                }
+              }}
               disabled={services.isLoading || !serviceCategory}
               invalid={Boolean(errors.service)}
             >
@@ -390,8 +454,31 @@ export function JobFormDialog({
                   {service.name}
                 </option>
               ))}
+
+              {serviceCategory ? (
+                <option value={CUSTOM_SERVICE_VALUE}>
+                  Other (custom service)
+                </option>
+              ) : null}
             </Select>
           </Field>
+
+          {input.service === CUSTOM_SERVICE_VALUE && (
+            <Field
+              label="Custom service name"
+              htmlFor={`${id}-other-service`}
+              error={errors.otherServiceName}
+              hint="2-80 characters when not listed in the catalog."
+            >
+              <Input
+                id={`${id}-other-service`}
+                value={input.otherServiceName ?? ''}
+                onChange={(event) => set('otherServiceName', event.target.value)}
+                placeholder="e.g. Solar water heater repair"
+                invalid={Boolean(errors.otherServiceName)}
+              />
+            </Field>
+          )}
 
           <Field
             label="Urgency"
@@ -419,9 +506,9 @@ export function JobFormDialog({
         {isNew && (
           <>
             <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
-              This customer must first pay the booking fee and verify their
-              phone in the Fundi app. Use their unused payment and phone
-              verification references to create the job.
+              This customer must first complete their booking payment. A phone
+              verification reference is only required if the customer&apos;s
+              account phone is not yet verified.
             </p>
             <Field
               label="Booking payment ID"
@@ -435,9 +522,10 @@ export function JobFormDialog({
               />
             </Field>
             <Field
-              label="Verified phone reference ID"
+              label="Verified phone reference ID (optional)"
               htmlFor={`${id}-verification`}
               error={errors.phoneVerificationId}
+              hint="Optional when the customer's account phone is already verified."
             >
               <Input
                 id={`${id}-verification`}

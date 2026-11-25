@@ -48,7 +48,15 @@ function validateJobLocationAndPayment(
   }
 }
 
-async function getBackendServiceId(serviceName: string): Promise<string> {
+async function resolveServiceTarget(
+  serviceName: string,
+  otherServiceName?: string,
+): Promise<{ serviceCategoryId?: string; otherServiceName?: string }> {
+  const custom = otherServiceName?.trim();
+  if (custom) {
+    return { otherServiceName: custom };
+  }
+
   const response = await unwrap<Array<{ id: string; name: string }>>(
     api.get('/catalog/admin/services'),
   );
@@ -62,7 +70,7 @@ async function getBackendServiceId(serviceName: string): Promise<string> {
     throw new ApiError(`Service "${serviceName}" was not found.`, 400);
   }
 
-  return selectedService.id;
+  return { serviceCategoryId: selectedService.id };
 }
 
 function backendPriority(urgency: Urgency): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' {
@@ -152,25 +160,31 @@ export const jobsApi = {
       );
     }
 
-    const serviceId = await getBackendServiceId(jobInput.service);
-
-    if (!jobInput.paymentId || !jobInput.phoneVerificationId) {
+    if (!jobInput.paymentId) {
       throw new ApiError(
-        'A valid booking payment and verified phone reference are required for this customer.',
+        'A valid booking payment reference is required for this customer.',
         400,
       );
     }
 
+    const serviceTarget = await resolveServiceTarget(
+      jobInput.service,
+      jobInput.otherServiceName,
+    );
+
     const payload = {
       customerId: jobInput.customerId,
       paymentId: jobInput.paymentId,
-      phoneVerificationId: jobInput.phoneVerificationId,
-      serviceCategoryId: serviceId,
+      ...(jobInput.phoneVerificationId?.trim()
+        ? { phoneVerificationId: jobInput.phoneVerificationId.trim() }
+        : {}),
+      ...serviceTarget,
       description: jobInput.problem.trim(),
       locationAddress: jobInput.location.trim(),
       latitude: jobInput.latitude,
       longitude: jobInput.longitude,
       offeredAmount: jobInput.offeredAmount,
+      requestType: jobInput.requestType ?? 'NORMAL',
       priority: backendPriority(jobInput.urgency),
     };
 
@@ -184,10 +198,13 @@ export const jobsApi = {
   async update(id: string, input: JobEditInput): Promise<Job> {
     const edit = input as JobEditInput & Partial<JobLocationAndPayment>;
 
-    const serviceId = await getBackendServiceId(edit.service);
+    const serviceTarget = await resolveServiceTarget(
+      edit.service,
+      edit.otherServiceName,
+    );
 
     const payload = {
-      serviceCategoryId: serviceId,
+      ...serviceTarget,
       description: edit.problem.trim(),
       locationAddress: edit.location.trim(),
       ...(edit.latitude !== undefined ? { latitude: edit.latitude } : {}),
@@ -195,6 +212,7 @@ export const jobsApi = {
       ...(edit.offeredAmount !== undefined
         ? { offeredAmount: edit.offeredAmount }
         : {}),
+      ...(edit.requestType ? { requestType: edit.requestType } : {}),
       priority: backendPriority(edit.urgency),
     };
 
