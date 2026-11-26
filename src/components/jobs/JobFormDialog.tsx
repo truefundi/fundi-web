@@ -319,7 +319,7 @@ export function JobFormDialog({
       title={job ? `Edit job ${job.reference}` : 'New job'}
       description={
         job
-          ? 'Details can change until the visit fee is paid.'
+          ? 'Details can change until the booking fee is paid.'
           : 'Create a request on behalf of a customer, matching the mobile request flow.'
       }
       footer={

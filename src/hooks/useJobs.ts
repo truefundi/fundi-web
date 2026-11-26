@@ -39,8 +39,28 @@ export function useJob(id: string) {
   return useQuery({ queryKey: jobKeys.detail(id), queryFn: () => jobsApi.get(id) });
 }
 
+export function useAllJobs() {
+  return useQuery({
+    queryKey: [...jobKeys.all, 'all-items'],
+    queryFn: async () => {
+      const pageSize = 100;
+      const firstPage = await jobsApi.list({ page: 1, pageSize });
+      const actualPageSize = firstPage.pageSize || pageSize;
+      const pageCount = Math.ceil(firstPage.total / actualPageSize);
+      const remainingPages = await Promise.all(
+        Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) =>
+          jobsApi.list({ page: index + 2, pageSize: actualPageSize }),
+        ),
+      );
+
+      return [firstPage, ...remainingPages].flatMap((result) => result.items).slice(0, firstPage.total);
+    },
+    placeholderData: keepPreviousData,
+  });
+}
+
 export function useJobStats() {
-  return useQuery({ queryKey: jobKeys.stats, queryFn: jobsApi.stats });
+  return useQuery({ queryKey: jobKeys.stats, queryFn: jobsApi.stats, placeholderData: keepPreviousData });
 }
 
 /** Shared onSuccess: write the fresh job into the detail cache and refresh lists and counts. */
@@ -78,3 +98,5 @@ export function useDeleteJob() {
     },
   });
 }
+
+

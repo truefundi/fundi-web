@@ -100,7 +100,7 @@ export const jobsApi = {
 
         return (
           matchesSearch &&
-          (!query.group || jobGroup(job.status) === query.group) &&
+          (!query.group || jobGroup(job) === query.group) &&
           (!query.service || job.service === query.service) &&
           (!query.urgency || job.urgency === query.urgency)
         );

@@ -144,7 +144,7 @@ export function DisputeDetailView({ jobId }: { jobId: string }) {
             <CardHeader title="Amounts" />
             <CardBody>
               <dl className="divide-y divide-slate-100">
-                <Row label="Visit fee (paid)" value={formatMoney(job.visitFee)} />
+                <Row label="Booking fee (paid)" value={formatMoney(job.visitFee)} />
                 <Row label="Approved repair work" value={formatMoney(approved)} />
                 <Row label="Billed by technician" value={formatMoney(billed)} />
                 {billed > approved && (

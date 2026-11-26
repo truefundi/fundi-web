@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Briefcase, CheckCircle2, ChevronRight, Clock, Plus, AlertCircle, XCircle, ShieldAlert } from "lucide-react";
 import { JobFormDialog } from "@/components/jobs/JobFormDialog";
@@ -22,11 +22,12 @@ import {
   Tr,
 } from "@/components/ui";
 import { DEFAULT_PAGE_SIZE } from "@/config/pagination";
-import { useJobs, useJobStats } from "@/hooks/useJobs";
+import { useAllJobs, useJobs } from "@/hooks/useJobs";
 import { useServices } from "@/hooks/useServices";
 import { useDebouncedValue, useUrlFilters } from "@/hooks/useUrlFilters";
 import { cn, formatRelative } from "@/lib/utils";
 import {
+  jobGroup,
   URGENCIES,
   type JobGroup,
   type Urgency,
@@ -38,7 +39,6 @@ export function JobsView() {
   const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
   const { data: services } = useServices();
-  const { data: stats } = useJobStats();
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
   const [search, setSearch] = useState(values.search ?? "");
   const debouncedSearch = useDebouncedValue(search);
@@ -64,32 +64,38 @@ export function JobsView() {
   const activePage = data?.page ?? page;
   const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
 
-  const statsAny = stats as Record<string, number> | undefined;
+  const { data: allJobs } = useAllJobs();
 
-  const totalCount = statsAny?.total ?? data?.total ?? 0;
+  const counts = useMemo(() => {
+    const source = allJobs ?? [];
+    const next = {
+      total: source.length,
+      matching: 0,
+      inProgress: 0,
+      completed: 0,
+      cancelled: 0,
+      disputed: 0,
+    };
 
-  const matchingCount = statsAny?.matching ?? statsAny?.pending ?? statsAny?.open ??
-    data?.items?.filter(j => ['matching', 'pending', 'open', 'assigned'].includes(j.status?.toLowerCase()) || !j.technician).length ?? 0;
+    for (const item of source) {
+      const grp = jobGroup(item);
+      if (grp === "matching") next.matching += 1;
+      else if (grp === "in_progress") next.inProgress += 1;
+      else if (grp === "completed") next.completed += 1;
+      else if (grp === "cancelled") next.cancelled += 1;
+      else if (grp === "disputed") next.disputed += 1;
+    }
 
-  const inProgressCount = statsAny?.in_progress ?? statsAny?.inProgress ??
-    data?.items?.filter(j => ['in_progress', 'ongoing'].includes(j.status?.toLowerCase())).length ?? 0;
-
-  const completedCount = statsAny?.completed ??
-    data?.items?.filter(j => j.status?.toLowerCase() === 'completed').length ?? 0;
-
-  const cancelledCount = statsAny?.cancelled ?? statsAny?.failed ??
-    data?.items?.filter(j => ['cancelled', 'failed'].includes(j.status?.toLowerCase())).length ?? 0;
-
-  const disputedCount = statsAny?.disputed ??
-    data?.items?.filter(j => j.status?.toLowerCase() === 'disputed').length ?? 0;
+    return next;
+  }, [allJobs]);
 
   const summaryCards = [
-    { key: undefined, label: "All", count: totalCount, icon: Briefcase, color: "text-slate-900", bg: "bg-slate-50" },
-    { key: "matching", label: "Matching", count: matchingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
-    { key: "in_progress", label: "In progress", count: inProgressCount, icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-50" },
-    { key: "completed", label: "Completed", count: completedCount, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { key: "cancelled", label: "Cancelled", count: cancelledCount, icon: XCircle, color: "text-rose-600", bg: "bg-rose-50" },
-    { key: "disputed", label: "Disputed", count: disputedCount, icon: ShieldAlert, color: "text-purple-600", bg: "bg-purple-50" },
+    { key: undefined, label: "All", count: counts.total, icon: Briefcase, color: "text-slate-900", bg: "bg-slate-50" },
+    { key: "matching", label: "Matching", count: counts.matching, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
+    { key: "in_progress", label: "In progress", count: counts.inProgress, icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-50" },
+    { key: "completed", label: "Completed", count: counts.completed, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { key: "cancelled", label: "Cancelled", count: counts.cancelled, icon: XCircle, color: "text-rose-600", bg: "bg-rose-50" },
+    { key: "disputed", label: "Disputed", count: counts.disputed, icon: ShieldAlert, color: "text-purple-600", bg: "bg-purple-50" },
   ];
 
   const hasFilters = Boolean(values.search || group || service || urgency);

@@ -235,11 +235,11 @@ export function JobDetailView({ id }: { id: string }) {
             <CardBody>
               <Details
                 rows={[
-                  ['Visit fee', formatMoney(job.visitFee)],
+                  ['Booking fee', formatMoney(job.visitFee)],
                   [`Fundi commission (${commissionRatePercent}%)`, formatMoney(split.fundi)],
                   ['Technician share', formatMoney(split.technician)],
                   [
-                    'Visit fee paid',
+                    'Booking fee paid',
                     visitPaid ? job.visitPaymentMethod : <span className="text-slate-400">Not yet</span>,
                   ],
                   ['Repair total', job.quote ? formatMoney(repairTotal(job)) : <span className="text-slate-400">No quote yet</span>],
