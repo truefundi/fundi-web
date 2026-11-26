@@ -7,6 +7,7 @@ const tones: Record<ConversationStatus, BadgeTone> = {
   negotiating: 'info',
   agreed: 'success',
   declined: 'neutral',
+  closed: 'neutral',
 };
 
 export function ConversationStatusBadge({ status }: { status: ConversationStatus }) {

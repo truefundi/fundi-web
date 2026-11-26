@@ -27,7 +27,7 @@ export const SERVICE_CATEGORIES = [
 
 export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
 
-/** Main groups displayed in Service Management. */
+/** Main groups displayed across job creation and service management. */
 export const SERVICE_GROUPS = [
   'Home Services',
   'Car Services',
@@ -49,24 +49,49 @@ const CATEGORY_GROUP_MAP: Record<ServiceCategory, ServiceGroup> = {
 };
 
 /**
- * Maps any category or service name to its main group.
- */
-/**
- * Maps any category or service name to its main group.
- */
-/**
- * Maps any category or service name to its main group.
+ * Maps any category or service name to one of the 3 main groups:
+ * Home Services, Car Services, or Other Services.
  */
 export function getServiceGroup(category?: string): ServiceGroup {
   if (!category) return 'Other Services';
   const normalized = category.trim().toLowerCase();
 
-  if (normalized.includes('car') || normalized.includes('garage') || normalized.includes('auto')) {
-    return 'Car Services';
+  // 1. Exact match against built-in categories
+  for (const [key, group] of Object.entries(CATEGORY_GROUP_MAP)) {
+    if (key.toLowerCase() === normalized) {
+      return group;
+    }
   }
-  if (normalized.includes('plumb') || normalized.includes('electric') || normalized.includes('home')) {
+
+  // 2. Explicit group names
+  if (normalized === 'home' || normalized === 'home services') {
     return 'Home Services';
   }
+  if (normalized === 'car' || normalized === 'car services') {
+    return 'Car Services';
+  }
+  if (normalized === 'other' || normalized === 'other services') {
+    return 'Other Services';
+  }
+
+  // 3. Word-safe Car & Vehicle keywords (avoids matching "carpentry" or "automatic")
+  if (
+    /\b(car|cars|garage|auto|automotive|vehicle|truck|trucks|mechanic|mechanical|tire|tyre|towing|engine|brake|brakes)\b/.test(
+      normalized,
+    )
+  ) {
+    return 'Car Services';
+  }
+
+  // 4. Word-safe Home & Building keywords
+  if (
+    /\b(home|house|plumb\w*|electric\w*|hvac|appliance\w*|repair|maintenance|carpentry|paint\w*|roof\w*|clean\w*|ac)\b/.test(
+      normalized,
+    )
+  ) {
+    return 'Home Services';
+  }
+
   return 'Other Services';
 }
 
@@ -113,3 +138,17 @@ export const DEFAULT_CATEGORY_STYLE = {
   icon: Layers,
   className: 'bg-slate-100 text-slate-600',
 };
+
+/** Returns true when a label is one of the 3 top-level groups rather than a specific category. */
+export function isServiceGroupName(value?: string): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return [
+    'home',
+    'home services',
+    'car',
+    'car services',
+    'other',
+    'other services',
+  ].includes(normalized);
+}

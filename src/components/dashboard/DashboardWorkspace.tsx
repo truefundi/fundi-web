@@ -1655,6 +1655,7 @@ export function DashboardWorkspace() {
         </section>
 
         {section === "overview" && (
+          <div className="space-y-6">
           <div className="grid gap-6 xl:grid-cols-2">
             <TrendChart
               title="Platform activity"
@@ -1693,6 +1694,45 @@ export function DashboardWorkspace() {
               loading={breakdownLoading}
             />
           </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">Live conversations</h3>
+                <p className="text-sm text-slate-500">
+                  Monitor active client-technician chats and open a conversation to intervene.
+                </p>
+              </div>
+              <a
+                href="/admin/chats"
+                className="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+              >
+                Open live chats
+              </a>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                <p className="text-xs font-medium text-slate-500">Total conversations</p>
+                <p className="mt-1 text-xl font-semibold text-slate-900">
+                  {sumCounts(overview?.conversations ?? [])}
+                </p>
+              </div>
+              {(overview?.conversations ?? []).map((row, idx) => {
+                const entry = row as Record<string, unknown>;
+                const label = String(entry.status ?? entry.label ?? entry.name ?? `Status ${idx + 1}`);
+                const count = Number(entry.count ?? 0);
+                return (
+                  <div
+                    key={`${label}-${idx}`}
+                    className="rounded-lg border border-slate-100 bg-slate-50 p-3"
+                  >
+                    <p className="text-xs font-medium text-slate-500">{displayEnum(label)}</p>
+                    <p className="mt-1 text-xl font-semibold text-slate-900">{count}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
         )}
 
         {section === "jobs" && (

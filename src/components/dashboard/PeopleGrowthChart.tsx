@@ -244,8 +244,8 @@ export function PeopleGrowthChart() {
                             x={x}
                             y={y}
                             width={barWidth}
-                            height={height}
-                            rx="4"
+                            height={Math.max(0, height)}
+                            rx={height > 3 ? "4" : "0"}
                             fill={color}
                             className="focus-visible:stroke-slate-900 focus-visible:stroke-2"
                           >

@@ -60,8 +60,6 @@ export function useDashboardActivityStream(query: DashboardQuery) {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (env.useMocks) return;
-
     setConnected(false);
     const url = `${env.apiUrl.replace(/\/$/, "")}/admin/dashboard/events`;
     const stream = new EventSource(url, { withCredentials: true });

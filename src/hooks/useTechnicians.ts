@@ -53,7 +53,9 @@ export const useUpdateTechnicianStatus = () =>
 export const useApproveVerification = () => useTechnicianMutation((id: string) => techniciansApi.approve(id));
 
 export const useRejectVerification = () =>
-  useTechnicianMutation(({ id, reason }: { id: string; reason: string }) => techniciansApi.reject(id, reason));
+  useTechnicianMutation(({ id, reason }: { id: string; reason?: string }) =>
+    techniciansApi.reject(id, reason ?? ''),
+  );
 
 export function useCreateTechnician() {
   const queryClient = useQueryClient();

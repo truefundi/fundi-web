@@ -55,7 +55,7 @@ export function DisputesView() {
           />
         ) : (
           <ul className="divide-y divide-slate-100">
-            {current.data.map((job) => {
+            {current.data.map((job, index) => {
               const billed = billedTotal(job);
               const approved = approvedTotal(job);
               const resolution = job.dispute?.resolution;
@@ -65,6 +65,7 @@ export function DisputesView() {
                     href={`/admin/disputes/${job.id}`}
                     className="flex items-start gap-4 px-6 py-5 transition-colors hover:bg-slate-50"
                   >
+                    <span className="mt-2 w-5 shrink-0 text-xs font-semibold tabular-nums text-slate-400">{index + 1}</span>
                     <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
                       <Scale className="h-5 w-5" aria-hidden />
                     </span>

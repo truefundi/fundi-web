@@ -20,6 +20,8 @@ export type BackendTechnician = {
     yearsOfExperience?: number;
   }>;
   verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  /** The admin's note on a rejected application. */
+  rejectionReason?: string | null;
   availabilityStatus: 'ONLINE' | 'OFFLINE';
   location?: {
     address?: string | null;
@@ -56,7 +58,11 @@ export function mapBackendTechnician(profile: BackendTechnician): Technician {
       .filter((name): name is ServiceCategory => Boolean(name)),
     yearsExperience: profile.yearsOfExperience ?? 0,
     rating: 0, jobsCompleted: 0, isAvailable: profile.availabilityStatus === 'ONLINE',
-    verification: { status: VERIFICATION[profile.verificationStatus], certificateUrls: [] },
+    verification: {
+      status: VERIFICATION[profile.verificationStatus],
+      certificateUrls: [],
+      ...(profile.rejectionReason ? { rejectionReason: profile.rejectionReason } : {}),
+    },
     workSettings: { radiusKm: 10, maxJobsPerDay: 4, hours: 'always' },
     gender: profile.gender ?? undefined,
     nationalIdNumber: profile.nationalIdNumber ?? undefined,

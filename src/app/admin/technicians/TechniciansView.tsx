@@ -36,7 +36,7 @@ import {
   useUpdateTechnicianStatus,
 } from '@/hooks/useTechnicians';
 import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
-import { DEFAULT_PAGE_SIZE } from '@/lib/api/mock-utils';
+import { DEFAULT_PAGE_SIZE } from '@/config/pagination';
 import { cn, formatDate } from '@/lib/utils';
 import { ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL, type AccountStatus } from '@/types/customer';
 import type { Technician, VerificationStatus } from '@/types/technician';
@@ -171,6 +171,7 @@ export function TechniciansView() {
             <Table>
               <thead>
                 <tr>
+                  <Th className="w-12">#</Th>
                   <Th>Technician</Th>
                   <Th>Verification</Th>
                   <Th>Account</Th>
@@ -183,75 +184,76 @@ export function TechniciansView() {
               </thead>
               <tbody>
                 {isLoading || !data ? (
-                  <TableSkeleton columns={8} />
+                  <TableSkeleton columns={9} />
                 ) : (
-                  data.items.map((t) => (
-                    <Tr key={t.id} onClick={() => router.push(`/admin/technicians/${t.id}`)} label={`Open ${t.name}`}>
-                      <Td>
-                        <div className="flex items-center gap-3">
-                          <span className="relative">
-                            <Avatar name={t.name} />
-                            {t.isAvailable && (
-                              <span
-                                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500"
-                                title="Online"
-                              />
-                            )}
-                          </span>
-                          <div className="min-w-0">
-                            <p className="truncate font-medium text-slate-900">{t.name}</p>
-                            <p className="truncate text-xs text-slate-500">{t.trades.join(' · ')}</p>
+                  data.items.map((t, index) => {
+                    const rowNumber = (data.page - 1) * data.pageSize + index + 1;
+                    return (
+                      <Tr key={t.id} onClick={() => router.push(`/admin/technicians/${t.id}`)} label={`Open ${t.name}`}>
+                        <Td className="tabular-nums text-slate-500">{rowNumber}</Td>
+                        <Td>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Avatar name={t.name} src={t.profilePictureUrl} />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="truncate font-medium text-slate-900">{t.name}</p>
+                                {t.isAvailable && (
+                                  <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="Online" />
+                                )}
+                              </div>
+                              <p className="truncate text-xs text-slate-500">{t.trades.join(' · ')}</p>
+                            </div>
                           </div>
-                        </div>
-                      </Td>
-                      <Td>
-                        <VerificationBadge status={t.verification?.status ?? 'pending'} />
-                      </Td>
-                      <Td>
-                        <AccountStatusBadge status={t.status} />
-                      </Td>
-                      <Td>
-                        {t.jobsCompleted > 0 ? (
-                          <span className="inline-flex items-center gap-1 font-medium text-slate-900">
-                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
-                            {t.rating.toFixed(1)}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </Td>
-                      <Td className="text-slate-600">{t.jobsCompleted}</Td>
-                      <Td className="whitespace-nowrap text-slate-600">{t.yearsExperience} yrs</Td>
-                      <Td className="whitespace-nowrap text-slate-600">{formatDate(t.createdAt)}</Td>
-                      <Td>
-                        <ActionMenu
-                          ariaLabel={`Manage ${t.name}`}
-                          items={[
-                            { label: 'View profile', icon: Eye, onSelect: () => router.push(`/admin/technicians/${t.id}`) },
-                            { label: 'Edit', icon: Pencil, onSelect: () => setEditing(t) },
-                            {
-                              label: t.status === 'suspended' ? 'Reactivate' : 'Suspend',
-                              icon: t.status === 'suspended' ? CircleCheck : Ban,
-                              onSelect: () => setConfirm({ action: 'status', technician: t }),
-                            },
-                            {
-                              label: 'Reject documents',
-                              icon: FileX,
-                              danger: true,
-                              hidden: t.verification.status !== 'pending',
-                              onSelect: () => setConfirm({ action: 'reject', technician: t }),
-                            },
-                            {
-                              label: 'Delete',
-                              icon: Trash2,
-                              danger: true,
-                              onSelect: () => setConfirm({ action: 'delete', technician: t }),
-                            },
-                          ]}
-                        />
-                      </Td>
-                    </Tr>
-                  ))
+                        </Td>
+                        <Td>
+                          <VerificationBadge status={t.verification?.status ?? 'pending'} />
+                        </Td>
+                        <Td>
+                          <AccountStatusBadge status={t.status} />
+                        </Td>
+                        <Td>
+                          {t.jobsCompleted > 0 ? (
+                            <span className="inline-flex items-center gap-1 font-medium text-slate-900">
+                              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
+                              {t.rating.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </Td>
+                        <Td className="text-slate-600">{t.jobsCompleted}</Td>
+                        <Td className="whitespace-nowrap text-slate-600">{t.yearsExperience} yrs</Td>
+                        <Td className="whitespace-nowrap text-slate-600">{formatDate(t.createdAt)}</Td>
+                        <Td>
+                          <ActionMenu
+                            ariaLabel={`Manage ${t.name}`}
+                            items={[
+                              { label: 'View profile', icon: Eye, onSelect: () => router.push(`/admin/technicians/${t.id}`) },
+                              { label: 'Edit', icon: Pencil, onSelect: () => setEditing(t) },
+                              {
+                                label: t.status === 'suspended' ? 'Reactivate' : 'Suspend',
+                                icon: t.status === 'suspended' ? CircleCheck : Ban,
+                                onSelect: () => setConfirm({ action: 'status', technician: t }),
+                              },
+                              {
+                                label: 'Reject documents',
+                                icon: FileX,
+                                danger: true,
+                                hidden: t.verification.status !== 'pending',
+                                onSelect: () => setConfirm({ action: 'reject', technician: t }),
+                              },
+                              {
+                                label: 'Delete',
+                                icon: Trash2,
+                                danger: true,
+                                onSelect: () => setConfirm({ action: 'delete', technician: t }),
+                              },
+                            ]}
+                          />
+                        </Td>
+                      </Tr>
+                    );
+                  })
                 )}
               </tbody>
             </Table>
@@ -270,7 +272,6 @@ export function TechniciansView() {
       <EditTechnicianDrawer open={addOpen} onClose={() => setAddOpen(false)} />
       {editing && <EditTechnicianDrawer technician={editing} open onClose={() => setEditing(null)} />}
 
-      {/* Same wording as on the technician profile (AccountStatus, VerificationPanel). */}
       {confirm?.action === 'status' &&
         (confirm.technician.status === 'suspended' ? (
           <ConfirmDialog

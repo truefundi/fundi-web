@@ -36,7 +36,8 @@ export function formatRelative(iso?: string): string {
 }
 
 /** +250788123456 → +250 788 123 456 */
-export function formatPhone(phone: string): string {
-  const match = phone.match(/^\+250(\d{3})(\d{3})(\d{3})$/);
+export function formatPhone(phone?: string | null): string {
+  if (!phone) return '';
+  const match = phone.trim().match(/^\+250(\d{3})(\d{3})(\d{3})$/);
   return match ? `+250 ${match[1]} ${match[2]} ${match[3]}` : phone;
 }

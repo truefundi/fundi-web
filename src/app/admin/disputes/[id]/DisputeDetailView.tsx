@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, CheckCircle2, MessagesSquare, Quote, Scale, Star } from 'lucide-react';
 import { CustomerRatingForm } from '@/components/disputes/CustomerRatingForm';
+import { DisputeDecisionForm } from '@/components/disputes/DisputeDecisionForm';
 import { JobTimeline } from '@/components/jobs/JobTimeline';
 import { QuoteDetails } from '@/components/jobs/QuoteDetails';
 import { Badge, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner } from '@/components/ui';
@@ -143,7 +144,7 @@ export function DisputeDetailView({ jobId }: { jobId: string }) {
             <CardHeader title="Amounts" />
             <CardBody>
               <dl className="divide-y divide-slate-100">
-                <Row label="Visit fee (paid)" value={formatMoney(job.visitFee)} />
+                <Row label="Booking fee (paid)" value={formatMoney(job.visitFee)} />
                 <Row label="Approved repair work" value={formatMoney(approved)} />
                 <Row label="Billed by technician" value={formatMoney(billed)} />
                 {billed > approved && (

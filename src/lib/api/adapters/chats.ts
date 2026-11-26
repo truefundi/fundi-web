@@ -16,7 +16,7 @@ export interface BackendConversation {
 export function mapBackendConversation(conv: BackendConversation): Conversation {
   return {
     id: conv.id,
-    status: ({ PENDING: 'pending', NEGOTIATING: 'negotiating', AGREED: 'agreed', DECLINED: 'declined', EXPIRED: 'expired' } satisfies Record<string, ConversationStatus>)[conv.status as 'PENDING' | 'NEGOTIATING' | 'AGREED' | 'DECLINED' | 'EXPIRED'] ?? 'pending',
+    status: ({ PENDING: 'pending', NEGOTIATING: 'negotiating', AGREED: 'agreed', DECLINED: 'declined', EXPIRED: 'expired', CLOSED: 'closed', COMPLETED: 'closed', DONE: 'closed' } satisfies Record<string, ConversationStatus>)[conv.status.toUpperCase() as 'PENDING' | 'NEGOTIATING' | 'AGREED' | 'DECLINED' | 'EXPIRED' | 'CLOSED' | 'COMPLETED' | 'DONE'] ?? 'pending',
     service: conv.request.service || 'General Service', problem: conv.request.description,
     customer: { id: conv.customer.id, name: conv.customer.fullName, phone: conv.customer.phoneNumber },
     technician: { id: conv.technician?.id ?? '', name: conv.technician?.fullName ?? 'Unassigned', phone: conv.technician?.phoneNumber ?? '' },

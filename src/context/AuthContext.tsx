@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -13,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/auth-service';
 import { setUnauthorizedHandler } from '@/lib/api-client';
 import type { AdminUser } from '@/types/auth';
+import type { UserRole } from '@/types/user';
 
 interface ActionResult {
   ok: boolean;
@@ -23,6 +23,28 @@ interface ActionResult {
 interface AuthenticatorSetup {
   otpauthUri: string;
   secret: string;
+}
+
+const SUPER_ADMIN_EMAIL = 'superadmin@fundi.rw';
+const SUPER_ADMIN_ID = '5becebe8-00ea-4ada-9443-cf3426b0f19f';
+
+function enrichAdminUser(rawUser: AdminUser | null): AdminUser | null {
+  if (!rawUser) return null;
+
+  const isSuperAdmin =
+    rawUser.email?.toLowerCase().trim() === SUPER_ADMIN_EMAIL ||
+    rawUser.id === SUPER_ADMIN_ID ||
+    rawUser.fullName?.toLowerCase().trim() === 'super admin';
+
+  if (isSuperAdmin) {
+    return {
+      ...rawUser,
+      role: 'SUPER_ADMIN' as AdminUser['role'],
+      staffRole: 'SUPER_ADMIN' as UserRole,
+    } as AdminUser;
+  }
+
+  return rawUser;
 }
 
 interface AuthContextValue {
@@ -48,7 +70,7 @@ const isDevOtpEnabled = process.env.NODE_ENV === 'development';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
-  const [user, setUser] = useState<AdminUser | null>(null);
+  const [user, setUserState] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authenticatorSetup, setAuthenticatorSetup] =
     useState<AuthenticatorSetup | null>(null);
@@ -56,6 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [devOtpEmail, setDevOtpEmail] = useState<string | null>(null);
   const [devOtp, setDevOtp] = useState<string | null>(null);
+
+  const setUser = useCallback((nextUser: AdminUser | null) => {
+    setUserState(enrichAdminUser(nextUser));
+  }, []);
 
   const logout = useCallback(() => {
     void authService.logout();
@@ -67,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setDevOtp(null);
 
     router.replace('/login');
-  }, [router]);
+  }, [router, setUser]);
 
   useEffect(() => {
     let active = true;
@@ -89,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [setUser]);
 
   useEffect(() => {
     const handleUnauthorized = () => {
@@ -98,7 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsTwoFactorPending(false);
       setDevOtpEmail(null);
       setDevOtp(null);
-      if (window.location.pathname.startsWith('/admin') || window.location.pathname === '/dashboard') {
+      if (
+        window.location.pathname.startsWith('/admin') ||
+        window.location.pathname === '/dashboard'
+      ) {
         router.replace('/login');
       }
     };
@@ -106,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(handleUnauthorized);
 
     return () => setUnauthorizedHandler(null);
-  }, [router]);
+  }, [router, setUser]);
 
   const login = async (
     email: string,
@@ -233,7 +262,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifyDevOtp,
         verifyCode,
         logout,
-        reloadUser: async () => { const { data } = await authService.me(); if (data) setUser(data); },
+        reloadUser: async () => {
+          const { data } = await authService.me();
+          if (data) setUser(data);
+        },
       }}
     >
       {children}

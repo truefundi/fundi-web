@@ -1,6 +1,3 @@
-
-import { env } from '@/config/env';
-import { clone, delay, mockDb } from '@/mocks/mock-db';
 import type { Service, ServiceInput } from '@/types/service';
 import { api, unwrap } from '../client';
 
@@ -36,72 +33,51 @@ const mapService = (item: BackendService): Service => ({
   sosBookingFee: item.sosBookingFee,
 });
 
-const payload = (input: ServiceInput) => ({
-  name: input.name.trim(),
-  categoryId: input.categoryId,
-  description: input.description.trim(),
-  bookingFee: Math.round(input.visitFee),
-  emergencyVisitFee: Math.round(input.emergencyVisitFee),
-  isActive: input.isActive,
-  keywords: input.keywords ?? '',
-  icon: input.icon ?? null,
-  sosBookingFee: input.sosBookingFee ?? null,
-});
+const buildPayload = (input: ServiceInput, includeStatus: boolean) => {
+  const trimmedKeywords = input.keywords?.trim();
+  const normalizedSosFee =
+    typeof input.sosBookingFee === 'number' && input.sosBookingFee > 0
+      ? Math.round(input.sosBookingFee)
+      : undefined;
+
+  return {
+    name: input.name.trim(),
+    categoryId: input.categoryId,
+    description: input.description.trim(),
+    bookingFee: Math.round(input.visitFee),
+    emergencyVisitFee: Math.round(input.emergencyVisitFee),
+    ...(includeStatus ? { isActive: input.isActive } : {}),
+    ...(trimmedKeywords ? { keywords: trimmedKeywords } : {}),
+    icon: input.icon ?? null,
+    ...(normalizedSosFee !== undefined
+      ? { sosBookingFee: normalizedSosFee }
+      : {}),
+  };
+};
 
 export const servicesApi = {
   async list(): Promise<Service[]> {
-    if (!env.useMocks) {
-      const result = await unwrap<BackendService[]>(
-        api.get('/catalog/admin/services'),
-      );
-      return (result ?? []).map(mapService);
-    }
-
-    await delay();
-    return clone(mockDb.services);
+    const result = await unwrap<BackendService[]>(
+      api.get('/catalog/admin/services'),
+    );
+    return (result ?? []).map(mapService);
   },
 
   async create(input: ServiceInput): Promise<Service> {
-    if (!env.useMocks) {
-      const result = await unwrap<BackendService>(
-        api.post('/catalog/services', payload(input)),
-      );
-      return mapService(result);
-    }
-
-    await delay();
-    const service: Service = {
-      ...input,
-      id: `svc_${Date.now()}`,
-      name: input.name.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    mockDb.services.push(service);
-    return clone(service);
+    const result = await unwrap<BackendService>(
+      api.post('/catalog/services', buildPayload(input, false)),
+    );
+    return mapService(result);
   },
 
   async update(id: string, input: ServiceInput): Promise<Service> {
-    if (!env.useMocks) {
-      const result = await unwrap<BackendService>(
-        api.patch(`/catalog/services/${id}`, payload(input)),
-      );
-      return mapService(result);
-    }
-
-    await delay();
-    const service = mockDb.services.find((item) => item.id === id);
-    if (!service) throw new Error('Service not found.');
-    Object.assign(service, input, { name: input.name.trim() });
-    return clone(service);
+    const result = await unwrap<BackendService>(
+      api.patch(`/catalog/services/${id}`, buildPayload(input, true)),
+    );
+    return mapService(result);
   },
 
   async remove(id: string): Promise<void> {
-    if (!env.useMocks) {
-      await unwrap(api.delete(`/catalog/services/${id}`));
-      return;
-    }
-
-    await delay();
-    mockDb.services = mockDb.services.filter((item) => item.id !== id);
+    await unwrap(api.delete(`/catalog/services/${id}`));
   },
 };

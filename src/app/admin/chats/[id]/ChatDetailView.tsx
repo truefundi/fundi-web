@@ -1,17 +1,48 @@
 'use client';
 
-import { env } from '@/config/env';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Briefcase, CheckCircle2, Info, LogIn, LogOut, MessagesSquare, Send, XCircle } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Briefcase,
+  CheckCircle2,
+  LogOut,
+  MessagesSquare,
+  Send,
+  UserPlus,
+  XCircle,
+} from 'lucide-react';
 import { ConversationStatusBadge } from '@/components/chats/ConversationStatusBadge';
-import { Button, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner, Textarea, useToast } from '@/components/ui';
+import { Badge, Button, Card, CardBody, CardHeader, EmptyState, ErrorState, Spinner } from '@/components/ui';
 import { useChat, useJoinChat, useLeaveChat, useSendChatMessage } from '@/hooks/useChats';
 import { cn, formatDate, formatPhone } from '@/lib/utils';
 import type { ChatMessage, Conversation } from '@/types/chat';
 
 const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+function detectTopicMismatch(chat: Conversation): string | null {
+  const service = (chat.service ?? '').toLowerCase();
+  const combinedText = `${chat.problem ?? ''} ${chat.messages.map((m) => m.text ?? '').join(' ')}`.toLowerCase();
+  if (!service.trim() || !combinedText.trim()) return null;
+
+  const groups: Record<string, string[]> = {
+    'Appliance Repair': ['fridge', 'refrigerator', 'washer', 'washing machine', 'oven', 'stove', 'microwave', 'dryer', 'dishwasher', 'ac', 'air conditioner'],
+    'Auto / Car Repair': ['car', 'vehicle', 'engine', 'brake', 'transmission', 'tire', 'tyre', 'mechanic', 'exhaust', 'radiator'],
+    'Plumbing': ['pipe', 'leak', 'faucet', 'tap', 'drain', 'toilet', 'sink', 'sewer', 'water heater'],
+    'Electrical': ['wiring', 'outlet', 'socket', 'breaker', 'fuse', 'voltage', 'lighting', 'switch', 'generator'],
+  };
+
+  for (const [label, keywords] of Object.entries(groups)) {
+    const isCurrentService = service.includes(label.toLowerCase().split(' ')[0]);
+    if (isCurrentService) continue;
+    if (keywords.some((kw) => new RegExp(`\\b${kw}\\b`, 'i').test(combinedText))) {
+      return `Category is "${chat.service}", but the request or messages mention ${label.toLowerCase()} keywords.`;
+    }
+  }
+  return null;
+}
 
 function BackLink() {
   return (
@@ -103,43 +134,18 @@ function Outcome({ chat }: { chat: Conversation }) {
 }
 
 export function ChatDetailView({ id }: { id: string }) {
-  const router = useRouter();
-  const toast = useToast();
-  const [messageText, setMessageText] = useState('');
+  const { data: chat, isLoading, isError, error, refetch } = useChat(id) as {
+    data: Conversation | undefined;
+    isLoading: boolean;
+    isError: boolean;
+    error: (Error & { statusCode?: number }) | null;
+    refetch: () => void;
+  };
   const joinChat = useJoinChat();
-  const sendMessage = useSendChatMessage();
   const leaveChat = useLeaveChat();
-  const { data: chat, isLoading, isError, error, refetch } = useChat(id);
-
-  const submitMessage = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const text = messageText.trim();
-    if (!text || sendMessage.isPending || leaveChat.isPending) return;
-    sendMessage.mutate(
-      { id, text },
-      {
-        onSuccess: () => setMessageText(''),
-        onError: (err) => toast(err.message || 'Could not send your message', 'error'),
-      },
-    );
-  };
-
-  const leave = () => {
-    leaveChat.mutate(id, {
-      onSuccess: () => {
-        toast('You left the conversation. The customer and technician can keep chatting.');
-        router.push('/admin/chats');
-      },
-      onError: (err) => toast(err.message || 'Could not leave the conversation', 'error'),
-    });
-  };
-
-  const join = () => {
-    joinChat.mutate(id, {
-      onSuccess: () => toast('You joined the conversation. You can now view and message both participants.'),
-      onError: (err) => toast(err.message || 'Could not join the conversation', 'error'),
-    });
-  };
+  const sendMessage = useSendChatMessage();
+  const [draft, setDraft] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -153,7 +159,7 @@ export function ChatDetailView({ id }: { id: string }) {
   }
 
   if (isError || !chat) {
-    const notFound = (error as { statusCode?: number } | null)?.statusCode === 404;
+    const notFound = error?.statusCode === 404;
     return (
       <>
         <BackLink />
@@ -168,97 +174,148 @@ export function ChatDetailView({ id }: { id: string }) {
     );
   }
 
+  const mismatchWarning = detectTopicMismatch(chat);
+  const formattedCustomerPhone = formatPhone(chat.customer.phone);
+  const customerLabel = formattedCustomerPhone
+    ? `${chat.customer.name} · ${formattedCustomerPhone}`
+    : chat.customer.name;
+
+  async function handleJoin() {
+    setActionError(null);
+    try {
+      await joinChat.mutateAsync(chat!.id);
+      refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Unable to join conversation.');
+    }
+  }
+
+  async function handleLeave() {
+    setActionError(null);
+    try {
+      await leaveChat.mutateAsync(chat!.id);
+      refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Unable to leave conversation.');
+    }
+  }
+
+  async function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    setActionError(null);
+    try {
+      if (!chat!.adminHasJoined) {
+        await joinChat.mutateAsync(chat!.id);
+      }
+      await sendMessage.mutateAsync({ id: chat!.id, text: trimmed });
+      setDraft('');
+      refetch();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Unable to send admin message.');
+    }
+  }
+
   return (
     <>
       <BackLink />
-      <div className="mb-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {chat.customer.name} &amp; {chat.technician.name}
-          </h1>
-          <ConversationStatusBadge status={chat.status} />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              {chat.customer.name} &amp; {chat.technician.name}
+            </h1>
+            <ConversationStatusBadge status={chat.status} />
+            {chat.adminHasJoined && <Badge tone="info">Admin Joined</Badge>}
+            {mismatchWarning && <Badge tone="warning">Topic Check</Badge>}
+          </div>
+          <p className="mt-1 text-sm text-slate-500">
+            {chat.service} · Started {formatDate(chat.startedAt)}
+          </p>
         </div>
-        <p className="mt-1 text-sm text-slate-500">
-          {chat.service} · Started {formatDate(chat.startedAt)}
-        </p>
+
+        <div className="flex items-center gap-2">
+          {chat.adminHasJoined ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleLeave}
+              disabled={leaveChat.isPending}
+            >
+              <LogOut className="mr-1.5 h-4 w-4" aria-hidden />
+              {leaveChat.isPending ? 'Leaving…' : 'Leave Chat'}
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleJoin}
+              disabled={joinChat.isPending}
+            >
+              <UserPlus className="mr-1.5 h-4 w-4" aria-hidden />
+              {joinChat.isPending ? 'Joining…' : 'Join to Intervene'}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {mismatchWarning && (
+        <div className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+            <div>
+              <p className="font-semibold">Possible Category / Topic Mismatch</p>
+              <p className="mt-0.5 text-amber-800">
+                {mismatchWarning} You can step in to guide both parties or check the linked job.
+              </p>
+            </div>
+          </div>
+          {!chat.adminHasJoined && (
+            <Button size="sm" variant="secondary" onClick={handleJoin} disabled={joinChat.isPending}>
+              Intervene
+            </Button>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader
             title="Conversation"
-            description={
-              !env.useMocks ? 'Review messages between the customer and technician.' : chat.adminHasJoined
-                ? 'Your messages are visible to both the customer and technician.'
-                : 'Join this conversation to view its messages and participate.'
-            }
-            action={
-              !env.useMocks ? undefined : chat.adminHasJoined ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={leave}
-                  loading={leaveChat.isPending}
-                  disabled={sendMessage.isPending || joinChat.isPending}
-                >
-                  <LogOut className="h-4 w-4" aria-hidden />
-                  Leave chat
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={join}
-                  loading={joinChat.isPending}
-                  disabled={leaveChat.isPending || sendMessage.isPending}
-                >
-                  <LogIn className="h-4 w-4" aria-hidden />
-                  Join chat
-                </Button>
-              )
-            }
+            description="Review messages between the customer and technician, or step in as admin."
           />
-          <CardBody>
-            {!chat.adminHasJoined ? (
-              <p className="flex items-center gap-2 text-sm text-slate-500">
-                <Info className="h-4 w-4 shrink-0" aria-hidden />
-                You are not a participant yet. Join to view the conversation; leaving later will not affect the customer and technician.
-              </p>
+          <CardBody className="space-y-6">
+            {chat.messages.length === 0 ? (
+              <p className="text-sm text-slate-500">No messages in this conversation yet.</p>
             ) : (
-              <>
-                <ol className="space-y-4">
-                  {chat.messages.map((message) => (
-                    <Message key={message.id} message={message} chat={chat} />
-                  ))}
-                </ol>
-                {env.useMocks && <form onSubmit={submitMessage} className="mt-6 space-y-3 border-t border-slate-100 pt-4">
-                  <label htmlFor="admin-chat-message" className="sr-only">
-                    Message both participants
-                  </label>
-                  <Textarea
-                    id="admin-chat-message"
-                    value={messageText}
-                    onChange={(event) => setMessageText(event.target.value)}
-                    placeholder="Write a message to the customer and technician…"
-                    rows={3}
-                    disabled={leaveChat.isPending}
-                  />
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-slate-500">Both participants will see your message.</p>
-                    <Button
-                      type="submit"
-                      size="sm"
-                      loading={sendMessage.isPending}
-                      disabled={!messageText.trim() || leaveChat.isPending}
-                    >
-                      <Send className="h-4 w-4" aria-hidden />
-                      Send message
-                    </Button>
-                  </div>
-                </form>}
-              </>
+              <ol className="space-y-4">
+                {chat.messages.map((message: ChatMessage) => (
+                  <Message key={message.id} message={message} chat={chat} />
+                ))}
+              </ol>
             )}
+
+            <form onSubmit={handleSend} className="border-t border-slate-100 pt-4">
+              <label htmlFor="admin-chat-reply" className="mb-2 block text-xs font-medium text-slate-600">
+                Admin intervention message {chat.adminHasJoined ? '(active in thread)' : '(auto-joins thread on send)'}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="admin-chat-reply"
+                  type="text"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder="Write a guidance or moderation note to both parties…"
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none"
+                />
+                <Button type="submit" size="sm" disabled={!draft.trim() || sendMessage.isPending || joinChat.isPending}>
+                  <Send className="mr-1.5 h-4 w-4" aria-hidden />
+                  {sendMessage.isPending ? 'Sending…' : 'Send'}
+                </Button>
+              </div>
+              {actionError && <p className="mt-2 text-xs text-rose-600">{actionError}</p>}
+            </form>
           </CardBody>
         </Card>
 
@@ -276,9 +333,9 @@ export function ChatDetailView({ id }: { id: string }) {
                 {(
                   [
                     ['Problem', chat.problem],
-                    ['Customer', `${chat.customer.name} · ${formatPhone(chat.customer.phone)}`],
+                    ['Customer', customerLabel],
                     ['Technician', <Link key="t" href={`/admin/technicians/${chat.technician.id}`} className="text-brand-600 hover:text-brand-700">{chat.technician.name}</Link>],
-                    ['Messages', chat.messages.filter((m) => m.sender !== 'system').length],
+                    ['Messages', chat.messages.filter((m: ChatMessage) => m.sender !== 'system').length],
                   ] as [string, React.ReactNode][]
                 ).map(([label, value]) => (
                   <div key={label} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">

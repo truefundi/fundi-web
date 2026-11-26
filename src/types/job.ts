@@ -5,6 +5,8 @@
  */
 export type JobPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
+export type JobRequestType = 'NORMAL' | 'SOS';
+
 export const JOB_PRIORITIES: JobPriority[] = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
 
 export type BookingPaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
@@ -73,7 +75,11 @@ export const JOB_GROUP_LABEL: Record<JobGroup, string> = {
   disputed: 'Disputed',
 };
 
-export function jobGroup(status: JobStatus): JobGroup {
+export function jobGroup(jobOrStatus: Job | Pick<Job, 'status' | 'dispute'> | JobStatus): JobGroup {
+  const status = typeof jobOrStatus === 'string' ? jobOrStatus : jobOrStatus.status;
+  const dispute = typeof jobOrStatus === 'string' ? undefined : jobOrStatus.dispute;
+
+  if (dispute && !dispute.resolution) return 'disputed';
   if (status === 'OPEN') return 'matching';
   if (status === 'COMPLETED') return 'completed';
   if (status === 'CANCELLED' || status === 'FAILED') return 'cancelled';
@@ -143,7 +149,9 @@ export interface JobInput {
   longitude?: number;
   offeredAmount?: number;
   partyType?: JobRequestParty;
+  requestType?: JobRequestType;
   service: string;
+  otherServiceName?: string;
   problem: string;
   urgency: Urgency;
   location: string;

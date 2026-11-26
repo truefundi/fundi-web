@@ -130,7 +130,7 @@ export function SettingsView() {
         <Card>
           <CardHeader
             title="Commission rate"
-            description="Set Fundi’s share of the visit fee. The remainder goes to the technician."
+            description="Set Fundi’s share of the booking fee. The remainder goes to the technician."
             action={
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                 <Percent className="h-5 w-5" aria-hidden />

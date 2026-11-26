@@ -1,70 +1,75 @@
 import {
-  Briefcase,
-  CreditCard,
-  FileText,
-  HardHat,
   LayoutDashboard,
-  Megaphone,
-  MessagesSquare,
-  Send,
-  Shuffle,
+  Briefcase,
+  MessageSquare,
+  Radio,
+  GitMerge,
   Scale,
   Star,
-  Tags,
+  Wrench,
   Users,
+  ShieldCheck,
+  Tags,
+  Megaphone,
+  CreditCard,
+  FileText,
+  UserCog,
+  History,
   type LucideIcon,
 } from "lucide-react";
+import type { Permission } from "@/types/user";
 
-export interface NavItem {
+export type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-}
+  permission?: Permission; // Omit if accessible to all staff
+};
 
-export interface NavSection {
+export type NavSection = {
   title?: string;
   items: NavItem[];
-}
+};
 
-/**
- * Sidebar navigation, grouped by admin responsibility
- * (see Fundi Overall Project Description, §2 "Fundi/Admin" and §11 "Admin/operations").
- */
 export const navigation: NavSection[] = [
   {
-    items: [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
+    items: [
+      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    ],
   },
   {
     title: "Operations",
     items: [
-      { label: 'Jobs', href: '/admin/jobs', icon: Briefcase },
-      { label: 'Chats', href: '/admin/chats', icon: MessagesSquare },
-      { label: 'Broadcasts', href: '/admin/broadcasts', icon: Send },
-      { label: 'Matching', href: '/admin/matching', icon: Shuffle },
-      { label: 'Disputes', href: '/admin/disputes', icon: Scale },
-      { label: 'Ratings', href: '/admin/ratings', icon: Star },
+      { label: "Jobs", href: "/admin/jobs", icon: Briefcase, permission: "view:jobs" },
+      { label: "Chats", href: "/admin/chats", icon: MessageSquare, permission: "manage:requests" },
+      { label: "Broadcasts", href: "/admin/broadcasts", icon: Radio, permission: "manage:requests" },
+      { label: "Matching", href: "/admin/matching", icon: GitMerge, permission: "manage:requests" },
+      { label: "Disputes", href: "/admin/disputes", icon: Scale, permission: "manage:requests" },
+      { label: "Ratings", href: "/admin/ratings", icon: Star, permission: "view:jobs" },
     ],
   },
   {
     title: "People",
     items: [
-      { label: "Technicians", href: "/admin/technicians", icon: HardHat },
-      { label: "Customers", href: "/admin/customers", icon: Users },
+      { label: "Technicians", href: "/admin/technicians", icon: Wrench, permission: "manage:technicians" },
+      { label: "Customers", href: "/admin/customers", icon: Users, permission: "manage:customers" },
+      { label: "Staff", href: "/admin/staff", icon: ShieldCheck, permission: "manage:staff" },
     ],
   },
-  {
+{
     title: "Business",
     items: [
-      { label: "Categories", href: "/admin/categories", icon: Tags },
-      { label: "Landing Ads", href: "/admin/ads", icon: Megaphone },
-      { label: "Payments", href: "/admin/payments", icon: CreditCard },
-      { label: "Service Records", href: "/admin/records", icon: FileText },
+      { label: "Categories", href: "/admin/categories", icon: Tags, permission: "manage:categories" },
+      { label: "Landing Ads", href: "/admin/ads", icon: Megaphone, permission: "manage:categories" },
+      { label: "Payments", href: "/admin/payments", icon: CreditCard, permission: "manage:finance" },
+      { label: "Service Records", href: "/admin/records", icon: FileText, permission: "view:jobs" },
     ],
   },
   {
     title: "System",
     items: [
-      { label: "Users", href: "/admin/users", icon: Users },
+      { label: "Users", href: "/admin/users", icon: UserCog, permission: "manage:staff" },
+      { label: "Audit Logs", href: "/admin/audit-logs", icon: History, permission: "view:audit_logs" },
     ],
   },
 ];

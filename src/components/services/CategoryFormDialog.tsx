@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useId, useState } from 'react';
-import { Car, House, Layers } from 'lucide-react';
 import {
   Button,
   Field,
@@ -9,7 +8,7 @@ import {
   Modal,
   Textarea,
 } from '@/components/ui';
-import { SERVICE_GROUPS, type ServiceGroup } from '@/config/services';
+import type { ServiceGroup } from '@/config/services';
 
 export function CategoryFormDialog({
   open,
@@ -20,19 +19,21 @@ export function CategoryFormDialog({
   open: boolean;
   onClose: () => void;
   existingNames: string[];
-  onSave: (category: { name: string; description: string; group?: ServiceGroup }) => void;
+  onSave: (category: {
+    name: string;
+    description: string;
+    group?: ServiceGroup;
+  }) => void;
 }) {
   const id = useId();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<ServiceGroup | ''>('Home Services');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (open) {
       setName('');
       setDescription('');
-      setSelectedGroup('Home Services');
       setError('');
     }
   }, [open]);
@@ -53,38 +54,12 @@ export function CategoryFormDialog({
       return;
     }
 
-    if (!selectedGroup) {
-      setError('Choose a service group (Home, Car, or Other).');
-      return;
-    }
-
     onSave({
       name: trimmedName,
       description: description.trim() || `${trimmedName} services`,
-      group: selectedGroup,
+      group: 'Home Services',
     });
     onClose();
-  };
-
-  const groupMeta: Record<
-    ServiceGroup,
-    { label: string; desc: string; icon: typeof House }
-  > = {
-    'Home Services': {
-      label: 'Home Services',
-      desc: 'Homes & buildings',
-      icon: House,
-    },
-    'Car Services': {
-      label: 'Car Services',
-      desc: 'Cars & trucks',
-      icon: Car,
-    },
-    'Other Services': {
-      label: 'Other',
-      desc: 'Custom & other',
-      icon: Layers,
-    },
   };
 
   return (
@@ -92,7 +67,7 @@ export function CategoryFormDialog({
       open={open}
       onClose={onClose}
       title="Add a service category"
-      description="Choose which group this category belongs to, then give it a name and description."
+      description="Create a new category under Home Services by entering its name and description."
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
@@ -109,44 +84,6 @@ export function CategoryFormDialog({
           save();
         }}
       >
-        <Field label="Service group" htmlFor={`${id}-category-group`}>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {SERVICE_GROUPS.map((group) => {
-              const selected = selectedGroup === group;
-              const meta = groupMeta[group];
-              const GroupIcon = meta.icon;
-
-              return (
-                <button
-                  key={group}
-                  type="button"
-                  onClick={() => setSelectedGroup(group)}
-                  aria-pressed={selected}
-                  className={`min-w-0 rounded-xl border p-3.5 text-left transition ${
-                    selected
-                      ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <GroupIcon
-                      className={`h-4 w-4 shrink-0 ${
-                        selected ? 'text-brand-600' : 'text-slate-500'
-                      }`}
-                    />
-                    <span className="block text-sm font-semibold text-slate-900">
-                      {meta.label}
-                    </span>
-                  </div>
-                  <span className="mt-1 block text-xs text-slate-500">
-                    {meta.desc}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </Field>
-
         <Field
           label="Category name"
           htmlFor={`${id}-name`}
@@ -159,7 +96,7 @@ export function CategoryFormDialog({
               setName(e.target.value);
               setError('');
             }}
-            placeholder="e.g. Electrical, Carpentry, Tire Repair"
+            placeholder="e.g. Electrical, Plumbing, Carpentry"
             invalid={Boolean(error)}
           />
         </Field>

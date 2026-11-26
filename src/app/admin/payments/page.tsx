@@ -1,8 +1,10 @@
-import type { Metadata } from 'next';
-import { PaymentsView } from './PaymentsView';
-
-export const metadata: Metadata = { title: 'Payments' };
+import { Suspense } from 'react';
+import { PaymentsView } from '@/components/payments/PaymentsView';
 
 export default function PaymentsPage() {
-  return <PaymentsView />;
+  return (
+    <Suspense>
+      <PaymentsView />
+    </Suspense>
+  );
 }
