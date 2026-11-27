@@ -59,12 +59,15 @@ async function applyApprovedAction(request: ApprovalRequest): Promise<void> {
 }
 
 export const approvalsApi = {
-  async list(status?: ApprovalStatus): Promise<ApprovalRequest[]> {
-    return unwrap(api.get('/admin/approvals', { query: { status } }));
+  async list(
+    status?: ApprovalStatus,
+    signal?: AbortSignal,
+  ): Promise<ApprovalRequest[]> {
+    return unwrap(api.get('/admin/approvals', { query: { status }, signal }));
   },
 
-  async get(id: string): Promise<ApprovalRequest> {
-    return unwrap(api.get(`/admin/approvals/${id}`));
+  async get(id: string, signal?: AbortSignal): Promise<ApprovalRequest> {
+    return unwrap(api.get(`/admin/approvals/${id}`, { signal }));
   },
 
   async create(input: CreateApprovalInput, requester: ApprovalActor): Promise<ApprovalRequest> {

@@ -3,11 +3,69 @@ import type {
   BookingPaymentStatus,
   DisputeOutcome,
   Job,
+  JobListItem,
   JobParty,
   JobStatus,
   Urgency,
   Rating,
 } from '@/types/job';
+
+export type BackendJobListItem = Omit<BackendJob, 'dispute'> & {
+  dispute?: { id: string; resolvedAt: string | null } | null;
+};
+
+export function mapBackendJobListItem(row: BackendJobListItem): JobListItem {
+  // Never pass the summary dispute through the full-detail dispute mapper.
+  const mapped = mapBackendJob({ ...row, dispute: undefined });
+  return {
+    id: mapped.id,
+    reference: mapped.reference,
+    service: mapped.service,
+    problem: mapped.problem,
+    urgency: mapped.urgency,
+    location: mapped.location,
+    customer: mapped.customer,
+    technician: mapped.technician,
+    status: mapped.status,
+    bookingPaymentStatus: row.bookingPayment ? 'PAID' : 'PENDING',
+    bookingFee: mapped.bookingFee,
+    currency: mapped.currency,
+    createdAt: mapped.createdAt,
+    updatedAt: mapped.updatedAt,
+    completedAt: mapped.completedAt,
+    latitude: mapped.latitude,
+    longitude: mapped.longitude,
+    offeredAmount: mapped.offeredAmount,
+    visitFee: mapped.visitFee,
+    dispute: row.dispute ?? null,
+  };
+}
+
+/** A list row is enough to paint the detail shell while the full record loads. */
+export function jobListItemToJob(item: JobListItem): Job {
+  return {
+    id: item.id,
+    reference: item.reference,
+    service: item.service,
+    problem: item.problem,
+    urgency: item.urgency,
+    location: item.location,
+    customer: item.customer,
+    technician: item.technician,
+    status: item.status,
+    bookingPaymentStatus: item.bookingPaymentStatus,
+    bookingFee: item.bookingFee,
+    currency: item.currency,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    completedAt: item.completedAt,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    offeredAmount: item.offeredAmount,
+    visitFee: item.visitFee,
+    events: [],
+  };
+}
 
 export type BackendJob = {
   id: string;

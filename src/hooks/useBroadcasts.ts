@@ -10,7 +10,10 @@ const broadcastKeys = {
 };
 
 export function useBroadcasts() {
-  return useQuery({ queryKey: broadcastKeys.all, queryFn: broadcastsApi.list });
+  return useQuery({
+    queryKey: broadcastKeys.all,
+    queryFn: ({ signal }) => broadcastsApi.list(signal),
+  });
 }
 
 export function useBroadcastPreview(roles: BroadcastInput['audience']['roles']) {

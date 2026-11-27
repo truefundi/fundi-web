@@ -1,9 +1,22 @@
 'use client';
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { jobsApi } from '@/lib/api';
-import type { JobQuery } from '@/types/api';
-import type { Job, JobEditInput, JobInput, JobParty } from '@/types/job';
+import { jobListItemToJob } from '@/lib/api/adapters/jobs';
+import type { JobQuery, PaginatedResponse } from '@/types/api';
+import type {
+  Job,
+  JobEditInput,
+  JobInput,
+  JobListItem,
+  JobParty,
+} from '@/types/job';
 
 export const jobKeys = {
   all: ['jobs'] as const,
@@ -13,54 +26,60 @@ export const jobKeys = {
 };
 
 export function useJobs(query: JobQuery) {
-  return useQuery({ queryKey: jobKeys.list(query), queryFn: () => jobsApi.list(query), placeholderData: keepPreviousData });
-}
-
-export function usePaymentJobs() {
   return useQuery({
-    queryKey: [...jobKeys.all, 'payments'],
-    queryFn: async () => {
-      const pageSize = 100;
-      const firstPage = await jobsApi.list({ page: 1, pageSize });
-      const actualPageSize = firstPage.pageSize || pageSize;
-      const pageCount = Math.ceil(firstPage.total / actualPageSize);
-      const remainingPages = await Promise.all(
-        Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) =>
-          jobsApi.list({ page: index + 2, pageSize: actualPageSize }),
-        ),
-      );
-
-      return [firstPage, ...remainingPages].flatMap((result) => result.items).slice(0, firstPage.total);
-    },
-  });
-}
-
-export function useJob(id: string) {
-  return useQuery({ queryKey: jobKeys.detail(id), queryFn: () => jobsApi.get(id) });
-}
-
-export function useAllJobs() {
-  return useQuery({
-    queryKey: [...jobKeys.all, 'all-items'],
-    queryFn: async () => {
-      const pageSize = 100;
-      const firstPage = await jobsApi.list({ page: 1, pageSize });
-      const actualPageSize = firstPage.pageSize || pageSize;
-      const pageCount = Math.ceil(firstPage.total / actualPageSize);
-      const remainingPages = await Promise.all(
-        Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) =>
-          jobsApi.list({ page: index + 2, pageSize: actualPageSize }),
-        ),
-      );
-
-      return [firstPage, ...remainingPages].flatMap((result) => result.items).slice(0, firstPage.total);
-    },
+    queryKey: jobKeys.list(query),
+    queryFn: ({ signal }) => jobsApi.list(query, signal),
     placeholderData: keepPreviousData,
   });
 }
 
+export function useRatedJobs() {
+  return useQuery({
+    queryKey: [...jobKeys.all, 'ratings'],
+    queryFn: ({ signal }) => jobsApi.rated(signal),
+  });
+}
+
+export function useJob(id: string) {
+  const queryClient = useQueryClient();
+  return useQuery<Job>({
+    queryKey: jobKeys.detail(id),
+    queryFn: ({ signal }) => jobsApi.get(id, signal),
+    // Paint the row we already fetched, then replace it with the full record.
+    placeholderData: () => {
+      const cached = queryClient.getQueriesData<PaginatedResponse<JobListItem>>({
+        queryKey: ['jobs', 'list'],
+      });
+      for (const [, page] of cached) {
+        const item = page?.items.find((row) => row.id === id);
+        if (item) return jobListItemToJob(item);
+      }
+      return undefined;
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function usePrefetchJob() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (id: string) => {
+      void queryClient.prefetchQuery({
+        queryKey: jobKeys.detail(id),
+        queryFn: ({ signal }) => jobsApi.get(id, signal),
+        staleTime: 30_000,
+      });
+    },
+    [queryClient],
+  );
+}
+
 export function useJobStats() {
-  return useQuery({ queryKey: jobKeys.stats, queryFn: jobsApi.stats, placeholderData: keepPreviousData });
+  return useQuery({
+    queryKey: jobKeys.stats,
+    queryFn: ({ signal }) => jobsApi.stats(signal),
+    placeholderData: keepPreviousData,
+  });
 }
 
 /** Shared onSuccess: write the fresh job into the detail cache and refresh lists and counts. */
@@ -72,6 +91,7 @@ function useJobMutation<TVars>(mutationFn: (vars: TVars) => Promise<Job>) {
       queryClient.setQueryData(jobKeys.detail(job.id), job);
       queryClient.invalidateQueries({ queryKey: jobKeys.all });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }
@@ -95,6 +115,7 @@ export function useDeleteJob() {
       queryClient.removeQueries({ queryKey: jobKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: jobKeys.all });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
     },
   });
 }

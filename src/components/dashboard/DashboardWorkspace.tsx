@@ -1141,6 +1141,13 @@ export function DashboardWorkspace() {
 
   const query = queryState.query;
   const analytics = useDashboardAnalytics(query, queryState.ready, section);
+  const refreshableQueries = [
+    analytics.overview,
+    analytics.trends,
+    analytics.breakdowns,
+    ...(section === "quality" ? [analytics.topTechnicians] : []),
+    ...(section === "operations" ? [analytics.activity] : []),
+  ];
   const activityConnected = useDashboardActivityStream(query);
   const services = useServices();
   const overview = analytics.overview.data;
@@ -1383,7 +1390,7 @@ export function DashboardWorkspace() {
                 className="inline-flex items-center gap-1 font-medium text-brand-600 hover:text-brand-700"
                 onClick={() =>
                   void Promise.all(
-                    Object.values(analytics).map((queryResult) =>
+                    refreshableQueries.map((queryResult) =>
                       queryResult.refetch(),
                     ),
                   )
@@ -1702,12 +1709,12 @@ export function DashboardWorkspace() {
                   Monitor active client-technician chats and open a conversation to intervene.
                 </p>
               </div>
-              <a
+              <Link
                 href="/admin/chats"
                 className="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
               >
                 Open live chats
-              </a>
+              </Link>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">

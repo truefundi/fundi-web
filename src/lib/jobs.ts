@@ -62,10 +62,10 @@ export function formatWait(sinceIso: string, now = Date.now()): string {
 }
 
 /** Urgent jobs need admin attention sooner. */
-export const waitLimitMinutes = (job: Job) =>
+export const waitLimitMinutes = (job: Pick<Job, 'urgency'>) =>
   job.urgency === 'URGENT' ? 15 : 60;
 
-export const isOverdue = (job: Job, now = Date.now()) =>
+export const isOverdue = (job: Pick<Job, 'urgency' | 'createdAt'>, now = Date.now()) =>
   now - Date.parse(job.createdAt) > waitLimitMinutes(job) * 60_000;
 
 /** Total billed by the technician, including unapproved extra work. */

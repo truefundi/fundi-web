@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Banknote,
@@ -47,15 +47,18 @@ import {
   useExtendPayment,
   usePaymentClaims,
   usePayments,
+  usePaymentSummary,
   useReviewPaymentClaim,
   useUpdateCompletedPayment,
 } from '@/hooks/usePayments';
+import { useDebouncedSearch } from '@/hooks/useUrlFilters';
 import { useLogAdminAction, useUsers } from '@/hooks/useUsers';
 import type {
   BookingPayment,
   BookingPaymentStatus,
   PaymentClaim,
   PaymentClaimStatus,
+  PaymentQuery,
 } from '@/lib/api/endpoints/payments';
 import { formatMoney } from '@/lib/jobs';
 import { cn, formatDate } from '@/lib/utils';
@@ -140,21 +143,6 @@ function getAssignedTechnicianName(payment: BookingPayment): string {
   return activeOrLatest?.technicianName ?? 'Unassigned';
 }
 
-function matchesSearch(payment: BookingPayment, term: string): boolean {
-  if (!term) return true;
-
-  return [
-    payment.externalPaymentId,
-    payment.customer.fullName,
-    payment.customer.phoneNumber,
-    payment.phoneNumber,
-    payment.serviceCategory.name,
-    payment.job?.id ?? '',
-    payment.job?.description ?? '',
-    getAssignedTechnicianName(payment),
-  ].some((value) => value.toLowerCase().includes(term));
-}
-
 export function PaymentsView() {
   const router = useRouter();
   const toast = useToast();
@@ -168,15 +156,54 @@ export function PaymentsView() {
     'ACCOUNTANT') as UserRole;
 
   const [activeTab, setActiveTab] = useState<FinanceTab>('booking-fees');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [status, setStatus] = useState<StatusFilter>('all');
+  const [page, setPage] = useState(1);
+  const [completedPage, setCompletedPage] = useState(1);
+  const [sortBy, setSortBy] = useState<PaymentQuery['sortBy']>('paidAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [search, updateSearch] = useDebouncedSearch(searchTerm, (value) => {
+    setSearchTerm(value);
+    setPage(1);
+  });
 
   const {
-    data: payments = [],
+    data: paymentPage,
     isLoading,
     isError,
     error,
     refetch,
     isFetching,
-  } = usePayments();
+  } = usePayments(
+    {
+      page,
+      limit: PAGE_SIZE,
+      search: searchTerm || undefined,
+      status: status === 'all' ? undefined : status,
+      sortBy,
+      sortOrder,
+    },
+    activeTab === 'booking-fees',
+  );
+  const summary = usePaymentSummary();
+  const completed = usePayments(
+    { page: completedPage, limit: PAGE_SIZE, status: 'COMPLETED' },
+    activeTab === 'technician-payouts',
+  );
+  const payments = paymentPage?.data ?? [];
+  const completedJobPayments = completed.data?.data ?? [];
+  // After deletion, move back to the last available page instead of trapping
+  // users on an empty page whose pagination controls would be hidden.
+  useEffect(() => {
+    if (paymentPage && !isFetching && page > Math.max(1, paymentPage.pagination.totalPages)) {
+      setPage(Math.max(1, paymentPage.pagination.totalPages));
+    }
+  }, [paymentPage, isFetching, page]);
+  useEffect(() => {
+    if (completed.data && !completed.isFetching && completedPage > Math.max(1, completed.data.pagination.totalPages)) {
+      setCompletedPage(Math.max(1, completed.data.pagination.totalPages));
+    }
+  }, [completed.data, completed.isFetching, completedPage]);
 
   const [claimFilter, setClaimFilter] = useState<ClaimFilter>('ALL');
   const {
@@ -185,7 +212,10 @@ export function PaymentsView() {
     isError: isClaimsError,
     error: claimsError,
     refetch: refetchClaims,
-  } = usePaymentClaims(claimFilter === 'ALL' ? undefined : claimFilter);
+  } = usePaymentClaims(
+    claimFilter === 'ALL' ? undefined : claimFilter,
+    activeTab === 'payment-claims',
+  );
 
   const extendPayment = useExtendPayment();
   const reviewClaim = useReviewPaymentClaim();
@@ -193,15 +223,14 @@ export function PaymentsView() {
   const updateCompletedPayment = useUpdateCompletedPayment();
   const deleteCompletedPayment = useDeleteCompletedPayment();
 
-  const { data: staffData, isLoading: isStaffLoading } = useUsers({
-    role: 'ADMIN',
-    page: 1,
-    pageSize: 50,
-  });
-
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<StatusFilter>('all');
-  const [page, setPage] = useState(1);
+  const { data: staffData, isLoading: isStaffLoading } = useUsers(
+    {
+      role: 'ADMIN',
+      page: 1,
+      pageSize: 50,
+    },
+    activeTab === 'staff-payroll',
+  );
 
   const [paidJobIds, setPaidJobIds] = useState<Record<string, boolean>>({});
   const [paidStaffIds, setPaidStaffIds] = useState<Record<string, string>>({});
@@ -224,69 +253,20 @@ export function PaymentsView() {
     paidAt: '',
   });
 
-  const completedJobPayments = useMemo(
-    () => payments.filter((p) => p.status === 'COMPLETED'),
-    [payments],
-  );
-
-  const stats = useMemo(() => {
-    const totalCollected = payments.reduce(
-      (sum, payment) => sum + payment.amount,
-      0,
-    );
-
-    const activeBookings = payments
-      .filter((payment) =>
-        ['VALID', 'PAUSED', 'RESUMED'].includes(payment.status),
-      )
-      .reduce((sum, payment) => sum + payment.amount, 0);
-
-    const expiredBookings = payments
-      .filter((payment) => payment.status === 'EXPIRED')
-      .reduce((sum, payment) => sum + payment.amount, 0);
-
-    const completedBookings = completedJobPayments.reduce(
-      (sum, payment) => sum + payment.amount,
-      0,
-    );
-
-    return {
-      totalCollected,
-      activeBookings,
-      expiredBookings,
-      completedBookings,
-    };
-  }, [payments, completedJobPayments]);
-
-  const filteredPayments = useMemo(() => {
-    const term = search.trim().toLowerCase();
-
-    return payments
-      .filter(
-        (payment) =>
-          matchesSearch(payment, term) &&
-          (status === 'all' || payment.status === status),
-      )
-      .sort((a, b) => Date.parse(b.paidAt) - Date.parse(a.paidAt));
-  }, [payments, search, status]);
-
-  const pageCount = Math.max(
-    1,
-    Math.ceil(filteredPayments.length / PAGE_SIZE),
-  );
-  const currentPage = Math.min(page, pageCount);
-  const visiblePayments = filteredPayments.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  const updateSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
+  const amountFor = (...statuses: BookingPaymentStatus[]) =>
+    summary.data?.byStatus
+      .filter((row) => statuses.includes(row.status))
+      .reduce((total, row) => total + row.amount, 0) ?? 0;
+  const stats = {
+    totalCollected: summary.data?.amount ?? 0,
+    activeBookings: amountFor('VALID', 'PAUSED', 'RESUMED'),
+    expiredBookings: amountFor('EXPIRED'),
+    completedBookings: amountFor('COMPLETED'),
   };
 
   const clearFilters = () => {
-    setSearch('');
+    updateSearch('');
+    setSearchTerm('');
     setStatus('all');
     setPage(1);
   };
@@ -527,36 +507,39 @@ export function PaymentsView() {
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total booking fees"
-          value={isError ? '—' : formatMoney(stats.totalCollected)}
+          value={summary.isError ? '—' : formatMoney(stats.totalCollected)}
           hint="All booking payment records"
           icon={Banknote}
-          loading={isLoading}
+          loading={summary.isLoading}
         />
 
         <StatCard
           label="Active bookings"
-          value={isError ? '—' : formatMoney(stats.activeBookings)}
+          value={summary.isError ? '—' : formatMoney(stats.activeBookings)}
           hint="Valid, paused and resumed payments"
           icon={CheckCircle2}
-          loading={isLoading}
+          loading={summary.isLoading}
         />
 
         <StatCard
           label="Expired bookings"
-          value={isError ? '—' : formatMoney(stats.expiredBookings)}
+          value={summary.isError ? '—' : formatMoney(stats.expiredBookings)}
           hint="Booking payments past their validity"
           icon={CalendarClock}
-          loading={isLoading}
+          loading={summary.isLoading}
         />
 
         <StatCard
           label="Completed bookings"
-          value={isError ? '—' : formatMoney(stats.completedBookings)}
+          value={summary.isError ? '—' : formatMoney(stats.completedBookings)}
           hint="Payments linked to completed jobs"
           icon={CreditCard}
-          loading={isLoading}
+          loading={summary.isLoading}
         />
       </div>
+
+      {summary.isError && <ErrorState message={summary.error.message} onRetry={() => summary.refetch()} />}
+      {summary.data && <p className="mb-4 text-xs text-slate-500">All booking records · totals generated {new Date(summary.data.generatedAt).toLocaleTimeString()}</p>}
 
       <div className="mb-4 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         <button
@@ -570,7 +553,7 @@ export function PaymentsView() {
           )}
         >
           <CreditCard className="h-4 w-4" />
-          Booking Fees ({payments.length})
+          Booking Fees ({summary.data?.total ?? '—'})
         </button>
 
         <button
@@ -584,7 +567,7 @@ export function PaymentsView() {
           )}
         >
           <FileCheck2 className="h-4 w-4" />
-          Payment Claims ({claims.length})
+          Payment Claims{activeTab === 'payment-claims' ? ` (${claims.length})` : ''}
         </button>
 
         <button
@@ -598,7 +581,7 @@ export function PaymentsView() {
           )}
         >
           <Wallet className="h-4 w-4" />
-          Technician Payouts ({completedJobPayments.length})
+          Technician Payouts ({summary.data?.byStatus.find((row) => row.status === 'COMPLETED')?.count ?? '—'})
         </button>
 
         <button
@@ -626,12 +609,11 @@ export function PaymentsView() {
             }
           >
             <div className="space-y-3 border-b border-slate-100 p-4">
-              <div className="flex flex-col gap-3 md:flex-row">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <SearchInput
                   value={search}
                   onChange={updateSearch}
-                  placeholder="Search transaction, customer, technician, or service"
-                  className="md:flex-1"
+                  placeholder="Search transaction, customer, job reference, or service"
                 />
 
                 <Select
@@ -641,7 +623,6 @@ export function PaymentsView() {
                     setPage(1);
                   }}
                   aria-label="Filter by booking payment status"
-                  className="md:w-56"
                 >
                   <option value="all">All statuses</option>
                   {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -649,6 +630,15 @@ export function PaymentsView() {
                       {label}
                     </option>
                   ))}
+                </Select>
+                <Select value={sortBy} onChange={(event) => { setSortBy(event.target.value as PaymentQuery['sortBy']); setPage(1); }} aria-label="Sort payments by">
+                  <option value="paidAt">Payment date</option>
+                  <option value="createdAt">Created date</option>
+                  <option value="amount">Amount</option>
+                  <option value="validUntil">Valid until</option>
+                </Select>
+                <Select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value as 'asc' | 'desc'); setPage(1); }} aria-label="Payment sort direction">
+                  <option value="desc">Descending</option><option value="asc">Ascending</option>
                 </Select>
               </div>
             </div>
@@ -658,16 +648,16 @@ export function PaymentsView() {
                 message={error?.message ?? 'Could not load booking payments.'}
                 onRetry={() => refetch()}
               />
-            ) : !isLoading && filteredPayments.length === 0 ? (
+            ) : !isLoading && payments.length === 0 ? (
               <EmptyState
                 icon={CreditCard}
                 title={
-                  payments.length === 0
+                  !searchTerm && status === 'all'
                     ? 'No booking payments yet'
                     : 'No payments found'
                 }
                 description={
-                  payments.length === 0
+                  !searchTerm && status === 'all'
                     ? 'Booking fee transactions will appear here when customers make payments.'
                     : 'Try changing your search or status filter.'
                 }
@@ -692,7 +682,7 @@ export function PaymentsView() {
                     {isLoading ? (
                       <TableSkeleton columns={8} />
                     ) : (
-                      visiblePayments.map((payment) => (
+                       payments.map((payment) => (
                         <Tr
                           key={payment.id}
                           onClick={
@@ -783,22 +773,15 @@ export function PaymentsView() {
                   </tbody>
                 </Table>
 
-                {filteredPayments.length > 0 && (
-                  <Pagination
-                    page={currentPage}
-                    pageSize={PAGE_SIZE}
-                    total={filteredPayments.length}
-                    onPageChange={setPage}
-                  />
-                )}
               </>
             )}
+            {paymentPage && !isError && <Pagination page={paymentPage.pagination.page} pageSize={paymentPage.pagination.limit} total={paymentPage.pagination.total} disabled={isFetching} onPageChange={setPage} />}
           </Card>
 
           {!isLoading &&
             !isError &&
-            payments.length > 0 &&
-            filteredPayments.length === 0 && (
+            Boolean(searchTerm || status !== 'all') &&
+            payments.length === 0 && (
               <div className="mt-3 flex justify-center">
                 <Button variant="secondary" size="sm" onClick={clearFilters}>
                   Clear filters
@@ -1039,12 +1022,12 @@ export function PaymentsView() {
             )}
           </div>
 
-          {isError ? (
+          {completed.isError ? (
             <ErrorState
-              message={error?.message ?? 'Could not load completed payments.'}
-              onRetry={() => refetch()}
+              message={completed.error.message}
+              onRetry={() => completed.refetch()}
             />
-          ) : !isLoading && completedJobPayments.length === 0 ? (
+          ) : !completed.isLoading && completedJobPayments.length === 0 ? (
             <EmptyState
               icon={Wallet}
               title="No completed job payments yet"
@@ -1063,7 +1046,7 @@ export function PaymentsView() {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? (
+                {completed.isLoading ? (
                   <TableSkeleton columns={6} />
                 ) : (
                   completedJobPayments.map((payment) => {
@@ -1195,6 +1178,7 @@ export function PaymentsView() {
               </tbody>
             </Table>
           )}
+          {completed.data && !completed.isError && <Pagination page={completed.data.pagination.page} pageSize={completed.data.pagination.limit} total={completed.data.pagination.total} disabled={completed.isFetching} onPageChange={setCompletedPage} />}
         </Card>
       )}
 

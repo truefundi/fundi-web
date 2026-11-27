@@ -1,4 +1,5 @@
 import { api, unwrap } from '../client';
+import type { AdminPage } from '@/types/api';
 
 export type BookingPaymentStatus =
   | 'VALID'
@@ -54,7 +55,7 @@ export interface BookingPayment {
     createdAt: string;
     completedAt: string | null;
     assignmentHistory: {
-      technicianId: string;
+      technicianId: string | null;
       technicianName: string;
       acceptedAt: string;
       endedAt: string | null;
@@ -120,9 +121,59 @@ export interface UpdateCompletedPaymentInput {
   paidAt?: string;
 }
 
+export interface PaymentFilters {
+  search?: string;
+  status?: BookingPaymentStatus;
+  requestType?: JobRequestType;
+  customerId?: string;
+  serviceCategoryId?: string;
+  from?: string;
+  to?: string;
+}
+
+export interface PaymentQuery extends PaymentFilters {
+  page?: number;
+  limit?: number;
+  sortBy?: 'paidAt' | 'createdAt' | 'amount' | 'validUntil';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaymentSummary {
+  total: number;
+  amount: number;
+  currency: string;
+  byStatus: { status: BookingPaymentStatus; count: number; amount: number }[];
+  generatedAt: string;
+}
+
 export const paymentsApi = {
-  list(): Promise<BookingPayment[]> {
-    return unwrap(api.get<BookingPayment[]>('/admin/payments'));
+  list(
+    query: PaymentQuery = {},
+    signal?: AbortSignal,
+  ): Promise<AdminPage<BookingPayment>> {
+    return unwrap(
+      api.get<AdminPage<BookingPayment>>('/admin/payments', {
+        query: {
+          ...query,
+          search: query.search?.trim() || undefined,
+          page: query.page ?? 1,
+          limit: query.limit ?? 20,
+        },
+        signal,
+      }),
+    );
+  },
+
+  summary(
+    filters: PaymentFilters = {},
+    signal?: AbortSignal,
+  ): Promise<PaymentSummary> {
+    return unwrap(
+      api.get<PaymentSummary>('/admin/payments/summary', {
+        query: { ...filters, search: filters.search?.trim() || undefined },
+        signal,
+      }),
+    );
   },
 
   extend(paymentId: string, body: ExtendPaymentInput): Promise<BookingPayment> {
@@ -171,9 +222,14 @@ export const paymentsApi = {
     );
   },
 
-listClaims(status?: PaymentClaimStatus): Promise<PaymentClaim[]> {
+  listClaims(
+    status?: PaymentClaimStatus,
+    signal?: AbortSignal,
+  ): Promise<PaymentClaim[]> {
     const query = status ? `?status=${encodeURIComponent(status)}` : '';
-    return unwrap(api.get<PaymentClaim[]>(`/admin/payment-claims${query}`));
+    return unwrap(
+      api.get<PaymentClaim[]>(`/admin/payment-claims${query}`, { signal }),
+    );
   },
 
   reviewClaim(

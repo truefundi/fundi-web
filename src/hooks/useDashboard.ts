@@ -23,31 +23,35 @@ export function useDashboardAnalytics(
   return {
     overview: useQuery({
       queryKey: [...queryKey, "overview"],
-      queryFn: () => dashboardApi.overview(query),
+      queryFn: ({ signal }) => dashboardApi.overview(query, signal),
+      staleTime: 15_000,
       refetchInterval: 60_000,
       enabled,
     }),
     trends: useQuery({
       queryKey: [...queryKey, "trends"],
-      queryFn: () => dashboardApi.trends(query),
+      queryFn: ({ signal }) => dashboardApi.trends(query, signal),
+      staleTime: 15_000,
       refetchInterval: 60_000,
       enabled,
     }),
     breakdowns: useQuery({
       queryKey: [...queryKey, "breakdowns"],
-      queryFn: () => dashboardApi.breakdowns(query),
+      queryFn: ({ signal }) => dashboardApi.breakdowns(query, signal),
+      staleTime: 15_000,
       refetchInterval: 60_000,
       enabled,
     }),
     topTechnicians: useQuery({
       queryKey: [...queryKey, "top-technicians"],
-      queryFn: () => dashboardApi.topTechnicians(query),
+      queryFn: ({ signal }) => dashboardApi.topTechnicians(query, signal),
+      staleTime: 15_000,
       refetchInterval: 60_000,
       enabled: enabled && section === "quality",
     }),
     activity: useQuery({
       queryKey: [...queryKey, "activity"],
-      queryFn: () => dashboardApi.activity({ ...query, limit: 8 }),
+      queryFn: ({ signal }) => dashboardApi.activity({ ...query, limit: 8 }, signal),
       refetchInterval: 30_000,
       enabled: enabled && section === "operations",
     }),
@@ -62,14 +66,16 @@ export function useDashboardActivityStream(query: DashboardQuery) {
     setConnected(false);
     const url = `${env.apiUrl.replace(/\/$/, "")}/admin/dashboard/events`;
     const stream = new EventSource(url, { withCredentials: true });
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
     const invalidateActivity = () => {
       setConnected(true);
-      void queryClient.invalidateQueries({
-        queryKey: [...dashboardKeys.analytics(query), "activity"],
-      });
-      void queryClient.invalidateQueries({
-        queryKey: [...dashboardKeys.analytics(query), "overview"],
-      });
+      // One poll can deliver many audit rows. Refresh active charts once per
+      // burst, rather than cancelling/restarting requests for every event.
+      if (refreshTimer !== undefined) return;
+      refreshTimer = setTimeout(() => {
+        refreshTimer = undefined;
+        void queryClient.invalidateQueries({ queryKey: dashboardKeys.analytics(query) });
+      }, 250);
     };
     const markDisconnected = () => setConnected(false);
 
@@ -77,6 +83,7 @@ export function useDashboardActivityStream(query: DashboardQuery) {
     stream.onerror = markDisconnected;
     stream.addEventListener("dashboard.activity", invalidateActivity);
     return () => {
+      clearTimeout(refreshTimer);
       stream.removeEventListener("dashboard.activity", invalidateActivity);
       stream.close();
     };
@@ -88,11 +95,14 @@ export function useDashboardActivityStream(query: DashboardQuery) {
 export function useJobSummary() {
   return useQuery({
     queryKey: dashboardKeys.jobSummary,
-    queryFn: () =>
-      dashboardApi.overview({
-        period: "currentMonth",
-        timezone: "Africa/Kigali",
-      }),
+    queryFn: ({ signal }) =>
+      dashboardApi.overview(
+        {
+          period: "currentMonth",
+          timezone: "Africa/Kigali",
+        },
+        signal,
+      ),
     select: (overview) => ({
       active: overview.jobs.createdByStatusAndRequestType
         .filter(

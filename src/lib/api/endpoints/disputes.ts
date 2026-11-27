@@ -26,14 +26,16 @@ const OUTCOME_TO_API: Record<DisputeOutcome, 'CUSTOMER' | 'TECHNICIAN' | 'PARTIA
 };
 
 export const disputesApi = {
-  async list(state: DisputeState): Promise<Job[]> {
-    const response = await unwrap<BackendJob[]>(api.get('/admin/disputes', { query: { state } }));
+  async list(state: DisputeState, signal?: AbortSignal): Promise<Job[]> {
+    const response = await unwrap<BackendJob[]>(
+      api.get('/admin/disputes', { query: { state }, signal }),
+    );
     return (response || []).map(mapBackendJob);
   },
 
-  async get(jobId: string): Promise<DisputeCase> {
+  async get(jobId: string, signal?: AbortSignal): Promise<DisputeCase> {
     const response = await unwrap<{ job: BackendJob; chat?: BackendConversation | null }>(
-      api.get(`/admin/disputes/${jobId}`),
+      api.get(`/admin/disputes/${jobId}`, { signal }),
     );
     return {
       job: mapBackendJob(response.job),

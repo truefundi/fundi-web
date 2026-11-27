@@ -6,9 +6,9 @@ export const broadcastsApi = {
     return unwrap(api.post('/admin/broadcasts/preview', audience));
   },
 
-  async list(): Promise<BroadcastRecord[]> {
+  async list(signal?: AbortSignal): Promise<BroadcastRecord[]> {
     const response = await unwrap<{ items: BroadcastRecord[] }>(
-      api.get('/admin/broadcasts', { query: { limit: 100 } }),
+      api.get('/admin/broadcasts', { query: { limit: 100 }, signal }),
     );
     return response.items;
   },

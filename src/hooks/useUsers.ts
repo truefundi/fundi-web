@@ -126,7 +126,7 @@ function matchesQuery(
   return true;
 }
 
-export function useUsers(query: UserQuery) {
+export function useUsers(query: UserQuery, enabled = true) {
   const isStaffSubRole =
     query.role && STAFF_ROLES.includes(query.role as StaffRole);
 
@@ -137,14 +137,14 @@ export function useUsers(query: UserQuery) {
 
   return useQuery({
     queryKey: userKeys.list(query),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       let baseItems: ManagedStaffRecord[] = [];
       let basePage = query.page ?? 1;
       let basePageSize = query.pageSize ?? 10;
       let baseTotal = 0;
 
       try {
-        const response = await usersApi.list(backendQuery);
+        const response = await usersApi.list(backendQuery, signal);
         basePage = response.page;
         basePageSize = response.pageSize;
         baseTotal = response.total;
@@ -161,7 +161,9 @@ export function useUsers(query: UserQuery) {
             staffRole: effectiveRole,
           };
         });
-      } catch {
+      } catch (error) {
+        // Never mask query cancellation as an empty staff list.
+        if (signal.aborted) throw error;
         // Fallback smoothly when backend endpoint is unavailable
         baseItems = [];
       }
@@ -231,6 +233,7 @@ export function useUsers(query: UserQuery) {
       };
     },
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 

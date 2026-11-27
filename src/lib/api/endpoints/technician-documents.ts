@@ -83,12 +83,22 @@ export const technicianDocumentsApi = {
     return unwrap(api.post(`/admin/technicians/${technicianId}/documents`, form));
   },
 
-  async list(technicianId: string): Promise<TechnicianDocumentRecord[]> {
-    return unwrap(api.get(`/admin/technicians/${technicianId}/documents`));
+  async list(
+    technicianId: string,
+    signal?: AbortSignal,
+  ): Promise<TechnicianDocumentRecord[]> {
+    return unwrap(
+      api.get(`/admin/technicians/${technicianId}/documents`, { signal }),
+    );
   },
 
-  async checklist(technicianId: string): Promise<VerificationChecklistResponse> {
-    return unwrap(api.get(`/admin/technicians/${technicianId}/verification-checklist`));
+  async checklist(
+    technicianId: string,
+    signal?: AbortSignal,
+  ): Promise<VerificationChecklistResponse> {
+    return unwrap(
+      api.get(`/admin/technicians/${technicianId}/verification-checklist`, { signal }),
+    );
   },
 
   async review(

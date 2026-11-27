@@ -63,6 +63,31 @@ function errorMessage(body: unknown, fallback: string): string {
   return fallback;
 }
 
+/** Combine a query's cancellation signal with the client's own timeout. */
+function combineSignals(
+  signals: Array<AbortSignal | null | undefined>,
+): AbortSignal {
+  const active = signals.filter((signal): signal is AbortSignal => Boolean(signal));
+  if (active.length === 0) return new AbortController().signal;
+
+  const anySignal = (
+    AbortSignal as unknown as {
+      any?: (items: AbortSignal[]) => AbortSignal;
+    }
+  ).any;
+  if (anySignal) return anySignal(active);
+
+  const combined = new AbortController();
+  for (const signal of active) {
+    if (signal.aborted) {
+      combined.abort(signal.reason);
+      break;
+    }
+    signal.addEventListener('abort', () => combined.abort(signal.reason), { once: true });
+  }
+  return combined.signal;
+}
+
 export async function request<T>(
   endpoint: string,
   options: RequestOptions = {},
@@ -71,7 +96,13 @@ export async function request<T>(
   const { body, query, timeoutMs = env.apiTimeoutMs, headers, ...init } = options;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const externalSignal = init.signal;
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const signal = combineSignals([controller.signal, externalSignal]);
 
   try {
     const response = await fetch(buildUrl(endpoint, query), {
@@ -84,8 +115,13 @@ export async function request<T>(
         ...headers,
       },
       body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
-      signal: init.signal ?? controller.signal,
+      signal,
     });
+
+    // Some fetch implementations resolve even when a signal aborts mid-flight.
+    if (externalSignal?.aborted) {
+      throw externalSignal.reason ?? new DOMException('Request cancelled', 'AbortError');
+    }
 
     if (response.status === 401 && (!endpoint.startsWith('/auth/admin/') || endpoint === '/auth/admin/me')) {
       if (!retried && await refreshSession()) return request<T>(endpoint, options, true);
@@ -103,7 +139,14 @@ export async function request<T>(
 
     return { data: data as T, statusCode: response.status };
   } catch (err) {
-    const aborted = err instanceof DOMException && err.name === 'AbortError';
+    // Query cancellation is not a server failure. Propagate it so TanStack
+    // Query can discard the result instead of treating it as an error/retry.
+    if (externalSignal?.aborted) {
+      throw externalSignal.reason ?? new DOMException('Request cancelled', 'AbortError');
+    }
+
+    const aborted =
+      timedOut || (err instanceof DOMException && err.name === 'AbortError');
 
     return {
       error: aborted

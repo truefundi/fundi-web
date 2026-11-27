@@ -34,11 +34,14 @@ async function readLive(profile: Promise<BackendTechnician> | BackendTechnician)
 }
 
 export const techniciansApi = {
-  async list(query: TechnicianQuery = {}): Promise<PaginatedResponse<Technician>> {
+  async list(
+    query: TechnicianQuery = {},
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Technician>> {
     const response = await unwrap(
       api.get<{ data: BackendTechnician[]; pagination: { page: number; limit: number; total: number } }>(
         '/admin/technicians',
-        { query: toLiveQuery(query) },
+        { query: toLiveQuery(query), signal },
       ),
     );
     return {
@@ -49,8 +52,10 @@ export const techniciansApi = {
     };
   },
 
-  async get(id: string): Promise<Technician> {
-    return readLive(unwrap(api.get<BackendTechnician>(`/admin/technicians/${id}`)));
+  async get(id: string, signal?: AbortSignal): Promise<Technician> {
+    return readLive(
+      unwrap(api.get<BackendTechnician>(`/admin/technicians/${id}`, { signal })),
+    );
   },
 
   async update(id: string, patch: TechnicianProfilePatch): Promise<Technician> {

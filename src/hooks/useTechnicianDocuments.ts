@@ -11,14 +11,14 @@ export const technicianDocumentKeys = {
 export function useTechnicianDocuments(technicianId: string) {
   return useQuery({
     queryKey: technicianDocumentKeys.list(technicianId),
-    queryFn: () => technicianDocumentsApi.list(technicianId),
+    queryFn: ({ signal }) => technicianDocumentsApi.list(technicianId, signal),
   });
 }
 
 export function useTechnicianVerificationChecklist(technicianId: string) {
   return useQuery({
     queryKey: technicianDocumentKeys.checklist(technicianId),
-    queryFn: () => technicianDocumentsApi.checklist(technicianId),
+    queryFn: ({ signal }) => technicianDocumentsApi.checklist(technicianId, signal),
   });
 }
 
