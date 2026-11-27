@@ -1,3 +1,5 @@
+'use client';
+
 import { ChevronRight } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui';
 import { useJobPipeline } from '@/hooks/useDashboard';

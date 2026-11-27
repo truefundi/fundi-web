@@ -1702,12 +1702,12 @@ export function DashboardWorkspace() {
                   Monitor active client-technician chats and open a conversation to intervene.
                 </p>
               </div>
-              <a
+              <Link
                 href="/admin/chats"
                 className="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
               >
                 Open live chats
-              </a>
+              </Link>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
