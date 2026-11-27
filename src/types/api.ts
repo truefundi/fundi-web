@@ -75,6 +75,19 @@ export interface JobSummary {
   openDisputes: number | null;
 }
 
+export interface JobPipelineStage {
+  key: string;
+  label: string;
+  count: number | null;
+  tracked: boolean;
+  description: string;
+}
+
+export interface JobPipeline {
+  stages: JobPipelineStage[];
+  generatedAt: string;
+}
+
 export type ServiceState = 'up' | 'down' | 'degraded';
 
 export interface HealthStatus {

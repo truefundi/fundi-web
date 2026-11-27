@@ -1,3 +1,4 @@
+import type { JobPipeline } from "@/types/api";
 import type {
   DashboardActivityPage,
   DashboardBreakdowns,
@@ -22,6 +23,10 @@ export const dashboardApi = {
 
   async overview(query: DashboardQuery): Promise<DashboardOverview> {
     return unwrap(api.get("/admin/dashboard/overview", { query }));
+  },
+
+  async jobPipeline(): Promise<JobPipeline> {
+    return unwrap(api.get("/admin/jobs/pipeline"));
   },
 
   trends(query: DashboardQuery): Promise<DashboardTrends> {

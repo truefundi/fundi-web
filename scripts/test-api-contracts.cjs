@@ -92,24 +92,54 @@ test("invalid login preserves the 2FA flow and surfaces validation errors", asyn
 });
 test("category writes preserve zero fees and metadata", async () => {
   mockFetch((url, options) => {
-    assert.equal(url, "/api/v1/catalog/categories");
+    if (options.method === "POST") {
+      assert.equal(url, "/api/v1/catalog/services");
+      const body = JSON.parse(options.body);
+      assert.equal(body.categoryId, "cat-1");
+      assert.equal(body.bookingFee, 0);
+      assert.equal(body.emergencyVisitFee, 0);
+      assert.equal(body.description, "Fix leaks");
+      return reply({
+        ...body,
+        id: "service-1",
+        isActive: true,
+        createdAt: "2026-11-09",
+        updatedAt: "2026-11-09",
+        category: { id: "cat-1", name: "Mechanical" },
+      });
+    }
+    assert.equal(url, "/api/v1/catalog/services/service-1");
     const body = JSON.parse(options.body);
-    assert.equal(body.bookingFee, 0);
-    assert.equal(body.emergencyVisitFee, 0);
-    assert.equal(body.description, "Fix leaks");
     assert.equal(body.isActive, false);
-    return reply({ ...body, id: "category", createdAt: "2026-11-09" });
+    return reply({
+      ...body,
+      id: "service-1",
+      createdAt: "2026-11-09",
+      updatedAt: "2026-11-09",
+      category: { id: "cat-1", name: "Mechanical" },
+    });
   });
-  const service = await servicesApi.create({
+  const created = await servicesApi.create({
     name: "Plumbing",
+    categoryId: "cat-1",
     category: "Mechanical",
     description: "Fix leaks",
     visitFee: 0,
     emergencyVisitFee: 0,
     isActive: false,
   });
-  assert.equal(service.visitFee, 0);
-  assert.equal(service.emergencyVisitFee, 0);
+  assert.equal(created.visitFee, 0);
+  assert.equal(created.emergencyVisitFee, 0);
+  const updated = await servicesApi.update("service-1", {
+    name: "Plumbing",
+    categoryId: "cat-1",
+    category: "Mechanical",
+    description: "Fix leaks",
+    visitFee: 0,
+    emergencyVisitFee: 0,
+    isActive: false,
+  });
+  assert.equal(updated.isActive, false);
 });
 test("broadcasts use preview POST and paginated history", async () => {
   mockFetch((url, options) => {
@@ -157,7 +187,7 @@ test("ratings are persisted and booking amounts are mapped", async () => {
 });
 test("job creation includes payment and verified phone prerequisites", async () => {
   mockFetch((url, options) => {
-    if (url.endsWith("/catalog/categories"))
+    if (url.endsWith("/catalog/admin/services"))
       return reply([{ id: "category", name: "Plumbing" }]);
     const body = JSON.parse(options.body);
     assert.equal(body.paymentId, "payment");
@@ -176,7 +206,7 @@ test("job creation includes payment and verified phone prerequisites", async () 
     service: "Plumbing",
     problem: "Fix leaking pipe",
     location: "Kigali",
-    urgency: "Today",
+    urgency: "HIGH",
     latitude: -1,
     longitude: 30,
     offeredAmount: 20000,
@@ -186,10 +216,10 @@ test("job creation includes payment and verified phone prerequisites", async () 
   assert.equal(job.latitude, -1);
   assert.equal(job.offeredAmount, 20000);
 });
-test("conversation filters use backend enums and omit empty search", async () => {
+test("conversation filters omit empty search when listing chat rooms", async () => {
   mockFetch((url) => {
-    assert.equal(url, "/api/v1/admin/conversations?status=AGREED");
-    return reply({ data: [] });
+    assert.equal(url, "/api/v1/admin/chat/rooms?status=agreed");
+    return reply([]);
   });
   assert.deepEqual(await chatsApi.list({ status: "agreed", search: "" }), []);
 });
