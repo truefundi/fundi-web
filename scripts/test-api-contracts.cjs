@@ -204,7 +204,7 @@ test("all-user pagination uses one backend page instead of merging role pages", 
     200,
   );
 });
-test("technician identity updates target linked user ID", async () => {
+test("technician identity updates use the admin profile endpoint", async () => {
   const profile = {
     id: "profile",
     user: {
@@ -218,7 +218,7 @@ test("technician identity updates target linked user ID", async () => {
   let updates = 0;
   mockFetch((url, options) => {
     if (options.method === "PATCH") {
-      assert.equal(url, "/api/v1/users/user");
+      assert.equal(url, "/api/v1/admin/technicians/profile");
       assert.deepEqual(JSON.parse(options.body), { fullName: "Jane Doe" });
       updates++;
     }

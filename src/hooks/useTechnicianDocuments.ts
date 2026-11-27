@@ -29,6 +29,7 @@ export function useReviewTechnicianDocument() {
       technicianDocumentsApi.review(documentId, status, reviewNote),
     onSuccess: (document) => {
       queryClient.invalidateQueries({ queryKey: technicianDocumentKeys.list(document.technicianId) });
+      queryClient.invalidateQueries({ queryKey: technicianDocumentKeys.checklist(document.technicianId) });
       queryClient.invalidateQueries({ queryKey: technicianDocumentKeys.all });
     },
   });

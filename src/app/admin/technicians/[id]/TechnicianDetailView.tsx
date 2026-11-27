@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Briefcase, Clock, MapPin, Pencil, Phone, Radar, ShieldCheck, Star, Trash2, UserX } from 'lucide-react';
+import { ArrowLeft, Briefcase, Clock, MapPin, Pencil, Phone, ShieldCheck, Star, Trash2, UserX } from 'lucide-react';
 import { AccountStatusAction, AccountStatusBadge } from '@/components/accounts/AccountStatus';
 import { EditTechnicianDrawer } from '@/components/technicians/EditTechnicianDrawer';
 import { TechnicianDocumentsPanel } from '@/components/technicians/TechnicianDocumentsPanel';
@@ -22,7 +22,6 @@ import {
 } from '@/components/ui';
 import { useDeleteTechnician, useTechnician, useUpdateTechnicianStatus } from '@/hooks/useTechnicians';
 import { formatDate, formatPhone, formatRelative } from '@/lib/utils';
-import { WORK_HOURS_LABEL, type WorkHours } from '@/types/technician';
 
 function BackLink() {
   return (
@@ -89,7 +88,6 @@ export function TechnicianDetailView({ id }: { id: string }) {
     );
   }
 
-  const workSettings = technician.workSettings ?? { radiusKm: 10, maxJobsPerDay: 4, hours: 'always' as WorkHours };
   const trades = Array.isArray(technician.trades) ? technician.trades : [];
   const tradesSummary = trades.length > 0 ? trades.join(' · ') : 'No trade specified';
   const tradesList = trades.length > 0 ? trades.join(', ') : '—';
@@ -138,7 +136,6 @@ export function TechnicianDetailView({ id }: { id: string }) {
         />
         <StatCard label="Jobs completed" value={technician.jobsCompleted ?? 0} icon={Briefcase} />
         <StatCard label="Experience" value={`${technician.yearsExperience ?? 0} yrs`} icon={Clock} />
-        <StatCard label="Service radius" value={`${workSettings.radiusKm ?? 0} km`} icon={Radar} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -160,21 +157,10 @@ export function TechnicianDetailView({ id }: { id: string }) {
                   ['Email', technician.email ?? '—'],
                   ['Location', technician.location || '—'],
                   ['Services', tradesList],
+                  ['Business type', technician.businessType === 'COMPANY' ? 'Company' : 'Individual'],
+                  ['Payment', technician.paymentMethod || '—'],
                   ['Joined', formatDate(technician.createdAt)],
                   ['Last active', formatRelative(technician.lastActiveAt)],
-                ]}
-              />
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader title="Work settings" />
-            <CardBody>
-              <Details
-                rows={[
-                  ['Service radius', `${workSettings.radiusKm ?? 0} km`],
-                  ['Max jobs per day', workSettings.maxJobsPerDay ?? '—'],
-                  ['Working hours', workSettings.hours && WORK_HOURS_LABEL[workSettings.hours] ? WORK_HOURS_LABEL[workSettings.hours] : 'Any time'],
                 ]}
               />
             </CardBody>
