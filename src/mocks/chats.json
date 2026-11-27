@@ -1,0 +1,858 @@
+[
+  {
+    "id": "chat_013",
+    "status": "negotiating",
+    "service": "HVAC",
+    "problem": "Air conditioner makes a loud noise at night",
+    "customer": {
+      "id": "usr_001",
+      "name": "Jean Ndayisaba",
+      "phone": "+250733762239"
+    },
+    "technician": {
+      "id": "tec_008",
+      "name": "Christian Mugisha",
+      "phone": "+250736202068"
+    },
+    "startedAt": "2026-10-05T08:42:00.000Z",
+    "lastMessageAt": "2026-10-05T08:54:00.000Z",
+    "messages": [
+      {
+        "id": "chat_013_m1",
+        "sender": "customer",
+        "text": "Hello, my air conditioner makes a loud noise at night. Can you check it this week?",
+        "at": "2026-10-05T08:42:00.000Z"
+      },
+      {
+        "id": "chat_013_m2",
+        "sender": "technician",
+        "text": "Hello Jean, yes. I am free on Thursday morning. The visit fee is $75.",
+        "at": "2026-10-05T08:45:00.000Z"
+      },
+      {
+        "id": "chat_013_m3",
+        "sender": "customer",
+        "text": "Thursday is good. How much might the repair be?",
+        "at": "2026-10-05T08:48:00.000Z"
+      },
+      {
+        "id": "chat_013_m4",
+        "sender": "technician",
+        "text": "Often a loose fan or bracket, about $50 to $90 with parts.",
+        "at": "2026-10-05T08:51:00.000Z"
+      },
+      {
+        "id": "chat_013_m5",
+        "sender": "customer",
+        "text": "Can you do it for less if I buy the parts myself?",
+        "at": "2026-10-05T08:54:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_014",
+    "status": "negotiating",
+    "service": "Home Repair",
+    "problem": "Window frame is rotten and lets rain in",
+    "customer": {
+      "id": "usr_013",
+      "name": "Gilbert Munyaneza",
+      "phone": "+250732925216"
+    },
+    "technician": {
+      "id": "tec_005",
+      "name": "Eric Kayitare",
+      "phone": "+250737303080"
+    },
+    "startedAt": "2026-10-05T08:36:00.000Z",
+    "lastMessageAt": "2026-10-05T08:42:00.000Z",
+    "messages": [
+      {
+        "id": "chat_014_m1",
+        "sender": "customer",
+        "text": "Hello, a window frame in my bedroom is rotten and rain comes in. Can you fix it?",
+        "at": "2026-10-05T08:36:00.000Z"
+      },
+      {
+        "id": "chat_014_m2",
+        "sender": "technician",
+        "text": "Hello Gilbert. I can come today after 3 pm. Can you send a photo of the frame?",
+        "at": "2026-10-05T08:39:00.000Z"
+      },
+      {
+        "id": "chat_014_m3",
+        "sender": "customer",
+        "text": "Yes, I will send it in a minute.",
+        "at": "2026-10-05T08:42:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_001",
+    "status": "agreed",
+    "service": "HVAC",
+    "problem": "Air conditioner blowing warm air",
+    "customer": {
+      "id": "usr_003",
+      "name": "Patrick Mutesi",
+      "phone": "+250797370189"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "jobId": "job_005",
+    "jobReference": "FD-1045",
+    "startedAt": "2026-10-05T07:41:24.000Z",
+    "lastMessageAt": "2026-10-05T08:02:24.000Z",
+    "messages": [
+      {
+        "id": "chat_001_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: air conditioner blowing warm air. Are you available today?",
+        "at": "2026-10-05T07:41:24.000Z"
+      },
+      {
+        "id": "chat_001_m2",
+        "sender": "technician",
+        "text": "Hello Patrick, yes I can come. Where are you located?",
+        "at": "2026-10-05T07:44:24.000Z"
+      },
+      {
+        "id": "chat_001_m3",
+        "sender": "customer",
+        "text": "Kanombe, Kicukiro.",
+        "at": "2026-10-05T07:47:24.000Z"
+      },
+      {
+        "id": "chat_001_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-05T07:50:24.000Z"
+      },
+      {
+        "id": "chat_001_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-05T07:53:24.000Z"
+      },
+      {
+        "id": "chat_001_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $60 and $140, but I will confirm after the diagnosis.",
+        "at": "2026-10-05T07:56:24.000Z"
+      },
+      {
+        "id": "chat_001_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-05T07:59:24.000Z"
+      },
+      {
+        "id": "chat_001_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1045 was created with Emmanuel Ingabire.",
+        "at": "2026-10-05T08:02:24.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_002",
+    "status": "declined",
+    "service": "HVAC",
+    "problem": "Air conditioner blowing warm air",
+    "customer": {
+      "id": "usr_003",
+      "name": "Patrick Mutesi",
+      "phone": "+250797370189"
+    },
+    "technician": {
+      "id": "tec_008",
+      "name": "Christian Mugisha",
+      "phone": "+250736202068"
+    },
+    "declineReason": "Technician not available in time",
+    "nextConversationId": "chat_001",
+    "startedAt": "2026-10-05T07:28:24.000Z",
+    "lastMessageAt": "2026-10-05T07:37:24.000Z",
+    "messages": [
+      {
+        "id": "chat_002_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: air conditioner blowing warm air. Are you available today?",
+        "at": "2026-10-05T07:28:24.000Z"
+      },
+      {
+        "id": "chat_002_m2",
+        "sender": "technician",
+        "text": "Hello Patrick. Sorry, I am fully booked today. I can come tomorrow afternoon.",
+        "at": "2026-10-05T07:31:24.000Z"
+      },
+      {
+        "id": "chat_002_m3",
+        "sender": "customer",
+        "text": "I need it fixed today, so I will look for someone else. Thank you.",
+        "at": "2026-10-05T07:34:24.000Z"
+      },
+      {
+        "id": "chat_002_m4",
+        "sender": "system",
+        "text": "Patrick Mutesi declined and chose another technician.",
+        "at": "2026-10-05T07:37:24.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_005",
+    "status": "agreed",
+    "service": "Truck & Mechanical",
+    "problem": "Truck losing power on hills",
+    "customer": {
+      "id": "usr_005",
+      "name": "Ange Rukundo",
+      "phone": "+250733756331"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "jobId": "job_009",
+    "jobReference": "FD-1049",
+    "startedAt": "2026-10-05T07:12:36.000Z",
+    "lastMessageAt": "2026-10-05T07:33:36.000Z",
+    "messages": [
+      {
+        "id": "chat_005_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: truck losing power on hills. Are you available right now?",
+        "at": "2026-10-05T07:12:36.000Z"
+      },
+      {
+        "id": "chat_005_m2",
+        "sender": "technician",
+        "text": "Hello Ange, yes I can come. Where are you located?",
+        "at": "2026-10-05T07:15:36.000Z"
+      },
+      {
+        "id": "chat_005_m3",
+        "sender": "customer",
+        "text": "Kicukiro Centre, Kicukiro.",
+        "at": "2026-10-05T07:18:36.000Z"
+      },
+      {
+        "id": "chat_005_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $110, and I will give you a full quote after checking.",
+        "at": "2026-10-05T07:21:36.000Z"
+      },
+      {
+        "id": "chat_005_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-05T07:24:36.000Z"
+      },
+      {
+        "id": "chat_005_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $120 and $260, but I will confirm after the diagnosis.",
+        "at": "2026-10-05T07:27:36.000Z"
+      },
+      {
+        "id": "chat_005_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-05T07:30:36.000Z"
+      },
+      {
+        "id": "chat_005_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1049 was created with Emmanuel Ingabire.",
+        "at": "2026-10-05T07:33:36.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_006",
+    "status": "declined",
+    "service": "Truck & Mechanical",
+    "problem": "Truck losing power on hills",
+    "customer": {
+      "id": "usr_005",
+      "name": "Ange Rukundo",
+      "phone": "+250733756331"
+    },
+    "technician": {
+      "id": "tec_001",
+      "name": "Sandrine Twagirayezu",
+      "phone": "+250734805073"
+    },
+    "declineReason": "Technician not available in time",
+    "nextConversationId": "chat_005",
+    "startedAt": "2026-10-05T06:59:36.000Z",
+    "lastMessageAt": "2026-10-05T07:08:36.000Z",
+    "messages": [
+      {
+        "id": "chat_006_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: truck losing power on hills. Are you available right now?",
+        "at": "2026-10-05T06:59:36.000Z"
+      },
+      {
+        "id": "chat_006_m2",
+        "sender": "technician",
+        "text": "Hello Ange. Sorry, I am fully booked today. I can come tomorrow afternoon.",
+        "at": "2026-10-05T07:02:36.000Z"
+      },
+      {
+        "id": "chat_006_m3",
+        "sender": "customer",
+        "text": "I need it fixed today, so I will look for someone else. Thank you.",
+        "at": "2026-10-05T07:05:36.000Z"
+      },
+      {
+        "id": "chat_006_m4",
+        "sender": "system",
+        "text": "Ange Rukundo declined and chose another technician.",
+        "at": "2026-10-05T07:08:36.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_007",
+    "status": "agreed",
+    "service": "Electrical",
+    "problem": "Kitchen sockets stopped working",
+    "customer": {
+      "id": "usr_017",
+      "name": "Chantal Nshimiyimana",
+      "phone": "+250785893090"
+    },
+    "technician": {
+      "id": "tec_002",
+      "name": "Aimable Mutesi",
+      "phone": "+250739907060"
+    },
+    "jobId": "job_007",
+    "jobReference": "FD-1047",
+    "startedAt": "2026-10-05T05:46:12.000Z",
+    "lastMessageAt": "2026-10-05T06:07:12.000Z",
+    "messages": [
+      {
+        "id": "chat_007_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: kitchen sockets stopped working. Are you available today?",
+        "at": "2026-10-05T05:46:12.000Z"
+      },
+      {
+        "id": "chat_007_m2",
+        "sender": "technician",
+        "text": "Hello Chantal, yes I can come. Where are you located?",
+        "at": "2026-10-05T05:49:12.000Z"
+      },
+      {
+        "id": "chat_007_m3",
+        "sender": "customer",
+        "text": "Gikondo, Kicukiro.",
+        "at": "2026-10-05T05:52:12.000Z"
+      },
+      {
+        "id": "chat_007_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-05T05:55:12.000Z"
+      },
+      {
+        "id": "chat_007_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-05T05:58:12.000Z"
+      },
+      {
+        "id": "chat_007_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $35 and $90, but I will confirm after the diagnosis.",
+        "at": "2026-10-05T06:01:12.000Z"
+      },
+      {
+        "id": "chat_007_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-05T06:04:12.000Z"
+      },
+      {
+        "id": "chat_007_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1047 was created with Aimable Mutesi.",
+        "at": "2026-10-05T06:07:12.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_008",
+    "status": "agreed",
+    "service": "Home Repair",
+    "problem": "Bedroom door will not lock",
+    "customer": {
+      "id": "usr_026",
+      "name": "Kevin Uwase",
+      "phone": "+250734986236"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "jobId": "job_012",
+    "jobReference": "FD-1052",
+    "startedAt": "2026-10-04T23:03:00.000Z",
+    "lastMessageAt": "2026-10-04T23:24:00.000Z",
+    "messages": [
+      {
+        "id": "chat_008_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: bedroom door will not lock. Are you available today?",
+        "at": "2026-10-04T23:03:00.000Z"
+      },
+      {
+        "id": "chat_008_m2",
+        "sender": "technician",
+        "text": "Hello Kevin, yes I can come. Where are you located?",
+        "at": "2026-10-04T23:06:00.000Z"
+      },
+      {
+        "id": "chat_008_m3",
+        "sender": "customer",
+        "text": "Niboye, Kicukiro.",
+        "at": "2026-10-04T23:09:00.000Z"
+      },
+      {
+        "id": "chat_008_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-04T23:12:00.000Z"
+      },
+      {
+        "id": "chat_008_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-04T23:15:00.000Z"
+      },
+      {
+        "id": "chat_008_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $40 and $110, but I will confirm after the diagnosis.",
+        "at": "2026-10-04T23:18:00.000Z"
+      },
+      {
+        "id": "chat_008_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-04T23:21:00.000Z"
+      },
+      {
+        "id": "chat_008_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1052 was created with Esperance Mukamana.",
+        "at": "2026-10-04T23:24:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_003",
+    "status": "agreed",
+    "service": "Home Repair",
+    "problem": "Front door lock is broken",
+    "customer": {
+      "id": "usr_024",
+      "name": "Clarisse Mugisha",
+      "phone": "+250728157601"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "jobId": "job_008",
+    "jobReference": "FD-1048",
+    "startedAt": "2026-10-04T20:39:00.000Z",
+    "lastMessageAt": "2026-10-04T21:00:00.000Z",
+    "messages": [
+      {
+        "id": "chat_003_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: front door lock is broken. Are you available this week?",
+        "at": "2026-10-04T20:39:00.000Z"
+      },
+      {
+        "id": "chat_003_m2",
+        "sender": "technician",
+        "text": "Hello Clarisse, yes I can come. Where are you located?",
+        "at": "2026-10-04T20:42:00.000Z"
+      },
+      {
+        "id": "chat_003_m3",
+        "sender": "customer",
+        "text": "Kiyovu, Nyarugenge.",
+        "at": "2026-10-04T20:45:00.000Z"
+      },
+      {
+        "id": "chat_003_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-04T20:48:00.000Z"
+      },
+      {
+        "id": "chat_003_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-04T20:51:00.000Z"
+      },
+      {
+        "id": "chat_003_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $40 and $110, but I will confirm after the diagnosis.",
+        "at": "2026-10-04T20:54:00.000Z"
+      },
+      {
+        "id": "chat_003_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-04T20:57:00.000Z"
+      },
+      {
+        "id": "chat_003_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1048 was created with Esperance Mukamana.",
+        "at": "2026-10-04T21:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_004",
+    "status": "declined",
+    "service": "Home Repair",
+    "problem": "Front door lock is broken",
+    "customer": {
+      "id": "usr_024",
+      "name": "Clarisse Mugisha",
+      "phone": "+250728157601"
+    },
+    "technician": {
+      "id": "tec_005",
+      "name": "Eric Kayitare",
+      "phone": "+250737303080"
+    },
+    "declineReason": "Estimate too high",
+    "nextConversationId": "chat_003",
+    "startedAt": "2026-10-04T20:20:00.000Z",
+    "lastMessageAt": "2026-10-04T20:35:00.000Z",
+    "messages": [
+      {
+        "id": "chat_004_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: front door lock is broken. Are you available this week?",
+        "at": "2026-10-04T20:20:00.000Z"
+      },
+      {
+        "id": "chat_004_m2",
+        "sender": "technician",
+        "text": "Hello Clarisse, yes. The visit fee is $75.",
+        "at": "2026-10-04T20:23:00.000Z"
+      },
+      {
+        "id": "chat_004_m3",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-04T20:26:00.000Z"
+      },
+      {
+        "id": "chat_004_m4",
+        "sender": "technician",
+        "text": "Usually around $190, including parts.",
+        "at": "2026-10-04T20:29:00.000Z"
+      },
+      {
+        "id": "chat_004_m5",
+        "sender": "customer",
+        "text": "That is more than I expected. I will compare with another technician.",
+        "at": "2026-10-04T20:32:00.000Z"
+      },
+      {
+        "id": "chat_004_m6",
+        "sender": "system",
+        "text": "Clarisse Mugisha declined and chose another technician.",
+        "at": "2026-10-04T20:35:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_009",
+    "status": "agreed",
+    "service": "Truck & Mechanical",
+    "problem": "Engine smoking on start-up",
+    "customer": {
+      "id": "usr_014",
+      "name": "Emile Habimana",
+      "phone": "+250795327022"
+    },
+    "technician": {
+      "id": "tec_003",
+      "name": "Eric Ingabire",
+      "phone": "+250784933540"
+    },
+    "jobId": "job_014",
+    "jobReference": "FD-1054",
+    "startedAt": "2026-10-04T01:27:00.000Z",
+    "lastMessageAt": "2026-10-04T01:48:00.000Z",
+    "messages": [
+      {
+        "id": "chat_009_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: engine smoking on start-up. Are you available this week?",
+        "at": "2026-10-04T01:27:00.000Z"
+      },
+      {
+        "id": "chat_009_m2",
+        "sender": "technician",
+        "text": "Hello Emile, yes I can come. Where are you located?",
+        "at": "2026-10-04T01:30:00.000Z"
+      },
+      {
+        "id": "chat_009_m3",
+        "sender": "customer",
+        "text": "Niboye, Kicukiro.",
+        "at": "2026-10-04T01:33:00.000Z"
+      },
+      {
+        "id": "chat_009_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-04T01:36:00.000Z"
+      },
+      {
+        "id": "chat_009_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-04T01:39:00.000Z"
+      },
+      {
+        "id": "chat_009_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $120 and $260, but I will confirm after the diagnosis.",
+        "at": "2026-10-04T01:42:00.000Z"
+      },
+      {
+        "id": "chat_009_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-04T01:45:00.000Z"
+      },
+      {
+        "id": "chat_009_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1054 was created with Eric Ingabire.",
+        "at": "2026-10-04T01:48:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_010",
+    "status": "declined",
+    "service": "Truck & Mechanical",
+    "problem": "Engine smoking on start-up",
+    "customer": {
+      "id": "usr_014",
+      "name": "Emile Habimana",
+      "phone": "+250795327022"
+    },
+    "technician": {
+      "id": "tec_007",
+      "name": "Emmanuel Ingabire",
+      "phone": "+250786622353"
+    },
+    "declineReason": "Estimate too high",
+    "nextConversationId": "chat_009",
+    "startedAt": "2026-10-04T01:08:00.000Z",
+    "lastMessageAt": "2026-10-04T01:23:00.000Z",
+    "messages": [
+      {
+        "id": "chat_010_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: engine smoking on start-up. Are you available this week?",
+        "at": "2026-10-04T01:08:00.000Z"
+      },
+      {
+        "id": "chat_010_m2",
+        "sender": "technician",
+        "text": "Hello Emile, yes. The visit fee is $75.",
+        "at": "2026-10-04T01:11:00.000Z"
+      },
+      {
+        "id": "chat_010_m3",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-04T01:14:00.000Z"
+      },
+      {
+        "id": "chat_010_m4",
+        "sender": "technician",
+        "text": "Usually around $340, including parts.",
+        "at": "2026-10-04T01:17:00.000Z"
+      },
+      {
+        "id": "chat_010_m5",
+        "sender": "customer",
+        "text": "That is more than I expected. I will compare with another technician.",
+        "at": "2026-10-04T01:20:00.000Z"
+      },
+      {
+        "id": "chat_010_m6",
+        "sender": "system",
+        "text": "Emile Habimana declined and chose another technician.",
+        "at": "2026-10-04T01:23:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_011",
+    "status": "agreed",
+    "service": "Appliance Repair",
+    "problem": "Washing machine leaking from the door",
+    "customer": {
+      "id": "usr_015",
+      "name": "Solange Uwase",
+      "phone": "+250732536078"
+    },
+    "technician": {
+      "id": "tec_006",
+      "name": "Samuel Mugisha",
+      "phone": "+250799579239"
+    },
+    "jobId": "job_029",
+    "jobReference": "FD-1069",
+    "startedAt": "2026-10-03T08:39:00.000Z",
+    "lastMessageAt": "2026-10-03T09:00:00.000Z",
+    "messages": [
+      {
+        "id": "chat_011_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: washing machine leaking from the door. Are you available today?",
+        "at": "2026-10-03T08:39:00.000Z"
+      },
+      {
+        "id": "chat_011_m2",
+        "sender": "technician",
+        "text": "Hello Solange, yes I can come. Where are you located?",
+        "at": "2026-10-03T08:42:00.000Z"
+      },
+      {
+        "id": "chat_011_m3",
+        "sender": "customer",
+        "text": "Kicukiro Centre, Kicukiro.",
+        "at": "2026-10-03T08:45:00.000Z"
+      },
+      {
+        "id": "chat_011_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-03T08:48:00.000Z"
+      },
+      {
+        "id": "chat_011_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-03T08:51:00.000Z"
+      },
+      {
+        "id": "chat_011_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $45 and $120, but I will confirm after the diagnosis.",
+        "at": "2026-10-03T08:54:00.000Z"
+      },
+      {
+        "id": "chat_011_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-03T08:57:00.000Z"
+      },
+      {
+        "id": "chat_011_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1069 was created with Samuel Mugisha.",
+        "at": "2026-10-03T09:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "chat_012",
+    "status": "agreed",
+    "service": "Home Repair",
+    "problem": "Ceiling leak after heavy rain",
+    "customer": {
+      "id": "usr_022",
+      "name": "Grace Mutesi",
+      "phone": "+250723375822"
+    },
+    "technician": {
+      "id": "tec_009",
+      "name": "Esperance Mukamana",
+      "phone": "+250722665918"
+    },
+    "jobId": "job_030",
+    "jobReference": "FD-1070",
+    "startedAt": "2026-10-01T08:39:00.000Z",
+    "lastMessageAt": "2026-10-01T09:00:00.000Z",
+    "messages": [
+      {
+        "id": "chat_012_m1",
+        "sender": "customer",
+        "text": "Hello, I need help: ceiling leak after heavy rain. Are you available this week?",
+        "at": "2026-10-01T08:39:00.000Z"
+      },
+      {
+        "id": "chat_012_m2",
+        "sender": "technician",
+        "text": "Hello Grace, yes I can come. Where are you located?",
+        "at": "2026-10-01T08:42:00.000Z"
+      },
+      {
+        "id": "chat_012_m3",
+        "sender": "customer",
+        "text": "Niboye, Kicukiro.",
+        "at": "2026-10-01T08:45:00.000Z"
+      },
+      {
+        "id": "chat_012_m4",
+        "sender": "technician",
+        "text": "I can be there in about 30 minutes. The visit fee is $75, and I will give you a full quote after checking.",
+        "at": "2026-10-01T08:48:00.000Z"
+      },
+      {
+        "id": "chat_012_m5",
+        "sender": "customer",
+        "text": "What would the repair usually cost?",
+        "at": "2026-10-01T08:51:00.000Z"
+      },
+      {
+        "id": "chat_012_m6",
+        "sender": "technician",
+        "text": "For this kind of problem it is usually between $40 and $110, but I will confirm after the diagnosis.",
+        "at": "2026-10-01T08:54:00.000Z"
+      },
+      {
+        "id": "chat_012_m7",
+        "sender": "customer",
+        "text": "Okay, that works for me. Let us go ahead.",
+        "at": "2026-10-01T08:57:00.000Z"
+      },
+      {
+        "id": "chat_012_m8",
+        "sender": "system",
+        "text": "Agreed. Job FD-1070 was created with Esperance Mukamana.",
+        "at": "2026-10-01T09:00:00.000Z"
+      }
+    ]
+  }
+]

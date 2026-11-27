@@ -1,0 +1,154 @@
+import {
+  Car,
+  Hammer,
+  House,
+  Snowflake,
+  Truck,
+  WashingMachine,
+  Wrench,
+  Zap,
+  Layers,
+  type LucideIcon,
+} from 'lucide-react';
+
+/**
+ * Built-in skilled-service categories required by Fundi.
+ */
+export const SERVICE_CATEGORIES = [
+  'Electrical',
+  'Plumbing',
+  'HVAC',
+  'Appliance Repair',
+  'Home Repair',
+  'General Maintenance',
+  'Car & Garage',
+  'Truck & Mechanical',
+] as const;
+
+export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
+
+/** Main groups displayed across job creation and service management. */
+export const SERVICE_GROUPS = [
+  'Home Services',
+  'Car Services',
+  'Other Services',
+] as const;
+
+export type ServiceGroup = (typeof SERVICE_GROUPS)[number];
+
+/** Explicit mapping of built-in categories to their main groups. */
+const CATEGORY_GROUP_MAP: Record<ServiceCategory, ServiceGroup> = {
+  Electrical: 'Home Services',
+  Plumbing: 'Home Services',
+  HVAC: 'Home Services',
+  'Appliance Repair': 'Home Services',
+  'Home Repair': 'Home Services',
+  'General Maintenance': 'Home Services',
+  'Car & Garage': 'Car Services',
+  'Truck & Mechanical': 'Car Services',
+};
+
+/**
+ * Maps any category or service name to one of the 3 main groups:
+ * Home Services, Car Services, or Other Services.
+ */
+export function getServiceGroup(category?: string): ServiceGroup {
+  if (!category) return 'Other Services';
+  const normalized = category.trim().toLowerCase();
+
+  // 1. Exact match against built-in categories
+  for (const [key, group] of Object.entries(CATEGORY_GROUP_MAP)) {
+    if (key.toLowerCase() === normalized) {
+      return group;
+    }
+  }
+
+  // 2. Explicit group names
+  if (normalized === 'home' || normalized === 'home services') {
+    return 'Home Services';
+  }
+  if (normalized === 'car' || normalized === 'car services') {
+    return 'Car Services';
+  }
+  if (normalized === 'other' || normalized === 'other services') {
+    return 'Other Services';
+  }
+
+  // 3. Word-safe Car & Vehicle keywords (avoids matching "carpentry" or "automatic")
+  if (
+    /\b(car|cars|garage|auto|automotive|vehicle|truck|trucks|mechanic|mechanical|tire|tyre|towing|engine|brake|brakes)\b/.test(
+      normalized,
+    )
+  ) {
+    return 'Car Services';
+  }
+
+  // 4. Word-safe Home & Building keywords
+  if (
+    /\b(home|house|plumb\w*|electric\w*|hvac|appliance\w*|repair|maintenance|carpentry|paint\w*|roof\w*|clean\w*|ac)\b/.test(
+      normalized,
+    )
+  ) {
+    return 'Home Services';
+  }
+
+  return 'Other Services';
+}
+
+/** Icons and colours for built-in trades. */
+export const SERVICE_CATEGORY_STYLE: Record<
+  ServiceCategory,
+  { icon: LucideIcon; className: string }
+> = {
+  Electrical: {
+    icon: Zap,
+    className: 'bg-yellow-100 text-yellow-700',
+  },
+  Plumbing: {
+    icon: Wrench,
+    className: 'bg-teal-100 text-teal-700',
+  },
+  HVAC: {
+    icon: Snowflake,
+    className: 'bg-sky-100 text-sky-700',
+  },
+  'Appliance Repair': {
+    icon: WashingMachine,
+    className: 'bg-rose-100 text-rose-700',
+  },
+  'Home Repair': {
+    icon: House,
+    className: 'bg-purple-100 text-purple-700',
+  },
+  'General Maintenance': {
+    icon: Hammer,
+    className: 'bg-amber-100 text-amber-700',
+  },
+  'Car & Garage': {
+    icon: Car,
+    className: 'bg-blue-100 text-blue-700',
+  },
+  'Truck & Mechanical': {
+    icon: Truck,
+    className: 'bg-green-100 text-green-700',
+  },
+};
+
+export const DEFAULT_CATEGORY_STYLE = {
+  icon: Layers,
+  className: 'bg-slate-100 text-slate-600',
+};
+
+/** Returns true when a label is one of the 3 top-level groups rather than a specific category. */
+export function isServiceGroupName(value?: string): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return [
+    'home',
+    'home services',
+    'car',
+    'car services',
+    'other',
+    'other services',
+  ].includes(normalized);
+}

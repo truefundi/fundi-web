@@ -3,26 +3,30 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
+    "dev:open": "node scripts/dev-open.mjs",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start -p 3001",
+    "lint": "eslint .",
+    "test:api": "node --test scripts/test-api-contracts.cjs"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.104.0",
+    "lucide-react": "^0.475.0",
     "next": "^15.1.7",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "lucide-react": "^0.475.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.20.1",
+    "eslint-config-next": "^15.1.7",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
-    "autoprefixer": "^10.4.20",
-    "typescript": "^5.7.3",
-    "eslint": "^9.20.1",
-    "eslint-config-next": "^15.1.7"
+    "typescript": "^5.7.3"
   }
 }
