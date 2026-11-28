@@ -30,10 +30,24 @@ export function Td({ children, className }: { children?: React.ReactNode; classN
 }
 
 /** Row that navigates on click and via Enter/Space. */
-export function Tr({ children, onClick, label }: { children: React.ReactNode; onClick?: () => void; label?: string }) {
+export function Tr({
+  children,
+  onClick,
+  label,
+  onMouseEnter,
+  onFocus,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  label?: string;
+  onMouseEnter?: React.MouseEventHandler<HTMLTableRowElement>;
+  onFocus?: React.FocusEventHandler<HTMLTableRowElement>;
+}) {
   return (
     <tr
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onFocus={onFocus}
       onKeyDown={(e) => {
         if (onClick && e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
@@ -72,32 +86,34 @@ export function Pagination({
   pageSize,
   total,
   onPageChange,
+  disabled = false,
 }: {
   page: number;
   pageSize: number;
   total: number;
   onPageChange: (page: number) => void;
+  disabled?: boolean;
 }) {
-  if (total === 0) return null;
+  if (total === 0 && page <= 1) return null;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
 
   return (
     <nav className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3" aria-label="Pagination">
-      <p className="text-xs text-slate-500">
+      {page > pageCount || total === 0 ? <p className="text-xs text-slate-500">No records on this page.</p> : <p className="text-xs text-slate-500">
         Showing <span className="font-semibold text-slate-900">{from}–{to}</span> of{' '}
         <span className="font-semibold text-slate-900">{total}</span>
-      </p>
+      </p>}
       <div className="flex items-center gap-2">
-        <Button variant="secondary" size="sm" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
+        <Button variant="secondary" size="sm" onClick={() => onPageChange(Math.min(page - 1, pageCount))} disabled={disabled || page <= 1}>
           <ChevronLeft className="h-4 w-4" aria-hidden />
           Prev
         </Button>
         <span className="text-xs font-medium text-slate-500">
           {page} / {pageCount}
         </span>
-        <Button variant="secondary" size="sm" onClick={() => onPageChange(page + 1)} disabled={page >= pageCount}>
+        <Button variant="secondary" size="sm" onClick={() => onPageChange(page + 1)} disabled={disabled || page >= pageCount}>
           Next
           <ChevronRight className="h-4 w-4" aria-hidden />
         </Button>

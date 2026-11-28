@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Star } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { JobStatusBadge } from '@/components/jobs/JobStatusBadge';
 import {
-  Badge,
   Card,
   EmptyState,
   ErrorState,
@@ -20,33 +18,29 @@ import {
   Tr,
 } from '@/components/ui';
 import { DEFAULT_PAGE_SIZE } from '@/config/pagination';
-import { useJobs } from '@/hooks/useJobs';
+import { useJobs, usePrefetchJob } from '@/hooks/useJobs';
 import { useServices } from '@/hooks/useServices';
-import { useDebouncedValue, useUrlFilters } from '@/hooks/useUrlFilters';
+import { useDebouncedSearch, useUrlFilters } from '@/hooks/useUrlFilters';
 import { formatDate } from '@/lib/utils';
 import type { JobGroup } from '@/types/job';
 
-const FILTER_KEYS = ['search', 'service'] as const;
+const FILTER_KEYS = ['search', 'serviceCategoryId'] as const;
 
 export function RecordsView() {
   const router = useRouter();
+  const prefetchJob = usePrefetchJob();
   const { data: services } = useServices();
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
-  const [search, setSearch] = useState(values.search ?? '');
-  const debouncedSearch = useDebouncedValue(search);
-
-  useEffect(() => {
-    if (debouncedSearch !== (values.search ?? '')) setParams({ search: debouncedSearch });
-  }, [debouncedSearch, values.search, setParams]);
+  const [search, setSearch] = useDebouncedSearch(values.search ?? '', (value) => setParams({ search: value }));
 
   const { data, isLoading, isError, error, refetch, isFetching } = useJobs({
     search: values.search,
-    service: values.service,
+    serviceCategoryId: values.serviceCategoryId,
     group: 'completed' satisfies JobGroup,
     page,
     pageSize: DEFAULT_PAGE_SIZE,
   });
-  const hasFilters = Boolean(values.search || values.service);
+  const hasFilters = Boolean(values.search || values.serviceCategoryId);
 
   const activePage = data?.page ?? page;
   const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
@@ -66,14 +60,14 @@ export function RecordsView() {
           className="sm:flex-1"
         />
         <Select
-          value={values.service ?? ''}
-          onChange={(event) => setParams({ service: event.target.value || undefined })}
+          value={values.serviceCategoryId ?? ''}
+          onChange={(event) => setParams({ serviceCategoryId: event.target.value || undefined })}
           aria-label="Filter records by service"
           className="sm:w-60"
         >
           <option value="">All services</option>
           {(services ?? []).map((service) => (
-            <option key={service.id} value={service.name}>
+            <option key={service.id} value={service.id}>
               {service.name}
             </option>
           ))}
@@ -119,6 +113,8 @@ export function RecordsView() {
                       <Tr
                         key={job.id}
                         onClick={() => router.push(`/admin/jobs/${job.id}`)}
+                        onMouseEnter={() => prefetchJob(job.id)}
+                        onFocus={() => prefetchJob(job.id)}
                         label={`Open service record ${job.reference}`}
                       >
                         <Td className="whitespace-nowrap text-xs font-medium text-slate-400">
@@ -134,16 +130,7 @@ export function RecordsView() {
                           {job.technician?.name ?? <span className="text-slate-400">Not assigned</span>}
                         </Td>
                         <Td className="whitespace-nowrap">
-                          {job.rating ? (
-                            <Badge tone="warning">
-                              <span className="inline-flex items-center gap-1">
-                                <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
-                                {job.rating.overall}/5
-                              </span>
-                            </Badge>
-                          ) : (
-                            <span className="text-slate-400">Not rated</span>
-                          )}
+                          <span className="text-slate-500">View in job details</span>
                         </Td>
                         <Td className="whitespace-nowrap text-slate-600">
                           {formatDate(job.completedAt ?? job.updatedAt)}
@@ -157,16 +144,9 @@ export function RecordsView() {
                 )}
               </tbody>
             </Table>
-            {data && (
-              <Pagination
-                page={data.page}
-                pageSize={data.pageSize}
-                total={data.total}
-                onPageChange={(nextPage) => setParams({ page: nextPage })}
-              />
-            )}
           </>
         )}
+        {data && !isError && <Pagination page={data.page} pageSize={data.pageSize} total={data.total} disabled={isFetching} onPageChange={(nextPage) => setParams({ page: nextPage })} />}
       </Card>
     </>
   );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Briefcase, CheckCircle2, ChevronRight, Clock, Plus, AlertCircle, XCircle, ShieldAlert } from "lucide-react";
+import { Briefcase, CheckCircle2, ChevronRight, Plus, ShieldAlert } from "lucide-react";
 import { JobFormDialog } from "@/components/jobs/JobFormDialog";
 import { JobStatusBadge, UrgencyBadge } from "@/components/jobs/JobStatusBadge";
 import {
@@ -15,6 +15,7 @@ import {
   Pagination,
   SearchInput,
   Select,
+  StatCard,
   Table,
   TableSkeleton,
   Td,
@@ -22,41 +23,40 @@ import {
   Tr,
 } from "@/components/ui";
 import { DEFAULT_PAGE_SIZE } from "@/config/pagination";
-import { useAllJobs, useJobs } from "@/hooks/useJobs";
+import { useJobStats, useJobs, usePrefetchJob } from "@/hooks/useJobs";
 import { useServices } from "@/hooks/useServices";
-import { useDebouncedValue, useUrlFilters } from "@/hooks/useUrlFilters";
+import { useDebouncedSearch, useUrlFilters } from "@/hooks/useUrlFilters";
+import type { JobQuery } from "@/types/api";
 import { cn, formatRelative } from "@/lib/utils";
 import {
-  jobGroup,
+  JOB_GROUPS,
+  JOB_GROUP_LABEL,
   URGENCIES,
   type JobGroup,
   type Urgency,
 } from "@/types/job";
 
-const FILTER_KEYS = ["search", "group", "service", "urgency"] as const;
+const FILTER_KEYS = ["search", "group", "serviceCategoryId", "priority", "sortBy", "sortOrder"] as const;
 
 export function JobsView() {
   const router = useRouter();
+  const prefetchJob = usePrefetchJob();
   const [formOpen, setFormOpen] = useState(false);
   const { data: services } = useServices();
   const { values, page, setParams } = useUrlFilters(FILTER_KEYS);
-  const [search, setSearch] = useState(values.search ?? "");
-  const debouncedSearch = useDebouncedValue(search);
-
-  useEffect(() => {
-    if (debouncedSearch !== (values.search ?? ""))
-      setParams({ search: debouncedSearch });
-  }, [debouncedSearch, values.search, setParams]);
+  const [search, setSearch] = useDebouncedSearch(values.search ?? "", (value) => setParams({ search: value }));
 
   const group = values.group as JobGroup | undefined;
-  const service = values.service;
-  const urgency = values.urgency as Urgency | undefined;
+  const service = values.serviceCategoryId;
+  const urgency = values.priority as Urgency | undefined;
 
   const { data, isLoading, isError, error, refetch, isFetching } = useJobs({
     search: values.search,
     group,
-    service,
-    urgency,
+    serviceCategoryId: service,
+    priority: urgency,
+    sortBy: values.sortBy as JobQuery['sortBy'],
+    sortOrder: values.sortOrder as JobQuery['sortOrder'],
     page,
     pageSize: DEFAULT_PAGE_SIZE,
   });
@@ -64,39 +64,7 @@ export function JobsView() {
   const activePage = data?.page ?? page;
   const activePageSize = data?.pageSize ?? DEFAULT_PAGE_SIZE;
 
-  const { data: allJobs } = useAllJobs();
-
-  const counts = useMemo(() => {
-    const source = allJobs ?? [];
-    const next = {
-      total: source.length,
-      matching: 0,
-      inProgress: 0,
-      completed: 0,
-      cancelled: 0,
-      disputed: 0,
-    };
-
-    for (const item of source) {
-      const grp = jobGroup(item);
-      if (grp === "matching") next.matching += 1;
-      else if (grp === "in_progress") next.inProgress += 1;
-      else if (grp === "completed") next.completed += 1;
-      else if (grp === "cancelled") next.cancelled += 1;
-      else if (grp === "disputed") next.disputed += 1;
-    }
-
-    return next;
-  }, [allJobs]);
-
-  const summaryCards = [
-    { key: undefined, label: "All", count: counts.total, icon: Briefcase, color: "text-slate-900", bg: "bg-slate-50" },
-    { key: "matching", label: "Matching", count: counts.matching, icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
-    { key: "in_progress", label: "In progress", count: counts.inProgress, icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-50" },
-    { key: "completed", label: "Completed", count: counts.completed, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { key: "cancelled", label: "Cancelled", count: counts.cancelled, icon: XCircle, color: "text-rose-600", bg: "bg-rose-50" },
-    { key: "disputed", label: "Disputed", count: counts.disputed, icon: ShieldAlert, color: "text-purple-600", bg: "bg-purple-50" },
-  ];
+  const stats = useJobStats();
 
   const hasFilters = Boolean(values.search || group || service || urgency);
 
@@ -112,67 +80,54 @@ export function JobsView() {
         }
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        {summaryCards.map((card) => {
-          const isActive = group === card.key || (card.key === undefined && !group);
-          const Icon = card.icon;
-
-          return (
-            <Card
-              key={card.label}
-              onClick={() => setParams({ group: card.key })}
-              className={cn(
-                "p-4 flex flex-col justify-between border rounded-2xl shadow-sm cursor-pointer transition-all",
-                isActive
-                  ? "border-amber-400 bg-amber-50/30 ring-2 ring-amber-400/20"
-                  : "border-slate-200/80 bg-white hover:border-slate-300"
-              )}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                  {card.label}
-                </span>
-                <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", card.bg, card.color)}>
-                  <Icon className="h-4 w-4" />
-                </div>
-              </div>
-              <p className={cn("text-2xl font-bold", card.color)}>
-                {card.count}
-              </p>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <StatCard label="Active jobs" value={stats.data?.active ?? '—'} icon={Briefcase} loading={stats.isLoading} hint="All open, assigned and paused jobs" />
+        <StatCard label="Completed jobs" value={stats.data?.completed ?? '—'} icon={CheckCircle2} loading={stats.isLoading} hint="All completed jobs" />
+        <StatCard label="Open disputes" value={stats.data?.openDisputes ?? '—'} icon={ShieldAlert} loading={stats.isLoading} hint="All unresolved disputes" />
       </div>
+      {stats.isError && <ErrorState message={stats.error.message} onRetry={() => stats.refetch()} />}
 
       <div className="mb-4 space-y-3">
-        <div className="flex flex-col gap-3 md:flex-row">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <SearchInput
             value={search}
             onChange={setSearch}
             placeholder="Search by reference, problem, customer or technician"
-            className="md:flex-1"
+            className="sm:col-span-2 xl:col-span-4"
           />
           <Select
             value={service ?? ""}
             onChange={(e) =>
-              setParams({ service: e.target.value || undefined })
+              setParams({ serviceCategoryId: e.target.value || undefined })
             }
             aria-label="Filter by service"
-            className="md:w-56"
           >
             <option value="">All services</option>
-            {(services ?? []).map(({ name: c }) => (
-              <option key={c} value={c}>
-                {c}
+            {(services ?? []).map(({ id, name }) => (
+              <option key={id} value={id}>
+                {name}
               </option>
             ))}
+          </Select>
+          <Select value={group ?? ''} onChange={(e) => setParams({ group: e.target.value || undefined })} aria-label="Filter jobs by group">
+            <option value="">All jobs</option>
+            {JOB_GROUPS.map((key) => <option key={key} value={key}>{JOB_GROUP_LABEL[key]}</option>)}
+          </Select>
+          <Select value={values.sortBy ?? 'createdAt'} onChange={(e) => setParams({ sortBy: e.target.value })} aria-label="Sort jobs by">
+            <option value="createdAt">Requested date</option>
+            <option value="updatedAt">Last updated</option>
+            <option value="priority">Priority</option>
+            <option value="offeredAmount">Offered amount</option>
+          </Select>
+          <Select value={values.sortOrder ?? 'desc'} onChange={(e) => setParams({ sortOrder: e.target.value })} aria-label="Job sort direction">
+            <option value="desc">Descending</option><option value="asc">Ascending</option>
           </Select>
         </div>
         <ChipGroup
           label="Urgency"
           options={URGENCIES}
           value={urgency}
-          onChange={(v) => setParams({ urgency: v })}
+          onChange={(v) => setParams({ priority: v })}
         />
       </div>
 
@@ -220,6 +175,8 @@ export function JobsView() {
                       <Tr
                         key={job.id}
                         onClick={() => router.push(`/admin/jobs/${job.id}`)}
+                        onMouseEnter={() => prefetchJob(job.id)}
+                        onFocus={() => prefetchJob(job.id)}
                         label={`Open job ${job.reference}`}
                       >
                         <Td className="whitespace-nowrap text-xs font-medium text-slate-400">
@@ -273,15 +230,10 @@ export function JobsView() {
                 )}
               </tbody>
             </Table>
-            {data && (
-              <Pagination
-                page={data.page}
-                pageSize={data.pageSize}
-                total={data.total}
-                onPageChange={(p) => setParams({ page: p })}
-              />
-            )}
           </>
+        )}
+        {data && !isError && (
+          <Pagination page={data.page} pageSize={data.pageSize} total={data.total} disabled={isFetching} onPageChange={(p) => setParams({ page: p })} />
         )}
       </Card>
 

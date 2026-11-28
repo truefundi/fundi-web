@@ -89,12 +89,26 @@ export const technicianDocumentsApi = {
     return fetchAdminBlob(`/admin/technicians/${technicianId}/picture`);
   },
 
-  async list(technicianId: string): Promise<TechnicianDocumentRecord[]> {
-    return unwrap(api.get(`/admin/technicians/${technicianId}/documents`));
+  async downloadProfilePicture(technicianId: string): Promise<Blob> {
+    return fetchAdminBlob(`/admin/technicians/${technicianId}/picture`);
   },
 
-  async checklist(technicianId: string): Promise<VerificationChecklistResponse> {
-    return unwrap(api.get(`/admin/technicians/${technicianId}/verification-checklist`));
+  async list(
+    technicianId: string,
+    signal?: AbortSignal,
+  ): Promise<TechnicianDocumentRecord[]> {
+    return unwrap(
+      api.get(`/admin/technicians/${technicianId}/documents`, { signal }),
+    );
+  },
+
+  async checklist(
+    technicianId: string,
+    signal?: AbortSignal,
+  ): Promise<VerificationChecklistResponse> {
+    return unwrap(
+      api.get(`/admin/technicians/${technicianId}/verification-checklist`, { signal }),
+    );
   },
 
   async review(

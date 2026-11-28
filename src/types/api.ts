@@ -16,6 +16,13 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   pageSize: number;
+  totalPages?: number;
+}
+
+/** Server-side admin list envelope; adapted to the existing table props. */
+export interface AdminPage<T> {
+  data: T[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
 export type SortOrder = 'newest' | 'oldest' | 'name';
@@ -39,8 +46,14 @@ export interface TechnicianQuery extends ListQuery {
 export interface JobQuery {
   search?: string;
   group?: JobGroup;
-  service?: string;
-  urgency?: Urgency;
+  serviceCategoryId?: string;
+  priority?: Urgency;
+  status?: JobStatus;
+  customerId?: string;
+  technicianId?: string;
+  requestType?: 'NORMAL' | 'SOS';
+  sortBy?: 'createdAt' | 'updatedAt' | 'priority' | 'offeredAmount';
+  sortOrder?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
 }

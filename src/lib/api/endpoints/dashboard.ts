@@ -21,29 +21,35 @@ export const dashboardApi = {
     } as const;
   },
 
-  async overview(query: DashboardQuery): Promise<DashboardOverview> {
-    return unwrap(api.get("/admin/dashboard/overview", { query }));
+  async overview(
+    query: DashboardQuery,
+    signal?: AbortSignal,
+  ): Promise<DashboardOverview> {
+    return unwrap(api.get("/admin/dashboard/overview", { query, signal }));
   },
 
-  async jobPipeline(): Promise<JobPipeline> {
-    return unwrap(api.get("/admin/jobs/pipeline"));
+  trends(query: DashboardQuery, signal?: AbortSignal): Promise<DashboardTrends> {
+    return unwrap(api.get("/admin/dashboard/trends", { query, signal }));
   },
 
-  trends(query: DashboardQuery): Promise<DashboardTrends> {
-    return unwrap(api.get("/admin/dashboard/trends", { query }));
+  breakdowns(
+    query: DashboardQuery,
+    signal?: AbortSignal,
+  ): Promise<DashboardBreakdowns> {
+    return unwrap(api.get("/admin/dashboard/breakdowns", { query, signal }));
   },
 
-  breakdowns(query: DashboardQuery): Promise<DashboardBreakdowns> {
-    return unwrap(api.get("/admin/dashboard/breakdowns", { query }));
-  },
-
-  topTechnicians(query: DashboardQuery): Promise<DashboardTopTechnicians> {
-    return unwrap(api.get("/admin/dashboard/top-technicians", { query }));
+  topTechnicians(
+    query: DashboardQuery,
+    signal?: AbortSignal,
+  ): Promise<DashboardTopTechnicians> {
+    return unwrap(api.get("/admin/dashboard/top-technicians", { query, signal }));
   },
 
   activity(
     query: DashboardQuery & { limit?: number },
+    signal?: AbortSignal,
   ): Promise<DashboardActivityPage> {
-    return unwrap(api.get("/admin/dashboard/activity", { query }));
+    return unwrap(api.get("/admin/dashboard/activity", { query, signal }));
   },
 };

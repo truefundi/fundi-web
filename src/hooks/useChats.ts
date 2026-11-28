@@ -15,14 +15,17 @@ export function useChats(query: ConversationQuery) {
   const { user } = useAuth();
   return useQuery({
     queryKey: chatKeys.list(query, user?.id),
-    queryFn: () => chatsApi.list(query, user?.id),
+    queryFn: ({ signal }) => chatsApi.list(query, user?.id, signal),
     placeholderData: keepPreviousData,
   });
 }
 
 export function useChat(id: string) {
   const { user } = useAuth();
-  return useQuery({ queryKey: chatKeys.detail(id, user?.id), queryFn: () => chatsApi.get(id, user?.id) });
+  return useQuery({
+    queryKey: chatKeys.detail(id, user?.id),
+    queryFn: ({ signal }) => chatsApi.get(id, user?.id, signal),
+  });
 }
 
 export function useSendChatMessage() {

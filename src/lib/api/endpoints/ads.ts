@@ -12,12 +12,18 @@ function mapAd(ad: BackendAd): LandingAd {
 }
 
 export const adsApi = {
-  async list(admin: boolean): Promise<LandingAd[]> {
+  async list(admin: boolean, signal?: AbortSignal): Promise<LandingAd[]> {
     if (admin) {
-      const response = await unwrap(api.get<{ items: BackendAd[] }>('/admin/ads', { query: { placement: 'LANDING_PRODUCT', limit: 200 } }));
+      const response = await unwrap(api.get<{ items: BackendAd[] }>('/admin/ads', {
+        query: { placement: 'LANDING_PRODUCT', limit: 200 },
+        signal,
+      }));
       return response.items.map(mapAd);
     }
-    const response = await unwrap(api.get<BackendAd[]>('/ads', { query: { placement: 'LANDING_PRODUCT' } }));
+    const response = await unwrap(api.get<BackendAd[]>('/ads', {
+      query: { placement: 'LANDING_PRODUCT' },
+      signal,
+    }));
     return response.map(mapAd);
   },
   async save(input: LandingAdInput, productId: number, id?: string): Promise<LandingAd> {

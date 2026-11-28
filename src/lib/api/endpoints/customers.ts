@@ -11,7 +11,10 @@ const STATUS_TO_API: Record<AccountStatus, 'ACTIVE' | 'SUSPENDED' | 'INACTIVE'> 
 };
 
 export const customersApi = {
-  async list(query: CustomerQuery = {}): Promise<PaginatedResponse<Customer>> {
+  async list(
+    query: CustomerQuery = {},
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Customer>> {
     const response = await unwrap(
       api.get<{ data: BackendUser[]; pagination: { page: number; limit: number; total: number } }>('/users', {
         query: {
@@ -21,6 +24,7 @@ export const customersApi = {
           page: query.page,
           limit: query.pageSize,
         },
+        signal,
       }),
     );
     return {
@@ -31,8 +35,8 @@ export const customersApi = {
     };
   },
 
-  async get(id: string): Promise<Customer> {
-    const data = await unwrap<BackendUser>(api.get(`/users/${id}`));
+  async get(id: string, signal?: AbortSignal): Promise<Customer> {
+    const data = await unwrap<BackendUser>(api.get(`/users/${id}`, { signal }));
     return mapBackendCustomer(data);
   },
 
@@ -42,7 +46,7 @@ export const customersApi = {
     return mapBackendCustomer(data);
   },
 
-  async stats(): Promise<AdminStats> {
-    return unwrap(api.get('/admin/stats'));
+  async stats(signal?: AbortSignal): Promise<AdminStats> {
+    return unwrap(api.get('/admin/stats', { signal }));
   },
 };

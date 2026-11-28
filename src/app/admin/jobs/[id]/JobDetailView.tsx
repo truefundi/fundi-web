@@ -79,7 +79,7 @@ function ExceptionBanner({ job }: { job: Job }) {
 }
 
 export function JobDetailView({ id }: { id: string }) {
-  const { data: job, isLoading, isError, error, refetch } = useJob(id);
+  const { data: job, isError, error, refetch } = useJob(id);
   const { commissionRatePercent } = useCommissionSettings();
   const router = useRouter();
   const cancelJob = useCancelJob();
@@ -90,7 +90,8 @@ export function JobDetailView({ id }: { id: string }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  if (isLoading) {
+  // A list row is available as a placeholder; only block when there is no job at all.
+  if (!job) {
     return (
       <>
         <BackLink />
@@ -101,7 +102,7 @@ export function JobDetailView({ id }: { id: string }) {
     );
   }
 
-  if (isError || !job) {
+  if (isError) {
     const notFound = (error as { statusCode?: number } | null)?.statusCode === 404;
     return (
       <>

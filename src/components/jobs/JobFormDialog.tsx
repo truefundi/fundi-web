@@ -136,14 +136,17 @@ export function JobFormDialog({
   const create = useCreateJob();
   const update = useUpdateJob();
 
-  const customers = useCustomers({
-    status: 'active',
-    sort: 'name',
-    page: 1,
-    pageSize: 100,
-  });
+  const customers = useCustomers(
+    {
+      status: 'active',
+      sort: 'name',
+      page: 1,
+      pageSize: 100,
+    },
+    open,
+  );
 
-  const services = useServices();
+  const services = useServices(open);
 
   const [input, setInput] = useState<JobFormInput>(EMPTY);
   const [serviceCategory, setServiceCategory] = useState<ServiceGroup | ''>(

@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { usePathname } from 'next/navigation';
 import { adsApi } from '@/lib/api/endpoints/ads';
 import type { LandingAd, LandingAdInput } from '@/types/landing-ad';
@@ -12,6 +20,8 @@ interface LandingAdsContextValue {
   storageError: string | null;
   saveAd: (input: LandingAdInput, id?: string) => Promise<LandingAd>;
   deleteAd: (id: string) => Promise<void>;
+  /** Internal: lets the provider fetch only while a component needs ads. */
+  subscribe: () => () => void;
 }
 
 const LandingAdsContext = createContext<LandingAdsContextValue | null>(null);
@@ -24,8 +34,27 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
   const [nextProductId, setNextProductId] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [consumers, setConsumers] = useState(0);
+  const consumersRef = useRef(0);
+
+  const subscribe = useCallback(() => {
+    consumersRef.current += 1;
+    setConsumers(consumersRef.current);
+    return () => {
+      consumersRef.current = Math.max(0, consumersRef.current - 1);
+      setConsumers(consumersRef.current);
+    };
+  }, []);
 
   useEffect(() => {
+    if (consumers === 0) {
+      setAds([]);
+      setIsLoaded(false);
+      setStorageError(null);
+      return;
+    }
+
+    const controller = new AbortController();
     let active = true;
     if (!shouldLoad) {
       setIsLoaded(true);
@@ -35,16 +64,18 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
     }
     setIsLoaded(false);
     adsApi
-      .list(isAdmin)
+      .list(isAdmin, controller.signal)
       .then((items) => {
         if (!active) return;
         setAds(items);
         setNextProductId(Math.max(0, ...items.map((ad) => ad.productId)) + 1);
         setStorageError(null);
       })
-      .catch((cause) => {
-        if (active) {
-          setStorageError(cause instanceof Error ? cause.message : 'Could not load ads.');
+      .catch((cause: unknown) => {
+        if (active && !controller.signal.aborted) {
+          setStorageError(
+            cause instanceof Error ? cause.message : 'Could not load ads.',
+          );
         }
       })
       .finally(() => {
@@ -53,8 +84,9 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
 
     return () => {
       active = false;
+      controller.abort();
     };
-  }, [isAdmin, shouldLoad]);
+  }, [consumers, isAdmin]);
 
   const saveAd = useCallback(
     async (input: LandingAdInput, id?: string) => {
@@ -78,15 +110,19 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const value = useMemo(
-    () => ({ ads, nextProductId, isLoaded, storageError, saveAd, deleteAd }),
-    [ads, nextProductId, isLoaded, storageError, saveAd, deleteAd],
+    () => ({ ads, nextProductId, isLoaded, storageError, saveAd, deleteAd, subscribe }),
+    [ads, nextProductId, isLoaded, storageError, saveAd, deleteAd, subscribe],
   );
 
   return <LandingAdsContext.Provider value={value}>{children}</LandingAdsContext.Provider>;
 }
 
-export function useLandingAds(): LandingAdsContextValue {
+export function useLandingAds(): Omit<LandingAdsContextValue, 'subscribe'> {
   const context = useContext(LandingAdsContext);
   if (!context) throw new Error('useLandingAds must be used inside LandingAdsProvider');
+
+  const { subscribe } = context;
+  useEffect(() => subscribe(), [subscribe]);
+
   return context;
 }

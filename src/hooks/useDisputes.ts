@@ -13,11 +13,17 @@ export const disputeKeys = {
 };
 
 export function useDisputes(state: DisputeState) {
-  return useQuery({ queryKey: disputeKeys.list(state), queryFn: () => disputesApi.list(state) });
+  return useQuery({
+    queryKey: disputeKeys.list(state),
+    queryFn: ({ signal }) => disputesApi.list(state, signal),
+  });
 }
 
 export function useDispute(jobId: string) {
-  return useQuery({ queryKey: disputeKeys.detail(jobId), queryFn: () => disputesApi.get(jobId) });
+  return useQuery({
+    queryKey: disputeKeys.detail(jobId),
+    queryFn: ({ signal }) => disputesApi.get(jobId, signal),
+  });
 }
 
 export function useResolveDispute() {

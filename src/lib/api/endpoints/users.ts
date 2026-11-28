@@ -7,7 +7,10 @@ import { api, unwrap } from '../client';
 export type UserItem = Customer & { role: UserRole };
 
 export const usersApi = {
-  async list(query: UserQuery = {}): Promise<PaginatedResponse<UserItem>> {
+  async list(
+    query: UserQuery = {},
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<UserItem>> {
     const { role, page = 1, pageSize = 10, ...filters } = query;
 
     const response = await unwrap(
@@ -22,6 +25,7 @@ export const usersApi = {
           page,
           limit: pageSize,
         },
+        signal,
       }),
     );
 

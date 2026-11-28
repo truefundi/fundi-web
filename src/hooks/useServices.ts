@@ -9,7 +9,7 @@ export const serviceKeys = { all: ['services'] as const };
 export function useServices(enabled = true) {
   return useQuery<Service[]>({
     queryKey: serviceKeys.all,
-    queryFn: servicesApi.list,
+    queryFn: ({ signal }) => servicesApi.list(signal),
     enabled,
   });
 }

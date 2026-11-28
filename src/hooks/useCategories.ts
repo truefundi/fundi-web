@@ -12,7 +12,7 @@ export const categoryKeys = {
 export function useCategories() {
   return useQuery({
     queryKey: categoryKeys.all,
-    queryFn: categoriesApi.list,
+    queryFn: ({ signal }) => categoriesApi.list(signal),
   });
 }
 

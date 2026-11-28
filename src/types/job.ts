@@ -221,3 +221,13 @@ export interface Job {
   dispute?: Dispute;
   events: JobEvent[];
 }
+
+/** A list row is deliberately not assignable to a complete job detail record. */
+export type JobListItem = Pick<Job,
+  'id' | 'reference' | 'service' | 'problem' | 'urgency' | 'location' |
+  'customer' | 'technician' | 'status' | 'bookingPaymentStatus' | 'bookingFee' |
+  'currency' | 'createdAt' | 'updatedAt' | 'completedAt' | 'latitude' |
+  'longitude' | 'offeredAmount' | 'visitFee'
+> & {
+  dispute: { id: string; resolvedAt: string | null } | null;
+};

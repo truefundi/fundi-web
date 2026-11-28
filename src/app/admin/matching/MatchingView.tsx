@@ -10,6 +10,7 @@ import {
   EmptyState,
   ErrorState,
   PageHeader,
+  Pagination,
   StatCard,
   Table,
   TableSkeleton,
@@ -17,16 +18,16 @@ import {
   Th,
   Tr,
 } from '@/components/ui';
-import { useJobs } from '@/hooks/useJobs';
+import { useJobs, usePrefetchJob } from '@/hooks/useJobs';
 import { formatWait, isOverdue } from '@/lib/jobs';
-import type { Job } from '@/types/job';
+import type { JobListItem } from '@/types/job';
 
 const QUEUE_QUERY = { group: 'matching', pageSize: 100 } as const;
 
 type QueueFilter = 'all' | 'waiting' | 'offered' | 'overdue' | 'emergencies';
 
 /** Urgent jobs first, then whoever has waited longest. */
-function byPriority(a: Job, b: Job): number {
+function byPriority(a: JobListItem, b: JobListItem): number {
   const urgent =
     Number(b.urgency === 'URGENT') - Number(a.urgency === 'URGENT');
 
@@ -35,7 +36,9 @@ function byPriority(a: Job, b: Job): number {
 
 export function MatchingView() {
   const router = useRouter();
-  const jobs = useJobs(QUEUE_QUERY);
+  const prefetchJob = usePrefetchJob();
+  const [page, setPage] = useState(1);
+  const jobs = useJobs({ ...QUEUE_QUERY, page });
 
   const [selectedFilter, setSelectedFilter] = useState<QueueFilter>('all');
 
@@ -171,10 +174,10 @@ export function MatchingView() {
       <Card className="mt-6 overflow-hidden">
         <CardHeader
           title="Negotiation queue"
-          description={
+             description={
             selectedFilter === 'all'
-              ? 'View all paid customer requests in the matching queue.'
-              : `Showing ${selectedFilter} jobs. Click the selected summary card again to clear the filter.`
+              ? 'Paid customer requests on this page. Summary counts and quick filters apply to the current page.'
+              : `Showing ${selectedFilter} jobs on this page. Click the selected summary card again to clear the filter.`
           }
         />
 
@@ -212,10 +215,12 @@ export function MatchingView() {
                     <Tr
                       key={job.id}
                       onClick={() => router.push(`/admin/jobs/${job.id}`)}
+                      onMouseEnter={() => prefetchJob(job.id)}
+                      onFocus={() => prefetchJob(job.id)}
                       label={`Open job ${job.reference}`}
                     >
                       <Td className="w-12 font-medium tabular-nums text-slate-500">
-                        {index + 1}
+                        {(jobs.data?.page ? jobs.data.page - 1 : 0) * QUEUE_QUERY.pageSize + index + 1}
                       </Td>
 
                       <Td>
@@ -274,6 +279,7 @@ export function MatchingView() {
             </tbody>
           </Table>
         )}
+        {jobs.data && !jobs.isError && <Pagination page={jobs.data.page} pageSize={jobs.data.pageSize} total={jobs.data.total} disabled={jobs.isFetching} onPageChange={setPage} />}
       </Card>
     </>
   );

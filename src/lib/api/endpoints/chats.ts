@@ -106,18 +106,19 @@ export const chatsApi = {
   async list(
     query?: ConversationQuery,
     _userId?: string,
+    signal?: AbortSignal,
   ): Promise<Conversation[]> {
     void _userId;
     const result = await unwrap<RawChatRoom[]>(
-      api.get('/admin/chat/rooms', { query: toQueryParams(query) }),
+      api.get('/admin/chat/rooms', { query: toQueryParams(query), signal }),
     );
     return (result ?? []).map(normalizeConversation);
   },
 
-  async get(id: string, _userId?: string): Promise<Conversation> {
+  async get(id: string, _userId?: string, signal?: AbortSignal): Promise<Conversation> {
     void _userId;
     const result = await unwrap<RawChatRoom>(
-      api.get(`/admin/chat/rooms/${id}`),
+      api.get(`/admin/chat/rooms/${id}`, { signal }),
     );
     return normalizeConversation(result);
   },

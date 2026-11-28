@@ -13,16 +13,17 @@ export const customerKeys = {
 
 export const statsKey = ['admin-stats'] as const;
 
-export function useCustomers(query: CustomerQuery) {
+export function useCustomers(query: CustomerQuery, enabled = true) {
   return useQuery({
     queryKey: customerKeys.list(query),
-    queryFn: () => customersApi.list(query),
+    queryFn: ({ signal }) => customersApi.list(query, signal),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 
 export function useAdminStats() {
-  return useQuery({ queryKey: statsKey, queryFn: customersApi.stats });
+  return useQuery({ queryKey: statsKey, queryFn: ({ signal }) => customersApi.stats(signal) });
 }
 
 export function useUpdateCustomerStatus() {

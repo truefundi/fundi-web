@@ -3,14 +3,13 @@
 import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { Badge, Card, EmptyState, ErrorState, PageHeader } from '@/components/ui';
-import { useJobs } from '@/hooks/useJobs';
+import { usePrefetchJob, useRatedJobs } from '@/hooks/useJobs';
 import { formatDate } from '@/lib/utils';
 
-const RATINGS_QUERY = { pageSize: 100 } as const;
-
 export function RatingsView() {
-  const jobs = useJobs(RATINGS_QUERY);
-  const ratedJobs = (jobs.data?.items ?? []).filter((job) => job.rating);
+  const jobs = useRatedJobs();
+  const prefetchJob = usePrefetchJob();
+  const ratedJobs = jobs.data ?? [];
 
   return (
     <>
@@ -47,6 +46,8 @@ export function RatingsView() {
                 <li key={job.id}>
                   <Link
                     href={`/admin/jobs/${job.id}`}
+                    onMouseEnter={() => prefetchJob(job.id)}
+                    onFocus={() => prefetchJob(job.id)}
                     className="block px-6 py-5 transition-colors hover:bg-slate-50"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">

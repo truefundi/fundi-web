@@ -14,16 +14,21 @@ export const technicianKeys = {
   detail: (id: string) => ['technicians', 'detail', id] as const,
 };
 
-export function useTechnicians(query: TechnicianQuery) {
+export function useTechnicians(query: TechnicianQuery, enabled = true) {
   return useQuery({
     queryKey: technicianKeys.list(query),
-    queryFn: () => techniciansApi.list(query),
+    queryFn: ({ signal }) => techniciansApi.list(query, signal),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 
-export function useTechnician(id: string) {
-  return useQuery({ queryKey: technicianKeys.detail(id), queryFn: () => techniciansApi.get(id) });
+export function useTechnician(id: string, enabled = true) {
+  return useQuery({
+    queryKey: technicianKeys.detail(id),
+    queryFn: ({ signal }) => techniciansApi.get(id, signal),
+    enabled,
+  });
 }
 
 /** Shared onSuccess: write the fresh record into the detail cache and refresh lists/stats. */

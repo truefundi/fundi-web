@@ -23,7 +23,7 @@ export function ReassignDialog({ job, open, onClose }: { job: Job; open: boolean
     verification: 'verified',
     status: 'active',
     pageSize: 100,
-  });
+  }, open);
 
   useEffect(() => {
     if (open) setSelected(null);

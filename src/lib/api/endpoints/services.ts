@@ -56,9 +56,9 @@ const buildPayload = (input: ServiceInput, includeStatus: boolean) => {
 };
 
 export const servicesApi = {
-  async list(): Promise<Service[]> {
+  async list(signal?: AbortSignal): Promise<Service[]> {
     const result = await unwrap<BackendService[]>(
-      api.get('/catalog/admin/services'),
+      api.get('/catalog/admin/services', { signal }),
     );
     return (result ?? []).map(mapService);
   },

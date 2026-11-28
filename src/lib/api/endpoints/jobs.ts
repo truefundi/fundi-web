@@ -1,9 +1,13 @@
 import { DEFAULT_PAGE_SIZE } from '@/config/pagination';
-import type { JobQuery, JobStats, PaginatedResponse } from '@/types/api';
-import { mapBackendJob } from '@/lib/api/adapters/jobs';
+import type { AdminPage, JobQuery, JobStats, PaginatedResponse } from '@/types/api';
 import {
-  jobGroup,
+  mapBackendJob,
+  mapBackendJobListItem,
+  type BackendJobListItem,
+} from '@/lib/api/adapters/jobs';
+import {
   type Job,
+  type JobListItem,
   type JobEditInput,
   type JobInput,
   type JobParty,
@@ -51,6 +55,7 @@ function validateJobLocationAndPayment(
 async function resolveServiceTarget(
   serviceName: string,
   otherServiceName?: string,
+  signal?: AbortSignal,
 ): Promise<{ serviceCategoryId?: string; otherServiceName?: string }> {
   const custom = otherServiceName?.trim();
   if (custom) {
@@ -58,7 +63,7 @@ async function resolveServiceTarget(
   }
 
   const response = await unwrap<Array<{ id: string; name: string }>>(
-    api.get('/catalog/admin/services'),
+    api.get('/catalog/admin/services', { signal }),
   );
 
   const selectedService = response.find(
@@ -78,56 +83,47 @@ function backendPriority(urgency: Urgency): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
 }
 
 export const jobsApi = {
-  async list(query: JobQuery = {}): Promise<PaginatedResponse<Job>> {
-    const response = await unwrap(api.get('/admin/jobs'));
-    const backendJobs = response as Parameters<typeof mapBackendJob>[0][];
-    const jobs = backendJobs.map(mapBackendJob);
-
-    const filteredJobs = jobs
-      .filter((job) => {
-        const search = query.search?.trim().toLowerCase();
-
-        const matchesSearch =
-          !search ||
-          [
-            job.reference,
-            job.problem,
-            job.customer.name,
-            job.technician?.name ?? '',
-            job.location,
-            job.service,
-          ].some((value) => value.toLowerCase().includes(search));
-
-        return (
-          matchesSearch &&
-          (!query.group || jobGroup(job) === query.group) &&
-          (!query.service || job.service === query.service) &&
-          (!query.urgency || job.urgency === query.urgency)
-        );
-      })
-      .sort(
-        (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
-      );
-
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? DEFAULT_PAGE_SIZE;
-    const start = (page - 1) * pageSize;
-
+  async list(
+    query: JobQuery = {},
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<JobListItem>> {
+    const { pageSize, search, ...filters } = query;
+    const response = await unwrap(
+      api.get<AdminPage<BackendJobListItem>>('/admin/jobs', {
+        query: {
+          ...filters,
+          search: search?.trim() || undefined,
+          page: query.page ?? 1,
+          limit: pageSize ?? DEFAULT_PAGE_SIZE,
+        },
+        signal,
+      }),
+    );
     return {
-      items: filteredJobs.slice(start, start + pageSize),
-      total: filteredJobs.length,
-      page,
-      pageSize,
+      items: response.data.map(mapBackendJobListItem),
+      total: response.pagination.total,
+      page: response.pagination.page,
+      pageSize: response.pagination.limit,
+      totalPages: response.pagination.totalPages,
     };
   },
 
-  async get(id: string): Promise<Job> {
-    const response = await unwrap(api.get(`/admin/jobs/${id}`));
+  // The paginated contract omits ratings. Keep the existing ratings screen on
+  // the legacy representation until a global rating-list endpoint is available.
+  async rated(signal?: AbortSignal): Promise<Job[]> {
+    const rows = await unwrap(
+      api.get<Parameters<typeof mapBackendJob>[0][]>('/admin/jobs', { signal }),
+    );
+    return rows.map(mapBackendJob).filter((job) => job.rating);
+  },
+
+  async get(id: string, signal?: AbortSignal): Promise<Job> {
+    const response = await unwrap(api.get(`/admin/jobs/${id}`, { signal }));
     return mapBackendJob(response as Parameters<typeof mapBackendJob>[0]);
   },
 
-  async stats(): Promise<JobStats> {
-    return unwrap(api.get('/admin/jobs/summary'));
+  async stats(signal?: AbortSignal): Promise<JobStats> {
+    return unwrap(api.get('/admin/jobs/summary', { signal }));
   },
 
   async cancel(id: string, reason: string): Promise<Job> {

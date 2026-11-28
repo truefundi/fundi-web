@@ -2,9 +2,9 @@ import { api, unwrap } from '../client';
 import type { CatalogCategory } from '@/types/service';
 
 export const categoriesApi = {
-  async list(): Promise<CatalogCategory[]> {
+  async list(signal?: AbortSignal): Promise<CatalogCategory[]> {
     const response = await unwrap<CatalogCategory[]>(
-      api.get('/catalog/admin/categories'),
+      api.get('/catalog/admin/categories', { signal }),
     );
     return response ?? [];
   },
