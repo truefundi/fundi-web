@@ -26,12 +26,13 @@ export interface VerificationChecklistItem {
 
 export interface VerificationChecklistResponse {
   complete: boolean;
+  hasProfilePicture?: boolean;
   items: VerificationChecklistItem[];
 }
 
-async function fetchDocumentBlob(documentId: string, retried = false): Promise<Blob> {
+async function fetchAdminBlob(path: string, retried = false): Promise<Blob> {
   const baseUrl = env.apiUrl.replace(/\/$/, '');
-  const response = await fetch(`${baseUrl}/admin/technician-documents/${documentId}/download`, {
+  const response = await fetch(`${baseUrl}${path}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -49,12 +50,12 @@ async function fetchDocumentBlob(documentId: string, retried = false): Promise<B
       .catch(() => false);
 
     if (refreshed) {
-      return fetchDocumentBlob(documentId, true);
+      return fetchAdminBlob(path, true);
     }
   }
 
   if (!response.ok) {
-    throw new ApiError(`Could not open the document (${response.status}).`, response.status);
+    throw new ApiError(`Could not open the file (${response.status}).`, response.status);
   }
 
   return response.blob();
@@ -72,15 +73,24 @@ export const technicianDocumentsApi = {
     file: File,
     type: 'NATIONAL_ID' | 'CERTIFICATE',
     title: string,
-    options?: { certificateType?: string; customCategoryName?: string },
+    options?: { certificateType?: string; categoryId?: string; customCategoryName?: string },
   ): Promise<TechnicianDocumentRecord> {
     const form = new FormData();
     form.append('file', file);
     form.append('type', type);
     form.append('title', title);
     if (options?.certificateType) form.append('certificateType', options.certificateType);
-    if (options?.customCategoryName) form.append('customCategoryName', options.customCategoryName);
+    if (options?.categoryId) form.append('categoryId', options.categoryId);
+    else if (options?.customCategoryName) form.append('customCategoryName', options.customCategoryName);
     return unwrap(api.post(`/admin/technicians/${technicianId}/documents`, form));
+  },
+
+  async downloadProfilePicture(technicianId: string): Promise<Blob> {
+    return fetchAdminBlob(`/admin/technicians/${technicianId}/picture`);
+  },
+
+  async downloadProfilePicture(technicianId: string): Promise<Blob> {
+    return fetchAdminBlob(`/admin/technicians/${technicianId}/picture`);
   },
 
   async list(
@@ -115,6 +125,6 @@ export const technicianDocumentsApi = {
   },
 
   async download(documentId: string): Promise<Blob> {
-    return fetchDocumentBlob(documentId);
+    return fetchAdminBlob(`/admin/technician-documents/${documentId}/download`);
   },
 };

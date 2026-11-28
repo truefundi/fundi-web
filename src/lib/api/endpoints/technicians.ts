@@ -1,7 +1,7 @@
 import { mapBackendTechnician, type BackendTechnician } from '@/lib/api/adapters/technicians';
 import type { PaginatedResponse, TechnicianQuery } from '@/types/api';
 import type { AccountStatus } from '@/types/customer';
-import type { Technician, TechnicianInput, TechnicianProfilePatch, VerificationStatus } from '@/types/technician';
+import type { ServiceExperience, Technician, TechnicianInput, TechnicianProfilePatch, VerificationStatus } from '@/types/technician';
 import { api, unwrap } from '../client';
 
 const ACCOUNT_TO_API: Record<AccountStatus, 'ACTIVE' | 'SUSPENDED' | 'INACTIVE'> = {
@@ -17,6 +17,8 @@ const VERIFICATION_TO_API: Record<VerificationStatus, 'PENDING' | 'APPROVED' | '
   rejected: 'REJECTED',
 };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function toLiveQuery(query: TechnicianQuery) {
   return {
     search: query.search,
@@ -31,6 +33,53 @@ function toLiveQuery(query: TechnicianQuery) {
 
 async function readLive(profile: Promise<BackendTechnician> | BackendTechnician): Promise<Technician> {
   return mapBackendTechnician(await profile);
+}
+
+function apiServiceExperiences(
+  experiences: ServiceExperience[] | undefined,
+): Array<{ categoryId?: string; customName?: string; yearsOfExperience: number }> | undefined {
+  if (!experiences) return undefined;
+  return experiences
+    .map((experience) => {
+      const yearsOfExperience = Number.isFinite(experience.yearsOfExperience)
+        ? Math.max(0, Math.min(60, Math.round(experience.yearsOfExperience)))
+        : 1;
+      if (experience.categoryId && UUID.test(experience.categoryId)) {
+        return { categoryId: experience.categoryId, yearsOfExperience };
+      }
+      return { customName: (experience.customName || '').trim(), yearsOfExperience };
+    })
+    .filter((experience) => experience.categoryId || Boolean(experience.customName));
+}
+
+type ProfileInput = TechnicianInput | TechnicianProfilePatch;
+
+function profilePayload(input: ProfileInput, isCreate: boolean) {
+  const payload: Record<string, unknown> = {};
+  const address = input.location?.trim();
+
+  if (input.name !== undefined) payload.fullName = input.name.trim();
+  if (input.phone !== undefined) payload.phoneNumber = input.phone.replace(/\s/g, '');
+  if (input.email !== undefined) payload.email = input.email.trim() || null;
+  if (input.location !== undefined) {
+    payload.baseAddress = address || 'Kigali, Rwanda';
+    payload.publicLocationLabel = (address || 'Kigali').split(',')[0].trim();
+  }
+  if (input.baseLatitude !== undefined) payload.baseLatitude = input.baseLatitude;
+  else if (isCreate) payload.baseLatitude = -1.9441;
+  if (input.baseLongitude !== undefined) payload.baseLongitude = input.baseLongitude;
+  else if (isCreate) payload.baseLongitude = 30.0619;
+  if (input.gender !== undefined) payload.gender = input.gender;
+  if (input.nationalIdNumber !== undefined) {
+    const nationalId = input.nationalIdNumber.trim();
+    if (nationalId && !/^\*{4}\d{4}$/.test(nationalId)) payload.nationalIdNumber = nationalId;
+  }
+  if (input.paymentMethod !== undefined) payload.paymentMethod = input.paymentMethod;
+  if (input.paymentNumber !== undefined) payload.paymentNumber = input.paymentNumber.replace(/\s/g, '');
+  if (input.serviceExperiences !== undefined) {
+    payload.serviceExperiences = apiServiceExperiences(input.serviceExperiences);
+  }
+  return payload;
 }
 
 export const techniciansApi = {
@@ -58,41 +107,11 @@ export const techniciansApi = {
     );
   },
 
+  /** Profile fields and user identity are all accepted by the admin profile DTO. */
   async update(id: string, patch: TechnicianProfilePatch): Promise<Technician> {
-    if (patch.name !== undefined || patch.phone !== undefined || patch.email !== undefined) {
-      const profile = await unwrap(api.get<BackendTechnician>(`/admin/technicians/${id}`));
-      await unwrap(
-        api.patch(`/users/${profile.user.id}`, {
-          ...(patch.name !== undefined ? { fullName: patch.name } : {}),
-          ...(patch.phone !== undefined ? { phoneNumber: patch.phone } : {}),
-          ...(patch.email ? { email: patch.email } : {}),
-        }),
-      );
-    }
-
-    // Backend AdminUpdateTechnicianDto accepts profile fields (location, service experiences)
-    const profilePayload: Record<string, unknown> = {};
-    if (patch.location !== undefined) {
-      profilePayload.publicLocationLabel = patch.location;
-      profilePayload.baseAddress = patch.location;
-    }
-    if (patch.gender !== undefined) profilePayload.gender = patch.gender;
-    if (patch.nationalIdNumber !== undefined) profilePayload.nationalIdNumber = patch.nationalIdNumber;
-    if (patch.paymentMethod !== undefined) profilePayload.paymentMethod = patch.paymentMethod;
-    if (patch.paymentNumber !== undefined) profilePayload.paymentNumber = patch.paymentNumber;
-    if (patch.trades !== undefined || patch.yearsExperience !== undefined) {
-      const trades = patch.trades ?? (await techniciansApi.get(id)).trades;
-      profilePayload.serviceExperiences = trades.map((trade) => ({
-        customName: trade,
-        yearsOfExperience: patch.yearsExperience ?? 1,
-      }));
-    }
-
-    if (Object.keys(profilePayload).length > 0) {
-      return readLive(unwrap(api.patch<BackendTechnician>(`/admin/technicians/${id}`, profilePayload)));
-    }
-
-    return techniciansApi.get(id);
+    const payload = profilePayload(patch, false);
+    if (Object.keys(payload).length === 0) return techniciansApi.get(id);
+    return readLive(unwrap(api.patch<BackendTechnician>(`/admin/technicians/${id}`, payload)));
   },
 
   async updateStatus(id: string, status: AccountStatus): Promise<Technician> {
@@ -120,26 +139,15 @@ export const techniciansApi = {
     );
   },
 
-  /** Adds a technician; they still need verification before they can receive jobs. */
+  /** Adds a technician with the same profile fields the mobile application sends. */
   async create(input: TechnicianInput): Promise<Technician> {
     const payload = {
       user: {
         fullName: input.name,
         phoneNumber: input.phone,
-        email: input.email || undefined,
+        ...(input.email?.trim() ? { email: input.email.trim() } : {}),
       },
-      profile: {
-        gender: input.gender,
-        nationalIdNumber: input.nationalIdNumber,
-        paymentMethod: input.paymentMethod,
-        paymentNumber: input.paymentNumber,
-        publicLocationLabel: input.location,
-        baseAddress: input.location,
-        serviceExperiences: (input.trades || []).map((trade) => ({
-          customName: trade,
-          yearsOfExperience: input.yearsExperience ?? 1,
-        })),
-      },
+      profile: profilePayload(input, true),
     };
     return readLive(unwrap(api.post<BackendTechnician>('/admin/technicians', payload)));
   },

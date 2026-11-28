@@ -1,6 +1,5 @@
-import type { ServiceCategory } from '@/config/services';
 import type { AccountStatus } from '@/types/customer';
-import type { Technician, VerificationStatus } from '@/types/technician';
+import type { ServiceExperience, Technician, VerificationStatus } from '@/types/technician';
 
 export type BackendTechnician = {
   id: string;
@@ -13,12 +12,20 @@ export type BackendTechnician = {
     createdAt: string;
     updatedAt: string;
   };
+  businessType?: 'INDIVIDUAL' | 'COMPANY' | null;
   yearsOfExperience?: number;
   serviceExperiences?: Array<{
+    id?: string;
+    categoryId?: string | null;
     category?: { name?: string | null } | null;
     customName?: string | null;
     yearsOfExperience?: number;
   }>;
+  stats?: {
+    averageRating?: number | null;
+    ratingCount?: number;
+    jobsCompleted?: number;
+  };
   verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   /** The admin's note on a rejected application. */
   rejectionReason?: string | null;
@@ -26,6 +33,8 @@ export type BackendTechnician = {
   location?: {
     address?: string | null;
     publicLocationLabel?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
   } | null;
   nationalIdNumber?: string | null;
   gender?: Technician['gender'] | null;
@@ -48,22 +57,44 @@ const VERIFICATION: Record<BackendTechnician['verificationStatus'], Verification
   REJECTED: 'rejected',
 };
 
+function serviceName(row: NonNullable<BackendTechnician['serviceExperiences']>[number]): string {
+  return row.category?.name?.trim() || row.customName?.trim() || '';
+}
+
 export function mapBackendTechnician(profile: BackendTechnician): Technician {
+  const serviceExperiences: ServiceExperience[] = (profile.serviceExperiences ?? [])
+    .map((row) => ({
+      ...(row.id ? { id: row.id } : {}),
+      categoryId: row.categoryId ?? null,
+      customName: row.customName ?? serviceName(row),
+      yearsOfExperience: row.yearsOfExperience ?? 0,
+    }))
+    .filter((row) => Boolean(row.customName));
+
   return {
-    id: profile.id, name: profile.user.fullName, phone: profile.user.phoneNumber,
-    email: profile.user.email || undefined, status: STATUS[profile.user.status],
+    id: profile.id,
+    name: profile.user.fullName,
+    phone: profile.user.phoneNumber,
+    email: profile.user.email || undefined,
+    status: STATUS[profile.user.status],
     location: profile.location?.publicLocationLabel || profile.location?.address || '—',
-    createdAt: profile.user.createdAt, lastActiveAt: profile.updatedAt,
-    trades: (profile.serviceExperiences ?? []).map((row) => row.category?.name || row.customName)
-      .filter((name): name is ServiceCategory => Boolean(name)),
+    baseAddress: profile.location?.address ?? undefined,
+    baseLatitude: profile.location?.latitude ?? null,
+    baseLongitude: profile.location?.longitude ?? null,
+    createdAt: profile.user.createdAt,
+    lastActiveAt: profile.updatedAt,
+    serviceExperiences,
+    trades: serviceExperiences.map((row) => row.customName || ''),
     yearsExperience: profile.yearsOfExperience ?? 0,
-    rating: 0, jobsCompleted: 0, isAvailable: profile.availabilityStatus === 'ONLINE',
+    rating: Number(profile.stats?.averageRating ?? 0),
+    jobsCompleted: profile.stats?.jobsCompleted ?? 0,
+    isAvailable: profile.availabilityStatus === 'ONLINE',
     verification: {
       status: VERIFICATION[profile.verificationStatus],
       certificateUrls: [],
       ...(profile.rejectionReason ? { rejectionReason: profile.rejectionReason } : {}),
     },
-    workSettings: { radiusKm: 10, maxJobsPerDay: 4, hours: 'always' },
+    businessType: profile.businessType ?? undefined,
     gender: profile.gender ?? undefined,
     nationalIdNumber: profile.nationalIdNumber ?? undefined,
     paymentMethod: profile.paymentMethod ?? undefined,

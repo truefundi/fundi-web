@@ -11,6 +11,7 @@ export const dashboardKeys = {
   analytics: (query: DashboardQuery) =>
     ["dashboard", "analytics", query] as const,
   jobSummary: ["dashboard", "job-summary"] as const,
+  jobPipeline: ["dashboard", "job-pipeline"] as const,
 };
 
 export function useDashboardAnalytics(

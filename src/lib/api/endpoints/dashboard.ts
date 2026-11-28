@@ -1,3 +1,4 @@
+import type { JobPipeline } from "@/types/api";
 import type {
   DashboardActivityPage,
   DashboardBreakdowns,

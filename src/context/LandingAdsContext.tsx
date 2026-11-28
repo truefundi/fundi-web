@@ -29,6 +29,7 @@ const LandingAdsContext = createContext<LandingAdsContextValue | null>(null);
 export function LandingAdsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
+  const shouldLoad = pathname === '/' || pathname.startsWith('/products/') || pathname === '/admin/ads';
   const [ads, setAds] = useState<LandingAd[]>([]);
   const [nextProductId, setNextProductId] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -55,6 +56,12 @@ export function LandingAdsProvider({ children }: { children: React.ReactNode }) 
 
     const controller = new AbortController();
     let active = true;
+    if (!shouldLoad) {
+      setIsLoaded(true);
+      return () => {
+        active = false;
+      };
+    }
     setIsLoaded(false);
     adsApi
       .list(isAdmin, controller.signal)

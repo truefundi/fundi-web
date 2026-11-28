@@ -1,4 +1,3 @@
-import type { ServiceCategory } from '@/config/services';
 import type { Account } from './customer';
 
 /** Mirrors mobile WorkStatus (none | pending | verified) plus admin-only `rejected`. */
@@ -11,14 +10,26 @@ export const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
   rejected: 'Rejected',
 };
 
-export type WorkHours = 'mornings' | 'days' | 'evenings' | 'always';
+export type BusinessType = 'INDIVIDUAL' | 'COMPANY';
 
-export const WORK_HOURS_LABEL: Record<WorkHours, string> = {
-  mornings: 'Mornings',
-  days: 'Daytime',
-  evenings: 'Evenings',
-  always: 'Any time',
-};
+export type Gender = 'FEMALE' | 'MALE' | 'NON_BINARY' | 'PREFER_NOT_TO_SAY';
+export type PaymentMethod = 'MOMO' | 'BANK_TRANSFER' | 'CASH' | 'OTHER';
+
+/** A trade backed by a catalog service (categoryId) or entered by the admin (customName). */
+export interface ServiceExperience {
+  id?: string;
+  categoryId?: string | null;
+  customName?: string | null;
+  yearsOfExperience: number;
+}
+
+export interface CompanyDetails {
+  name: string;
+  location: string;
+  email: string;
+  phoneNumber: string;
+  description?: string;
+}
 
 export interface TechnicianVerification {
   status: VerificationStatus;
@@ -30,39 +41,39 @@ export interface TechnicianVerification {
   certificateUrls: string[];
 }
 
-/** Mirrors mobile WorkSettings (constants/work.ts). */
-export interface WorkSettings {
-  radiusKm: number;
-  maxJobsPerDay: number;
-  hours: WorkHours;
-}
-
 export interface Technician extends Account {
   profilePictureUrl?: string;
-  trades: ServiceCategory[];
+  trades: string[];
+  serviceExperiences?: ServiceExperience[];
   yearsExperience: number;
   rating: number;
   jobsCompleted: number;
   isAvailable: boolean;
   verification: TechnicianVerification;
-  workSettings: WorkSettings;
-  gender?: 'FEMALE' | 'MALE' | 'NON_BINARY' | 'PREFER_NOT_TO_SAY';
+  businessType?: BusinessType;
+  gender?: Gender;
   nationalIdNumber?: string;
-  paymentMethod?: 'MOMO' | 'BANK_TRANSFER' | 'CASH' | 'OTHER';
+  paymentMethod?: PaymentMethod;
   paymentNumber?: string;
+  baseAddress?: string;
+  baseLatitude?: number | null;
+  baseLongitude?: number | null;
 }
 
-/** What the admin fills in to add a technician; verification starts as "not submitted". */
-export type TechnicianInput = Pick<Technician, 'name' | 'phone' | 'location' | 'trades' | 'yearsExperience'> & {
+/** What the admin fills in to add a technician; verification starts as "pending". */
+export interface TechnicianInput {
+  name: string;
+  phone: string;
   email?: string;
-  workSettings: WorkSettings;
-  gender: NonNullable<Technician['gender']>;
-  nationalIdNumber: string;
-  paymentMethod: NonNullable<Technician['paymentMethod']>;
+  location: string;
+  baseLatitude?: number;
+  baseLongitude?: number;
+  serviceExperiences: ServiceExperience[];
+  gender: Gender;
+  nationalIdNumber?: string;
+  paymentMethod: PaymentMethod;
   paymentNumber: string;
-};
+}
 
 /** Fields an admin may edit on a technician profile. */
-export type TechnicianProfilePatch = Partial<
-  Pick<Technician, 'name' | 'phone' | 'email' | 'location' | 'trades' | 'yearsExperience' | 'gender' | 'nationalIdNumber' | 'paymentMethod' | 'paymentNumber'>
-> & { workSettings?: Partial<WorkSettings> };
+export type TechnicianProfilePatch = Partial<TechnicianInput>;

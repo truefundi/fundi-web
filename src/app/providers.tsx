@@ -20,6 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               failureCount < 1 &&
               !(error instanceof ApiError && error.statusCode >= 400 && error.statusCode < 500),
             refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
           },
         },
       }),

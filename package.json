@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "dev:open": "node scripts/dev-open.mjs",
-    "build": "next build",
-    "start": "next start -p 3001",
+    "build": "NEXT_DIST_DIR=.next-prod next build",
+    "start": "NEXT_DIST_DIR=.next-prod next start -p 3001",
     "lint": "eslint .",
     "test:api": "node --test scripts/test-api-contracts.cjs"
   },

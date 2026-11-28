@@ -5,7 +5,11 @@ import { CheckCircle2, Download, Eye, FileText, X, XCircle } from 'lucide-react'
 import { Card, CardBody, CardHeader, Button, ConfirmDialog, ErrorState, Spinner, useToast } from '@/components/ui';
 import { technicianDocumentsApi } from '@/lib/api';
 import type { DocumentReviewStatus, TechnicianDocumentRecord } from '@/lib/api/endpoints/technician-documents';
-import { useReviewTechnicianDocument, useTechnicianDocuments } from '@/hooks/useTechnicianDocuments';
+import {
+  useReviewTechnicianDocument,
+  useTechnicianDocuments,
+  useTechnicianVerificationChecklist,
+} from '@/hooks/useTechnicianDocuments';
 import { useApproveVerification, useRejectVerification } from '@/hooks/useTechnicians';
 import type { Technician } from '@/types/technician';
 import { VerificationBadge } from './VerificationBadge';
@@ -28,6 +32,7 @@ function statusLabel(status: TechnicianDocumentRecord['status']) {
 
 export function TechnicianDocumentsPanel({ technician }: { technician: Technician }) {
   const documents = useTechnicianDocuments(technician.id);
+  const checklist = useTechnicianVerificationChecklist(technician.id);
   const review = useReviewTechnicianDocument();
   const approve = useApproveVerification();
   const reject = useRejectVerification();
@@ -38,6 +43,7 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
   const [statuses, setStatuses] = useState<Record<string, DocumentReviewStatus>>({});
   const [preview, setPreview] = useState<PreviewTarget | null>(null);
   const [loadingPreviewId, setLoadingPreviewId] = useState<string | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
   const verificationStatus = technician.verification?.status ?? 'not_submitted';
   const canApprove = verificationStatus === 'pending' || verificationStatus === 'rejected';
@@ -47,14 +53,14 @@ export function TechnicianDocumentsPanel({ technician }: { technician: Technicia
 
   useEffect(() => {
     return () => {
-      if (preview?.kind === 'document' && preview.url.startsWith('blob:')) {
+      if (preview?.url.startsWith('blob:')) {
         URL.revokeObjectURL(preview.url);
       }
     };
   }, [preview]);
 
   function closePreview() {
-    if (preview?.kind === 'document' && preview.url.startsWith('blob:')) {
+    if (preview?.url.startsWith('blob:')) {
       URL.revokeObjectURL(preview.url);
     }
     setPreview(null);
@@ -71,6 +77,31 @@ function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus
   const docList = documents.data ?? [];
   const allDocumentsApproved =
     docList.length > 0 && docList.every((doc) => getEffectiveStatus(doc) === 'ACCEPTED');
+  const checklistItems = checklist.data?.items ?? [];
+  const profilePictureUploaded =
+    checklist.data?.hasProfilePicture ?? Boolean(technician.profilePictureUrl);
+  const missingChecklistItems = checklistItems.filter((item) => !item.satisfied);
+  const approvalReady = allDocumentsApproved && Boolean(checklist.data?.complete);
+
+  useEffect(() => {
+    if (!profilePictureUploaded) return;
+    let active = true;
+    let objectUrl: string | null = null;
+    technicianDocumentsApi
+      .downloadProfilePicture(technician.id)
+      .then((blob) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        setProfilePictureUrl(objectUrl);
+      })
+      .catch(() => {
+        if (active) setProfilePictureUrl(null);
+      });
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [profilePictureUploaded, technician.id]);
 
   async function runVerification(action: () => Promise<unknown>, message: string) {
     try {
@@ -123,21 +154,28 @@ function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus
     }
   }
 
-  function openProfilePicturePreview() {
-    if (!technician.profilePictureUrl) return;
-    const previousUrl =
-      preview?.kind === 'document' && preview.url.startsWith('blob:') ? preview.url : null;
-    if (previousUrl) {
-      URL.revokeObjectURL(previousUrl);
+  async function openProfilePicturePreview() {
+    if (!profilePictureUploaded) return;
+    setLoadingPreviewId('profile-picture');
+    try {
+      const blob = await technicianDocumentsApi.downloadProfilePicture(technician.id);
+      const previousUrl = preview?.url.startsWith('blob:') ? preview.url : null;
+      if (previousUrl) {
+        URL.revokeObjectURL(previousUrl);
+      }
+      setPreview({
+        kind: 'profile',
+        id: 'profile-picture',
+        title: 'Profile picture',
+        subtitle: technicianName,
+        url: URL.createObjectURL(blob),
+        mimeType: blob.type || 'image/*',
+      });
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Could not open the profile picture', 'error');
+    } finally {
+      setLoadingPreviewId(null);
     }
-    setPreview({
-      kind: 'profile',
-      id: 'profile-picture',
-      title: 'Profile picture',
-      subtitle: technicianName,
-      url: technician.profilePictureUrl,
-      mimeType: 'image/*',
-    });
   }
 
   function restoreStatus(docId: string, previousStatus: DocumentReviewStatus | undefined) {
@@ -222,10 +260,10 @@ function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus
             {canApprove && (
               <Button
                 size="sm"
-                disabled={!allDocumentsApproved}
+                disabled={!approvalReady}
                 onClick={() => setDialog('approve')}
                 className={
-                  allDocumentsApproved
+                  approvalReady
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                     : 'cursor-not-allowed bg-slate-200 text-slate-500 hover:bg-slate-200'
                 }
@@ -250,21 +288,33 @@ function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus
       <CardBody className="space-y-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Documents</p>
 
+        {missingChecklistItems.length > 0 && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+            Cannot approve yet. Missing: {missingChecklistItems.map((item) => item.label).join(', ')}.
+          </div>
+        )}
+
         {documents.isLoading ? (
           <div className="flex justify-center py-4"><Spinner /></div>
         ) : documents.isError ? (
           <ErrorState message={documents.error.message} onRetry={() => documents.refetch()} />
         ) : documents.data ? (
           <div className="space-y-4">
-            {technician.profilePictureUrl ? (
+            {profilePictureUploaded ? (
               <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-4">
                 <div className="flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={technician.profilePictureUrl}
-                    alt={`Profile · ${technicianName}`}
-                    className="h-10 w-10 rounded-md object-cover"
-                  />
+                  {profilePictureUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profilePictureUrl}
+                      alt={`Profile · ${technicianName}`}
+                      className="h-10 w-10 rounded-md object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100">
+                      <Spinner />
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
                       Profile picture <span className="font-normal text-slate-500">· {technicianName}</span>
@@ -272,7 +322,12 @@ function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus
                     <p className="text-xs text-emerald-700">Uploaded</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={openProfilePicturePreview}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  loading={loadingPreviewId === 'profile-picture'}
+                  onClick={openProfilePicturePreview}
+                >
                   <Eye className="mr-1 h-4 w-4" /> View
                 </Button>
               </div>
@@ -284,7 +339,7 @@ function getEffectiveStatus(doc: TechnicianDocumentRecord): DocumentReviewStatus
                       Profile picture <span className="font-normal text-slate-500">· {technicianName}</span>
                     </p>
                     <p className="text-xs text-amber-700">
-                      Required before verification approval. Upload it from Edit profile at the top of the page.
+                      Optional. Upload it from Edit profile at the top of the page.
                     </p>
                   </div>
                   <span className="rounded-md bg-white px-3 py-2 text-sm font-medium text-amber-700">

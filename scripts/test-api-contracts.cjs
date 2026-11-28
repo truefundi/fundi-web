@@ -97,25 +97,54 @@ test("invalid login preserves the 2FA flow and surfaces validation errors", asyn
 });
 test("service writes preserve zero fees and metadata", async () => {
   mockFetch((url, options) => {
-    assert.equal(url, "/api/v1/catalog/services");
+    if (options.method === "POST") {
+      assert.equal(url, "/api/v1/catalog/services");
+      const body = JSON.parse(options.body);
+      assert.equal(body.categoryId, "cat-1");
+      assert.equal(body.bookingFee, 0);
+      assert.equal(body.emergencyVisitFee, 0);
+      assert.equal(body.description, "Fix leaks");
+      return reply({
+        ...body,
+        id: "service-1",
+        isActive: true,
+        createdAt: "2026-11-09",
+        updatedAt: "2026-11-09",
+        category: { id: "cat-1", name: "Mechanical" },
+      });
+    }
+    assert.equal(url, "/api/v1/catalog/services/service-1");
     const body = JSON.parse(options.body);
-    assert.equal(body.bookingFee, 0);
-    assert.equal(body.emergencyVisitFee, 0);
-    assert.equal(body.description, "Fix leaks");
-    assert.equal(body.categoryId, "category");
-    return reply({ ...body, id: "category", createdAt: "2026-11-09" });
+    assert.equal(body.isActive, false);
+    return reply({
+      ...body,
+      id: "service-1",
+      createdAt: "2026-11-09",
+      updatedAt: "2026-11-09",
+      category: { id: "cat-1", name: "Mechanical" },
+    });
   });
-  const service = await servicesApi.create({
+  const created = await servicesApi.create({
     name: "Plumbing",
-    categoryId: "category",
+    categoryId: "cat-1",
     category: "Mechanical",
     description: "Fix leaks",
     visitFee: 0,
     emergencyVisitFee: 0,
     isActive: false,
   });
-  assert.equal(service.visitFee, 0);
-  assert.equal(service.emergencyVisitFee, 0);
+  assert.equal(created.visitFee, 0);
+  assert.equal(created.emergencyVisitFee, 0);
+  const updated = await servicesApi.update("service-1", {
+    name: "Plumbing",
+    categoryId: "cat-1",
+    category: "Mechanical",
+    description: "Fix leaks",
+    visitFee: 0,
+    emergencyVisitFee: 0,
+    isActive: false,
+  });
+  assert.equal(updated.isActive, false);
 });
 test("broadcasts use preview POST and paginated history", async () => {
   mockFetch((url, options) => {
@@ -192,7 +221,7 @@ test("job creation includes payment and verified phone prerequisites", async () 
   assert.equal(job.latitude, -1);
   assert.equal(job.offeredAmount, 20000);
 });
-test("chat listing uses the current room endpoint and omits empty search", async () => {
+test("conversation filters omit empty search when listing chat rooms", async () => {
   mockFetch((url) => {
     assert.equal(url, "/api/v1/admin/chat/rooms?status=agreed");
     return reply([]);
@@ -210,7 +239,7 @@ test("all-user pagination uses one backend page instead of merging role pages", 
     200,
   );
 });
-test("technician identity updates target linked user ID", async () => {
+test("technician identity updates use the admin profile endpoint", async () => {
   const profile = {
     id: "profile",
     user: {
@@ -224,7 +253,7 @@ test("technician identity updates target linked user ID", async () => {
   let updates = 0;
   mockFetch((url, options) => {
     if (options.method === "PATCH") {
-      assert.equal(url, "/api/v1/users/user");
+      assert.equal(url, "/api/v1/admin/technicians/profile");
       assert.deepEqual(JSON.parse(options.body), { fullName: "Jane Doe" });
       updates++;
     }
