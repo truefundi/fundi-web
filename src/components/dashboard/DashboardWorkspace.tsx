@@ -26,6 +26,7 @@ import type { ReactNode } from "react";
 import {
   useDashboardActivityStream,
   useDashboardAnalytics,
+  useDashboardSectionPrefetch,
 } from "@/hooks/useDashboard";
 import { useServices } from "@/hooks/useServices";
 import { formatRelative } from "@/lib/utils";
@@ -1029,18 +1030,33 @@ function DataTable({
   headers,
   rows,
   emptyText = "No data in this period.",
+  loading = false,
 }: {
   title: string;
   description: string;
   headers: string[];
   rows: Array<Array<string | number>>;
   emptyText?: string;
+  loading?: boolean;
 }) {
   return (
     <Card>
       <CardHeader title={title} description={description} />
       <div className="overflow-x-auto">
-        {rows.length ? (
+        {loading ? (
+          <div className="divide-y divide-slate-100" role="status" aria-label="Loading">
+            {Array.from({ length: 4 }, (_, rowIndex) => (
+              <div key={rowIndex} className="flex gap-4 px-5 py-3.5">
+                {headers.map((header) => (
+                  <span
+                    key={header}
+                    className="h-4 flex-1 animate-pulse rounded bg-slate-200"
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : rows.length ? (
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
               <tr>
@@ -1140,6 +1156,7 @@ export function DashboardWorkspace() {
   }, [compare, filters, from, month, period, serviceCategoryId, to, year]);
 
   const query = queryState.query;
+  const prefetchSection = useDashboardSectionPrefetch(query);
   const analytics = useDashboardAnalytics(query, queryState.ready, section);
   const refreshableQueries = [
     analytics.overview,
@@ -1590,6 +1607,8 @@ export function DashboardWorkspace() {
             aria-selected={section === id}
             aria-controls={`dashboard-panel-${id}`}
             onClick={() => setSection(id)}
+            onMouseEnter={() => prefetchSection(id)}
+            onFocus={() => prefetchSection(id)}
             className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
               section === id
                 ? "bg-brand-600 text-white shadow-sm"
@@ -1783,6 +1802,7 @@ export function DashboardWorkspace() {
                     row.count,
                   ],
                 )}
+                loading={analytics.overview.isPending}
               />
             </div>
           </div>
@@ -1822,6 +1842,7 @@ export function DashboardWorkspace() {
                 money(row.amount),
               ])}
               emptyText="No payments were recorded in this period."
+              loading={breakdownLoading}
             />
           </div>
         )}
@@ -1870,11 +1891,8 @@ export function DashboardWorkspace() {
                   technician.completedJobs,
                   technician.averageRating?.toFixed(2) ?? "—",
                 ])}
-                emptyText={
-                  analytics.topTechnicians.isPending
-                    ? "Loading technician rankings…"
-                    : "No completed jobs in this period."
-                }
+                emptyText="No completed jobs in this period."
+                loading={analytics.topTechnicians.isPending}
               />
             </div>
             <DataTable
@@ -1885,6 +1903,7 @@ export function DashboardWorkspace() {
                 breakdowns?.catalog.servicesByCategoryAndStatus ?? [],
                 (row) => row.category.name ?? "Uncategorized",
               ).map((row) => [row.label, row.value])}
+              loading={breakdownLoading}
             />
           </div>
         )}
@@ -1966,6 +1985,7 @@ export function DashboardWorkspace() {
                   sumCounts(overview?.technicianDocuments ?? []),
                 ],
               ]}
+              loading={analytics.overview.isPending}
             />
             <div className="grid gap-6 xl:grid-cols-2">
               <VerificationQueue />
